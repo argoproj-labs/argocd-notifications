@@ -1,0 +1,11 @@
+triggers:
+  - name: on-degraded
+    condition: app.status.health.status == 'Degraded'
+    template: app-status-changed
+    recipients:
+      slack: [amatyushentsev]
+
+templates:
+  - name: app-status-changed
+    title: Application {{.app.metadata.name}} health is {{.app.status.health.status}}
+    body: Application [{{.app.metadata.name}}]({{.context.argocdUrl}}) health is {{.name.status.health.status}}.
