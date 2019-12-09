@@ -1,11 +1,14 @@
 triggers:
-  - name: on-degraded
-    condition: app.status.health.status == 'Degraded'
-    template: app-status-changed
-    recipients:
-      slack: [amatyushentsev]
+  - name: on-sync-unknown
+    condition: app.status.sync.status == 'Unknown'
+    template: app-sync-status
 
 templates:
-  - name: app-status-changed
-    title: Application {{.app.metadata.name}} health is {{.app.status.health.status}}
-    body: Application [{{.app.metadata.name}}]({{.context.argocdUrl}}) health is {{.name.status.health.status}}.
+  - name: app-sync-status
+    title: Application {{.app.metadata.name}} sync status is {{.app.status.sync.status}}
+    body: |
+      Application {{.app.metadata.name}} sync is {{.name.status.sync.status}}.
+      Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
+
+context:
+  argocdUrl: https://argocd.myhost.com

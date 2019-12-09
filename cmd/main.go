@@ -6,6 +6,10 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/argoproj-labs/argocd-notifications/notifiers"
+
+	"github.com/argoproj-labs/argocd-notifications/triggers"
+
 	"gopkg.in/yaml.v2"
 
 	"github.com/argoproj-labs/argocd-notifications/controller"
@@ -23,10 +27,11 @@ func main() {
 
 func newCommand() *cobra.Command {
 	var (
-		clientConfig    clientcmd.ClientConfig
-		processorsCount int
-		namespace       string
-		configPath      string
+		clientConfig        clientcmd.ClientConfig
+		processorsCount     int
+		namespace           string
+		configPath          string
+		notifiersConfigPath string
 	)
 	var command = cobra.Command{
 		Use: "argocd-notifications",
@@ -55,7 +60,26 @@ func newCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			ctrl := controller.NewController(client, namespace, config)
+
+			notifiersData, err := ioutil.ReadFile(notifiersConfigPath)
+			if err != nil {
+				return err
+			}
+			notifiersConfig := notifiers.Config{}
+			err = yaml.Unmarshal(notifiersData, &notifiersConfig)
+			if err != nil {
+				return err
+			}
+
+			t, err := triggers.GetTriggers(config.Templates, config.Triggers)
+			if err != nil {
+				return err
+			}
+
+			ctrl, err := controller.NewController(client, namespace, t, notifiers.GetAll(notifiersConfig), config.Context)
+			if err != nil {
+				return err
+			}
 			return ctrl.Run(context.Background(), processorsCount)
 		},
 	}
@@ -63,6 +87,7 @@ func newCommand() *cobra.Command {
 	command.Flags().IntVar(&processorsCount, "processors-count", 3, "Processors count.")
 	command.Flags().StringVar(&namespace, "namespace", "", "Namespace which controller handles. Current namespace if empty.")
 	command.Flags().StringVar(&configPath, "config", "./config.yaml", "Configuration file location")
+	command.Flags().StringVar(&notifiersConfigPath, "notifiers", "./notifiers.yaml", "Notifiers config file location")
 
 	return &command
 }

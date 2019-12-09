@@ -2,10 +2,19 @@ package controller
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 	"runtime/debug"
+	"strings"
 	"time"
+
+	"k8s.io/apimachinery/pkg/types"
+
+	"github.com/argoproj-labs/argocd-notifications/notifiers"
+
+	"github.com/argoproj-labs/argocd-notifications/triggers"
 
 	log "github.com/sirupsen/logrus"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -21,18 +30,39 @@ import (
 )
 
 const (
-	resyncPeriod = 60 * time.Second
+	resyncPeriod      = 60 * time.Second
+	annotationPostfix = "argocd-notifications.argoproj.io"
 )
 
-func NewController(client dynamic.Interface, namespace string, config Config) NotificationController {
+var (
+	recipientsAnnotation = "recipients." + annotationPostfix
+)
+
+type Config struct {
+	Triggers  []triggers.NotificationTrigger  `json:"triggers"`
+	Templates []triggers.NotificationTemplate `json:"templates"`
+	Context   map[string]string               `json:"context"`
+}
+
+type NotificationController interface {
+	Run(ctx context.Context, processors int) error
+}
+
+func NewController(client dynamic.Interface,
+	namespace string,
+	triggers map[string]triggers.Trigger,
+	notifiers map[string]notifiers.Notifier,
+	context map[string]string,
+) (NotificationController, error) {
 	resource := schema.GroupVersionResource{Group: "argoproj.io", Version: "v1alpha1", Resource: "applications"}
+	resClient := client.Resource(resource).Namespace(namespace)
 	informer := cache.NewSharedIndexInformer(
 		&cache.ListWatch{
 			ListFunc: func(options v1.ListOptions) (object runtime.Object, err error) {
-				return client.Resource(resource).Namespace(namespace).List(options)
+				return resClient.List(options)
 			},
 			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
-				return client.Resource(resource).Namespace(namespace).Watch(options)
+				return resClient.Watch(options)
 			},
 		},
 		&unstructured.Unstructured{},
@@ -58,18 +88,22 @@ func NewController(client dynamic.Interface, namespace string, config Config) No
 		},
 	)
 	return &notificationController{
-		client:       client,
+		resClient:    resClient,
 		informer:     informer,
 		refreshQueue: queue,
-		config:       config,
-	}
+		triggers:     triggers,
+		notifiers:    notifiers,
+		context:      context,
+	}, nil
 }
 
 type notificationController struct {
-	client       dynamic.Interface
+	resClient    dynamic.ResourceInterface
 	informer     cache.SharedIndexInformer
 	refreshQueue workqueue.RateLimitingInterface
-	config       Config
+	triggers     map[string]triggers.Trigger
+	notifiers    map[string]notifiers.Notifier
+	context      map[string]string
 }
 
 func (c *notificationController) Run(ctx context.Context, processors int) error {
@@ -89,6 +123,55 @@ func (c *notificationController) Run(ctx context.Context, processors int) error 
 	<-ctx.Done()
 	return nil
 }
+func (c *notificationController) notify(title string, body string, recipient string) error {
+	parts := strings.Split(recipient, ":")
+	if len(parts) < 2 {
+		return fmt.Errorf("%s is not valid recipient. Expected recipient format is <type>:<name>", recipient)
+	}
+	notifier, ok := c.notifiers[parts[0]]
+	if !ok {
+		return fmt.Errorf("%s is not valid recipient type.", parts[0])
+	}
+	return notifier.Send(title, body, parts[1])
+}
+
+func (c *notificationController) processApp(app *unstructured.Unstructured) error {
+	annotations := app.GetAnnotations()
+	if annotations == nil {
+		annotations = make(map[string]string)
+	}
+	for triggerKey, t := range c.triggers {
+		triggered, err := t.Triggered(app)
+		if err != nil {
+			log.Debug("Failed to execute condition of trigger %s for app %s/%s: %+v", triggerKey, app.GetNamespace(), app.GetName(), err)
+		}
+		triggerAnnotation := fmt.Sprintf("%s.%s", triggerKey, annotationPostfix)
+		if triggered {
+			if _, alreadyNotified := annotations[triggerAnnotation]; !alreadyNotified {
+				title, body, err := t.FormatNotification(app, c.context)
+				if err != nil {
+					return err
+				}
+				successful := true
+				for _, recipient := range strings.Split(annotations[recipientsAnnotation], ",") {
+					if recipient = strings.TrimSpace(recipient); recipient != "" {
+						if err = c.notify(title, body, recipient); err != nil {
+							log.Errorf("Failed to notify recipient %s defined in app %s/%s: %v", recipient, app.GetNamespace(), app.GetName(), err)
+							successful = false
+						}
+					}
+				}
+				if successful {
+					annotations[triggerAnnotation] = time.Now().Format(time.RFC3339)
+				}
+			}
+		} else {
+			delete(annotations, triggerAnnotation)
+		}
+	}
+	app.SetAnnotations(annotations)
+	return nil
+}
 
 func (c *notificationController) processQueueItem() (processNext bool) {
 	key, shutdown := c.refreshQueue.Get()
@@ -104,7 +187,7 @@ func (c *notificationController) processQueueItem() (processNext bool) {
 		c.refreshQueue.Done(key)
 	}()
 
-	app, exists, err := c.informer.GetIndexer().GetByKey(key.(string))
+	obj, exists, err := c.informer.GetIndexer().GetByKey(key.(string))
 	if err != nil {
 		log.Errorf("Failed to get app '%s' from informer index: %+v", key, err)
 		return
@@ -113,6 +196,31 @@ func (c *notificationController) processQueueItem() (processNext bool) {
 		// This happens after app was deleted, but the work queue still had an entry for it.
 		return
 	}
-	println(fmt.Sprintf("%v", app))
+	app, ok := obj.(*unstructured.Unstructured)
+	if !ok {
+		log.Errorf("Failed to get app '%s' from informer index: %+v", key, err)
+		return
+	}
+	appCopy := app.DeepCopy()
+	err = c.processApp(appCopy)
+	if err != nil {
+		log.Errorf("Failed to process app '%s': %+v", key, err)
+		return
+	}
+	if !reflect.DeepEqual(app.GetAnnotations(), appCopy.GetAnnotations()) {
+		patchData, err := json.Marshal(map[string]map[string]interface{}{
+			"metadata": {"annotations": appCopy.GetAnnotations()},
+		})
+		if err != nil {
+			log.Errorf("Failed to marshal app '%s' patch: %+v", key, err)
+			return
+		}
+		_, err = c.resClient.Patch(app.GetName(), types.MergePatchType, patchData, v1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch app '%s': %+v", key, err)
+			return
+		}
+	}
+
 	return
 }
