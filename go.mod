@@ -5,9 +5,11 @@ go 1.12
 require (
 	github.com/antonmedv/expr v1.4.1
 	github.com/evanphx/json-patch v4.5.0+incompatible // indirect
+	github.com/ghodss/yaml v1.0.0
 	github.com/golang/protobuf v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.8 // indirect
 	github.com/json-iterator/go v1.1.8 // indirect
+	github.com/nlopes/slack v0.5.0
 	github.com/onsi/ginkgo v1.10.1 // indirect
 	github.com/onsi/gomega v1.7.0 // indirect
 	github.com/sirupsen/logrus v1.4.2

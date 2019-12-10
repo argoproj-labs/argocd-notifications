@@ -6,5 +6,5 @@ Notifications for Argo CD.
 
 * [x] Email notifications
 * [x] Slack notifications
-* [ ] Deployment manifests
+* [x] Deployment manifests
 * [ ] Documentation

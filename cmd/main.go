@@ -6,13 +6,11 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/argoproj-labs/argocd-notifications/controller"
 	"github.com/argoproj-labs/argocd-notifications/notifiers"
-
 	"github.com/argoproj-labs/argocd-notifications/triggers"
 
-	"gopkg.in/yaml.v2"
-
-	"github.com/argoproj-labs/argocd-notifications/controller"
+	"github.com/ghodss/yaml"
 	"github.com/spf13/cobra"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/tools/clientcmd"
