@@ -1,9 +1,8 @@
 package notifiers
 
-import "gomodules.xyz/notify/smtp"
-
 type Config struct {
-	Email *smtp.Options `json:"email"`
+	Email *EmailOptions `json:"email"`
+	Slack *SlackOptions `json:"slack"`
 }
 
 type Notifier interface {
@@ -14,6 +13,9 @@ func GetAll(config Config) map[string]Notifier {
 	res := make(map[string]Notifier)
 	if config.Email != nil {
 		res["email"] = NewEmailNotifier(*config.Email)
+	}
+	if config.Slack != nil {
+		res["slack"] = NewSlackNotifier(*config.Slack)
 	}
 	return res
 }

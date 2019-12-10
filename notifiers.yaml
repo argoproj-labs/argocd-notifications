@@ -4,3 +4,5 @@ email:
   from: <myemail>@gmail.com
   username: <myemail>@gmail.com
   password: <mypassword>
+slack:
+  token: <my-token>
