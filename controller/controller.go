@@ -10,10 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"k8s.io/apimachinery/pkg/types"
-
 	"github.com/argoproj-labs/argocd-notifications/notifiers"
-
 	"github.com/argoproj-labs/argocd-notifications/triggers"
 
 	log "github.com/sirupsen/logrus"
@@ -21,6 +18,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/apimachinery/pkg/watch"
@@ -54,24 +52,12 @@ func NewController(client dynamic.Interface,
 	notifiers map[string]notifiers.Notifier,
 	context map[string]string,
 ) (NotificationController, error) {
-	resource := schema.GroupVersionResource{Group: "argoproj.io", Version: "v1alpha1", Resource: "applications"}
-	resClient := client.Resource(resource).Namespace(namespace)
-	informer := cache.NewSharedIndexInformer(
-		&cache.ListWatch{
-			ListFunc: func(options v1.ListOptions) (object runtime.Object, err error) {
-				return resClient.List(options)
-			},
-			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
-				return resClient.Watch(options)
-			},
-		},
-		&unstructured.Unstructured{},
-		resyncPeriod,
-		cache.Indexers{},
-	)
-
+	appClient := createAppClient(client, namespace)
 	queue := workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter())
-	informer.AddEventHandler(
+
+	appInformer := newInformer(appClient)
+
+	appInformer.AddEventHandler(
 		cache.ResourceEventHandlerFuncs{
 			AddFunc: func(obj interface{}) {
 				key, err := cache.MetaNamespaceKeyFunc(obj)
@@ -87,31 +73,65 @@ func NewController(client dynamic.Interface,
 			},
 		},
 	)
+	appProjInformer := newInformer(createAppProjClient(client, namespace))
+
 	return &notificationController{
-		resClient:    resClient,
-		informer:     informer,
-		refreshQueue: queue,
-		triggers:     triggers,
-		notifiers:    notifiers,
-		context:      context,
+		appClient:       appClient,
+		appInformer:     appInformer,
+		appProjInformer: appProjInformer,
+		refreshQueue:    queue,
+		triggers:        triggers,
+		notifiers:       notifiers,
+		context:         context,
 	}, nil
 }
 
+func createAppClient(client dynamic.Interface, namespace string) dynamic.ResourceInterface {
+	appResource := schema.GroupVersionResource{Group: "argoproj.io", Version: "v1alpha1", Resource: "applications"}
+	resClient := client.Resource(appResource).Namespace(namespace)
+	return resClient
+}
+
+func newInformer(resClient dynamic.ResourceInterface) cache.SharedIndexInformer {
+	informer := cache.NewSharedIndexInformer(
+		&cache.ListWatch{
+			ListFunc: func(options v1.ListOptions) (object runtime.Object, err error) {
+				return resClient.List(options)
+			},
+			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
+				return resClient.Watch(options)
+			},
+		},
+		&unstructured.Unstructured{},
+		resyncPeriod,
+		cache.Indexers{},
+	)
+	return informer
+}
+
+func createAppProjClient(client dynamic.Interface, namespace string) dynamic.ResourceInterface {
+	appResource := schema.GroupVersionResource{Group: "argoproj.io", Version: "v1alpha1", Resource: "appprojects"}
+	resClient := client.Resource(appResource).Namespace(namespace)
+	return resClient
+}
+
 type notificationController struct {
-	resClient    dynamic.ResourceInterface
-	informer     cache.SharedIndexInformer
-	refreshQueue workqueue.RateLimitingInterface
-	triggers     map[string]triggers.Trigger
-	notifiers    map[string]notifiers.Notifier
-	context      map[string]string
+	appClient       dynamic.ResourceInterface
+	appInformer     cache.SharedIndexInformer
+	appProjInformer cache.SharedIndexInformer
+	refreshQueue    workqueue.RateLimitingInterface
+	triggers        map[string]triggers.Trigger
+	notifiers       map[string]notifiers.Notifier
+	context         map[string]string
 }
 
 func (c *notificationController) Run(ctx context.Context, processors int) error {
 	defer runtimeutil.HandleCrash()
 	defer c.refreshQueue.ShutDown()
-	go c.informer.Run(ctx.Done())
+	go c.appInformer.Run(ctx.Done())
+	go c.appProjInformer.Run(ctx.Done())
 
-	if !cache.WaitForCacheSync(ctx.Done(), c.informer.HasSynced) {
+	if !cache.WaitForCacheSync(ctx.Done(), c.appInformer.HasSynced, c.appProjInformer.HasSynced) {
 		return errors.New("Timed out waiting for caches to sync")
 	}
 	for i := 0; i < processors; i++ {
@@ -123,6 +143,7 @@ func (c *notificationController) Run(ctx context.Context, processors int) error 
 	<-ctx.Done()
 	return nil
 }
+
 func (c *notificationController) notify(title string, body string, recipient string) error {
 	parts := strings.Split(recipient, ":")
 	if len(parts) < 2 {
@@ -135,7 +156,44 @@ func (c *notificationController) notify(title string, body string, recipient str
 	return notifier.Send(title, body, parts[1])
 }
 
-func (c *notificationController) processApp(app *unstructured.Unstructured) error {
+func getRecipientsFromAnnotations(annotations map[string]string) []string {
+	recipients := make([]string, 0)
+	for _, recipient := range strings.Split(annotations[recipientsAnnotation], ",") {
+		if recipient = strings.TrimSpace(recipient); recipient != "" {
+			recipients = append(recipients, recipient)
+		}
+	}
+	return recipients
+}
+
+func (c *notificationController) getRecipients(app *unstructured.Unstructured) map[string]bool {
+	recipients := make(map[string]bool)
+	if annotations := app.GetAnnotations(); annotations != nil {
+		for _, recipient := range getRecipientsFromAnnotations(annotations) {
+			recipients[recipient] = true
+		}
+	}
+	projName, ok, err := unstructured.NestedString(app.Object, "spec", "project")
+	if !ok && err != nil {
+		return recipients
+	}
+	projObj, ok, err := c.appProjInformer.GetIndexer().GetByKey(fmt.Sprintf("%s/%s", app.GetNamespace(), projName))
+	if ok && err != nil {
+		return recipients
+	}
+	proj, ok := projObj.(*unstructured.Unstructured)
+	if !ok {
+		return recipients
+	}
+	if annotations := proj.GetAnnotations(); annotations != nil {
+		for _, recipient := range getRecipientsFromAnnotations(annotations) {
+			recipients[recipient] = true
+		}
+	}
+	return recipients
+}
+
+func (c *notificationController) processApp(app *unstructured.Unstructured, logEntry *log.Entry) error {
 	annotations := app.GetAnnotations()
 	if annotations == nil {
 		annotations = make(map[string]string)
@@ -143,27 +201,31 @@ func (c *notificationController) processApp(app *unstructured.Unstructured) erro
 	for triggerKey, t := range c.triggers {
 		triggered, err := t.Triggered(app)
 		if err != nil {
-			log.Debug("Failed to execute condition of trigger %s for app %s/%s: %+v", triggerKey, app.GetNamespace(), app.GetName(), err)
+			logEntry.Debugf("Failed to execute condition of trigger %: %v", triggerKey, err)
 		}
+		recipients := c.getRecipients(app)
 		triggerAnnotation := fmt.Sprintf("%s.%s", triggerKey, annotationPostfix)
+		logEntry.Infof("Trigger %s result: %v", triggerKey, triggered)
 		if triggered {
 			if _, alreadyNotified := annotations[triggerAnnotation]; !alreadyNotified {
+				logEntry.Infof("Sending %s notification", triggerKey)
 				title, body, err := t.FormatNotification(app, c.context)
 				if err != nil {
 					return err
 				}
 				successful := true
-				for _, recipient := range strings.Split(annotations[recipientsAnnotation], ",") {
-					if recipient = strings.TrimSpace(recipient); recipient != "" {
-						if err = c.notify(title, body, recipient); err != nil {
-							log.Errorf("Failed to notify recipient %s defined in app %s/%s: %v", recipient, app.GetNamespace(), app.GetName(), err)
-							successful = false
-						}
+				for recipient := range recipients {
+					if err = c.notify(title, body, recipient); err != nil {
+						logEntry.Errorf("Failed to notify recipient %s defined in app %s/%s: %v",
+							recipient, app.GetNamespace(), app.GetName(), err)
+						successful = false
 					}
 				}
 				if successful {
 					annotations[triggerAnnotation] = time.Now().Format(time.RFC3339)
 				}
+			} else {
+				logEntry.Infof("%s notification already sent", triggerKey)
 			}
 		} else {
 			delete(annotations, triggerAnnotation)
@@ -187,9 +249,9 @@ func (c *notificationController) processQueueItem() (processNext bool) {
 		c.refreshQueue.Done(key)
 	}()
 
-	obj, exists, err := c.informer.GetIndexer().GetByKey(key.(string))
+	obj, exists, err := c.appInformer.GetIndexer().GetByKey(key.(string))
 	if err != nil {
-		log.Errorf("Failed to get app '%s' from informer index: %+v", key, err)
+		log.Errorf("Failed to get app '%s' from appInformer index: %+v", key, err)
 		return
 	}
 	if !exists {
@@ -198,13 +260,15 @@ func (c *notificationController) processQueueItem() (processNext bool) {
 	}
 	app, ok := obj.(*unstructured.Unstructured)
 	if !ok {
-		log.Errorf("Failed to get app '%s' from informer index: %+v", key, err)
+		log.Errorf("Failed to get app '%s' from appInformer index: %+v", key, err)
 		return
 	}
 	appCopy := app.DeepCopy()
-	err = c.processApp(appCopy)
+	logEntry := log.WithField("app", key)
+	logEntry.Info("Start processing")
+	err = c.processApp(appCopy, logEntry)
 	if err != nil {
-		log.Errorf("Failed to process app '%s': %+v", key, err)
+		logEntry.Errorf("Failed to process: %v", err)
 		return
 	}
 	if !reflect.DeepEqual(app.GetAnnotations(), appCopy.GetAnnotations()) {
@@ -212,15 +276,16 @@ func (c *notificationController) processQueueItem() (processNext bool) {
 			"metadata": {"annotations": appCopy.GetAnnotations()},
 		})
 		if err != nil {
-			log.Errorf("Failed to marshal app '%s' patch: %+v", key, err)
+			logEntry.Errorf("Failed to marshal app patch: %v", err)
 			return
 		}
-		_, err = c.resClient.Patch(app.GetName(), types.MergePatchType, patchData, v1.PatchOptions{})
+		_, err = c.appClient.Patch(app.GetName(), types.MergePatchType, patchData, v1.PatchOptions{})
 		if err != nil {
-			log.Errorf("Failed to patch app '%s': %+v", key, err)
+			logEntry.Errorf("Failed to patch app: %v", err)
 			return
 		}
 	}
+	logEntry.Info("Processing completed")
 
 	return
 }

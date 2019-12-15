@@ -7,7 +7,7 @@ templates:
   - name: app-sync-status
     title: Application {{.app.metadata.name}} sync status is {{.app.status.sync.status}}
     body: |
-      Application {{.app.metadata.name}} sync is {{.name.status.sync.status}}.
+      Application {{.app.metadata.name}} sync is {{.app.status.sync.status}}.
       Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
 
 context:
