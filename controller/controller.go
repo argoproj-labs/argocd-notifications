@@ -272,8 +272,18 @@ func (c *notificationController) processQueueItem() (processNext bool) {
 		return
 	}
 	if !reflect.DeepEqual(app.GetAnnotations(), appCopy.GetAnnotations()) {
+		annotationsPatch := make(map[string]interface{})
+		for k, v := range appCopy.GetAnnotations() {
+			annotationsPatch[k] = v
+		}
+		for k := range app.GetAnnotations() {
+			if _, ok = appCopy.GetAnnotations()[k]; !ok {
+				annotationsPatch[k] = nil
+			}
+		}
+
 		patchData, err := json.Marshal(map[string]map[string]interface{}{
-			"metadata": {"annotations": appCopy.GetAnnotations()},
+			"metadata": {"annotations": annotationsPatch},
 		})
 		if err != nil {
 			logEntry.Errorf("Failed to marshal app patch: %v", err)

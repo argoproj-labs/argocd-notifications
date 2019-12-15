@@ -49,22 +49,17 @@ func newCommand() *cobra.Command {
 				}
 			}
 
-			configData, err := ioutil.ReadFile(configPath)
-			if err != nil {
-				return err
-			}
-			config := controller.Config{}
-			err = yaml.Unmarshal(configData, &config)
-			if err != nil {
-				return err
-			}
-
 			notifiersData, err := ioutil.ReadFile(notifiersConfigPath)
 			if err != nil {
 				return err
 			}
 			notifiersConfig := notifiers.Config{}
 			err = yaml.Unmarshal(notifiersData, &notifiersConfig)
+			if err != nil {
+				return err
+			}
+
+			config, err := getConfig(configPath)
 			if err != nil {
 				return err
 			}
@@ -84,10 +79,42 @@ func newCommand() *cobra.Command {
 	clientConfig = addKubectlFlagsToCmd(&command)
 	command.Flags().IntVar(&processorsCount, "processors-count", 3, "Processors count.")
 	command.Flags().StringVar(&namespace, "namespace", "", "Namespace which controller handles. Current namespace if empty.")
-	command.Flags().StringVar(&configPath, "config", "./config.yaml", "Configuration file location")
+	command.Flags().StringVar(&configPath, "config", "", "Configuration file location")
 	command.Flags().StringVar(&notifiersConfigPath, "notifiers", "./notifiers.yaml", "Notifiers config file location")
 
 	return &command
+}
+
+func getConfig(configPath string) (*controller.Config, error) {
+	config := controller.Config{}
+	defaultNotifiersData, err := ioutil.ReadFile("./assets/config.yaml")
+	if err != nil {
+		return nil, err
+	}
+	err = yaml.Unmarshal(defaultNotifiersData, &config)
+	if err != nil {
+		return nil, err
+	}
+
+	if configPath != "" {
+		configData, err := ioutil.ReadFile(configPath)
+		if err != nil {
+			return nil, err
+		}
+		userConfig := controller.Config{}
+
+		err = yaml.Unmarshal(configData, &userConfig)
+		if err != nil {
+			return nil, err
+		}
+		config.Triggers = append(config.Triggers, userConfig.Triggers...)
+		config.Templates = append(config.Templates, userConfig.Templates...)
+		for k, v := range userConfig.Context {
+			config.Context[k] = v
+		}
+	}
+
+	return &config, err
 }
 
 func addKubectlFlagsToCmd(cmd *cobra.Command) clientcmd.ClientConfig {

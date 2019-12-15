@@ -20,6 +20,7 @@ spec:
             - /app/config/config.yaml
             - --notifiers
             - /app/secret/notifiers.yaml
+          workingDir: /app
           image: alexmt/argocd-notifications:latest
           imagePullPolicy: Always
           name: argocd-notifications-controller

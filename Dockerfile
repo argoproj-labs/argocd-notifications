@@ -13,7 +13,8 @@ RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o /dist/argocd-notifications-controller ./cmd/main.go
 
-FROM scratch
+FROM debian
 
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=builder /dist/argocd-notifications-controller /app/argocd-notifications-controller
+COPY --from=builder /src/assets/config.yaml /app/assets/config.yaml
