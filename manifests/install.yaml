@@ -76,7 +76,7 @@ spec:
         - /app/config/config.yaml
         - --notifiers
         - /app/secret/notifiers.yaml
-        image: alexmt/argocd-notifications:latest
+        image: alexmt/argocd-notifications:v0.1
         imagePullPolicy: Always
         name: argocd-notifications-controller
         volumeMounts:
