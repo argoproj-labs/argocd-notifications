@@ -10,7 +10,7 @@ built-in triggers and templates and aims to integrate with various notification 
 # Installation
 
 ```
-kubectl apply -n argocd -f https://raw.githubusercontent.com/alexmt/argocd-notifications/v0.1/manifests/install.yaml
+kubectl apply -n argocd -f https://raw.githubusercontent.com/alexmt/argocd-notifications/v0.1.0/manifests/install.yaml
 ```
 
 # Why use Argo CD Notifier?
