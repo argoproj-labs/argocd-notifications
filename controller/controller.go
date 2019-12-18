@@ -36,14 +36,9 @@ var (
 	recipientsAnnotation = "recipients." + annotationPostfix
 )
 
-type Config struct {
-	Triggers  []triggers.NotificationTrigger  `json:"triggers"`
-	Templates []triggers.NotificationTemplate `json:"templates"`
-	Context   map[string]string               `json:"context"`
-}
-
 type NotificationController interface {
-	Run(ctx context.Context, processors int) error
+	Run(ctx context.Context, processors int)
+	Init(ctx context.Context) error
 }
 
 func NewController(client dynamic.Interface,
@@ -51,11 +46,12 @@ func NewController(client dynamic.Interface,
 	triggers map[string]triggers.Trigger,
 	notifiers map[string]notifiers.Notifier,
 	context map[string]string,
+	appLabelSelector string,
 ) (NotificationController, error) {
 	appClient := createAppClient(client, namespace)
 	queue := workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter())
 
-	appInformer := newInformer(appClient)
+	appInformer := newInformer(appClient, appLabelSelector)
 
 	appInformer.AddEventHandler(
 		cache.ResourceEventHandlerFuncs{
@@ -73,7 +69,7 @@ func NewController(client dynamic.Interface,
 			},
 		},
 	)
-	appProjInformer := newInformer(createAppProjClient(client, namespace))
+	appProjInformer := newInformer(createAppProjClient(client, namespace), "")
 
 	return &notificationController{
 		appClient:       appClient,
@@ -92,13 +88,15 @@ func createAppClient(client dynamic.Interface, namespace string) dynamic.Resourc
 	return resClient
 }
 
-func newInformer(resClient dynamic.ResourceInterface) cache.SharedIndexInformer {
+func newInformer(resClient dynamic.ResourceInterface, selector string) cache.SharedIndexInformer {
 	informer := cache.NewSharedIndexInformer(
 		&cache.ListWatch{
 			ListFunc: func(options v1.ListOptions) (object runtime.Object, err error) {
+				options.LabelSelector = selector
 				return resClient.List(options)
 			},
 			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
+				options.LabelSelector = selector
 				return resClient.Watch(options)
 			},
 		},
@@ -125,15 +123,21 @@ type notificationController struct {
 	context         map[string]string
 }
 
-func (c *notificationController) Run(ctx context.Context, processors int) error {
-	defer runtimeutil.HandleCrash()
-	defer c.refreshQueue.ShutDown()
+func (c *notificationController) Init(ctx context.Context) error {
 	go c.appInformer.Run(ctx.Done())
 	go c.appProjInformer.Run(ctx.Done())
 
 	if !cache.WaitForCacheSync(ctx.Done(), c.appInformer.HasSynced, c.appProjInformer.HasSynced) {
 		return errors.New("Timed out waiting for caches to sync")
 	}
+	return nil
+}
+
+func (c *notificationController) Run(ctx context.Context, processors int) {
+	defer runtimeutil.HandleCrash()
+	defer c.refreshQueue.ShutDown()
+
+	log.Warn("Controller is running.")
 	for i := 0; i < processors; i++ {
 		go wait.Until(func() {
 			for c.processQueueItem() {
@@ -141,7 +145,7 @@ func (c *notificationController) Run(ctx context.Context, processors int) error 
 		}, time.Second, ctx.Done())
 	}
 	<-ctx.Done()
-	return nil
+	log.Warn("Controller has stopped.")
 }
 
 func (c *notificationController) notify(title string, body string, recipient string) error {
@@ -194,6 +198,7 @@ func (c *notificationController) getRecipients(app *unstructured.Unstructured) m
 }
 
 func (c *notificationController) processApp(app *unstructured.Unstructured, logEntry *log.Entry) error {
+	refreshed := false
 	annotations := app.GetAnnotations()
 	if annotations == nil {
 		annotations = make(map[string]string)
@@ -207,7 +212,24 @@ func (c *notificationController) processApp(app *unstructured.Unstructured, logE
 		triggerAnnotation := fmt.Sprintf("%s.%s", triggerKey, annotationPostfix)
 		logEntry.Infof("Trigger %s result: %v", triggerKey, triggered)
 		if triggered {
-			if _, alreadyNotified := annotations[triggerAnnotation]; !alreadyNotified {
+			_, alreadyNotified := annotations[triggerAnnotation]
+			// informer might have stale data, so we cannot trust it and should reload app state to avoid sending notification twice
+			if !alreadyNotified && !refreshed {
+				refreshedApp, err := c.appClient.Get(app.GetName(), v1.GetOptions{})
+				if err != nil {
+					return err
+				}
+				if refreshedApp.GetAnnotations() != nil {
+					for k, v := range refreshedApp.GetAnnotations() {
+						annotations[k] = v
+					}
+				}
+				_, alreadyNotified = annotations[triggerAnnotation]
+
+				refreshed = true
+			}
+
+			if !alreadyNotified {
 				logEntry.Infof("Sending %s notification", triggerKey)
 				title, body, err := t.FormatNotification(app, c.context)
 				if err != nil {

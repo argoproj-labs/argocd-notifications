@@ -5,10 +5,9 @@ import (
 	"fmt"
 	htmptemplate "html/template"
 
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-
 	"github.com/antonmedv/expr"
 	"github.com/antonmedv/expr/vm"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
 type NotificationTrigger struct {

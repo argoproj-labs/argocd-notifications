@@ -16,24 +16,8 @@ spec:
       containers:
         - command:
             - /app/argocd-notifications-controller
-            - --config
-            - /app/config/config.yaml
-            - --notifiers
-            - /app/secret/notifiers.yaml
           workingDir: /app
           image: alexmt/argocd-notifications:latest
           imagePullPolicy: Always
           name: argocd-notifications-controller
-          volumeMounts:
-            - name: config
-              mountPath: /app/config
-            - name: notifiers
-              mountPath: /app/secret
-      volumes:
-        - name: notifiers
-          secret:
-            secretName: argocd-notifications-secret
-        - name: config
-          configMap:
-            name: argocd-notifications-cm
       serviceAccountName: argocd-notifications-controller

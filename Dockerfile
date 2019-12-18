@@ -17,4 +17,3 @@ FROM scratch
 
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=builder /dist/argocd-notifications-controller /app/argocd-notifications-controller
-COPY --from=builder /src/assets/config.yaml /app/assets/config.yaml
