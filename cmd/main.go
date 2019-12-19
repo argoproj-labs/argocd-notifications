@@ -8,6 +8,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/argoproj-labs/argocd-notifications/assets"
+
 	"github.com/argoproj-labs/argocd-notifications/controller"
 	"github.com/argoproj-labs/argocd-notifications/notifiers"
 	"github.com/argoproj-labs/argocd-notifications/triggers"
@@ -29,10 +31,25 @@ const (
 	secretName               = "argocd-notifications-secret"
 	settingsResyncDuration   = 3 * time.Minute
 	argocdURLContextVariable = "argocdURL"
-	triggersConfigMapKey     = "triggers"
-	templatesConfigMapKey    = "templates"
-	contextConfigMapKey      = "context"
 )
+
+type config struct {
+	Triggers  []triggers.NotificationTrigger  `json:"triggers"`
+	Templates []triggers.NotificationTemplate `json:"templates"`
+	Context   map[string]string               `json:"context"`
+}
+
+var (
+	defaultCfg config
+)
+
+func init() {
+	defaultCfg = config{Context: map[string]string{argocdURLContextVariable: "https://localhost:4000"}}
+	err := yaml.Unmarshal([]byte(assets.DefaultConfig), &defaultCfg)
+	if err != nil {
+		panic(err)
+	}
+}
 
 func main() {
 	if err := newCommand().Execute(); err != nil {
@@ -71,7 +88,7 @@ func newCommand() *cobra.Command {
 			}
 
 			var cancelPrev context.CancelFunc
-			watchSettings(k8sClient, namespace, func(triggers map[string]triggers.Trigger, notifiers map[string]notifiers.Notifier, contextVals map[string]string) error {
+			watchConfig(k8sClient, namespace, func(triggers map[string]triggers.Trigger, notifiers map[string]notifiers.Notifier, contextVals map[string]string) error {
 				if cancelPrev != nil {
 					log.Info("Settings had been updated. Restarting controller...")
 					cancelPrev()
@@ -104,44 +121,29 @@ func newCommand() *cobra.Command {
 }
 
 func parseConfig(configData map[string]string, notifiersData []byte) (map[string]triggers.Trigger, map[string]notifiers.Notifier, map[string]string, error) {
-	notificationTemplates := make([]triggers.NotificationTemplate, 0)
-	if data, ok := configData[templatesConfigMapKey]; ok {
-		err := yaml.Unmarshal([]byte(data), &notificationTemplates)
-		if err != nil {
-			return nil, nil, nil, err
-		}
-	}
-	notificationTriggers := make([]triggers.NotificationTrigger, 0)
-	if data, ok := configData[triggersConfigMapKey]; ok {
-		err := yaml.Unmarshal([]byte(data), &notificationTriggers)
-		if err != nil {
-			return nil, nil, nil, err
-		}
-	}
-	notifiersConfig := notifiers.Config{}
-	err := yaml.Unmarshal(notifiersData, &notifiersConfig)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	contextValues := make(map[string]string)
-	if data, ok := configData[contextConfigMapKey]; ok {
-		err := yaml.Unmarshal([]byte(data), &contextValues)
+	cfg := &config{}
+	if data, ok := configData["config.yaml"]; ok {
+		err := yaml.Unmarshal([]byte(data), cfg)
 		if err != nil {
 			return nil, nil, nil, err
 		}
 	}
 
-	if _, ok := contextValues[argocdURLContextVariable]; !ok {
-		contextValues[argocdURLContextVariable] = "https://localhost:4000"
-	}
-	t, err := triggers.GetTriggers(notificationTemplates, notificationTriggers)
+	cfg = defaultCfg.merge(cfg)
+	t, err := triggers.GetTriggers(cfg.Templates, cfg.Triggers)
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	return t, notifiers.GetAll(notifiersConfig), contextValues, nil
+
+	notifiersConfig := notifiers.Config{}
+	err = yaml.Unmarshal(notifiersData, &notifiersConfig)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	return t, notifiers.GetAll(notifiersConfig), cfg.Context, nil
 }
 
-func watchSettings(clientset kubernetes.Interface, namespace string, callback func(map[string]triggers.Trigger, map[string]notifiers.Notifier, map[string]string) error) {
+func watchConfig(clientset kubernetes.Interface, namespace string, callback func(map[string]triggers.Trigger, map[string]notifiers.Notifier, map[string]string) error) {
 	var secret *v1.Secret
 	var configMap *v1.ConfigMap
 	lock := &sync.Mutex{}
@@ -202,6 +204,67 @@ func watchSettings(clientset kubernetes.Interface, namespace string, callback fu
 	if !cache.WaitForCacheSync(context.Background().Done(), cmInformer.HasSynced, secretInformer.HasSynced) {
 		log.Fatal(errors.New("timed out waiting for caches to sync"))
 	}
+}
+
+func coalesce(first string, other ...string) string {
+	res := first
+	for i := range other {
+		if res != "" {
+			break
+		}
+		res = other[i]
+	}
+	return res
+}
+
+func (cfg *config) merge(other *config) *config {
+	triggersMap := map[string]triggers.NotificationTrigger{}
+	for i := range cfg.Triggers {
+		triggersMap[cfg.Triggers[i].Name] = cfg.Triggers[i]
+	}
+	for _, item := range other.Triggers {
+		if existing, ok := triggersMap[item.Name]; ok {
+			existing.Condition = coalesce(item.Condition)
+			existing.Template = coalesce(item.Template)
+			if item.Enabled != nil {
+				existing.Enabled = item.Enabled
+			}
+			triggersMap[item.Name] = existing
+		} else {
+			triggersMap[item.Name] = item
+		}
+	}
+
+	templatesMap := map[string]triggers.NotificationTemplate{}
+	for i := range cfg.Templates {
+		templatesMap[cfg.Templates[i].Name] = cfg.Templates[i]
+	}
+	for _, item := range other.Templates {
+		if existing, ok := templatesMap[item.Name]; ok {
+			existing.Body = coalesce(item.Body)
+			existing.Title = coalesce(item.Title)
+			templatesMap[item.Name] = existing
+		} else {
+			templatesMap[item.Name] = item
+		}
+	}
+
+	contextValues := map[string]string{}
+	for k, v := range cfg.Context {
+		contextValues[k] = v
+	}
+	for k, v := range other.Context {
+		contextValues[k] = v
+	}
+	res := &config{}
+	for k := range triggersMap {
+		res.Triggers = append(res.Triggers, triggersMap[k])
+	}
+	for k := range templatesMap {
+		res.Templates = append(res.Templates, templatesMap[k])
+	}
+	res.Context = contextValues
+	return res
 }
 
 func addKubectlFlagsToCmd(cmd *cobra.Command) clientcmd.ClientConfig {

@@ -11,15 +11,16 @@ import (
 )
 
 type NotificationTrigger struct {
-	Name      string `json:"name"`
-	Condition string `json:"condition"`
-	Template  string `json:"template"`
+	Name      string `json:"name,omitempty"`
+	Condition string `json:"condition,omitempty"`
+	Template  string `json:"template,omitempty"`
+	Enabled   *bool  `json:"enabled,omitempty"`
 }
 
 type NotificationTemplate struct {
-	Name  string `json:"name"`
-	Title string `json:"title"`
-	Body  string `json:"body"`
+	Name  string `json:"name,omitempty"`
+	Title string `json:"title,omitempty"`
+	Body  string `json:"body,omitempty"`
 }
 
 type Trigger interface {
@@ -91,6 +92,9 @@ func parseTemplates(templates []NotificationTemplate) (map[string]template, erro
 func parseTriggers(triggers []NotificationTrigger, templates map[string]template) (map[string]Trigger, error) {
 	res := make(map[string]Trigger)
 	for _, t := range triggers {
+		if t.Enabled != nil && *t.Enabled == false {
+			continue
+		}
 		condition, err := expr.Compile(t.Condition)
 		if err != nil {
 			return nil, err
