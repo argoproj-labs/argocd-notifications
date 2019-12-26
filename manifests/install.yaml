@@ -18,6 +18,15 @@ rules:
   - watch
   - update
   - patch
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -32,8 +41,6 @@ subjects:
   name: argocd-notifications-controller
 ---
 apiVersion: v1
-data:
-  config.yaml: '{}'
 kind: ConfigMap
 metadata:
   name: argocd-notifications-cm
@@ -42,16 +49,6 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: argocd-notifications-secret
-stringData:
-  notifiers.yaml: |
-    email:
-      host: smtp.gmail.com
-      port: 587
-      from: <myemail>@gmail.com
-      username: <myemail>@gmail.com
-      password: <mypassword>
-    slack:
-      token: <my-token>
 type: Opaque
 ---
 apiVersion: apps/v1
@@ -72,24 +69,8 @@ spec:
       containers:
       - command:
         - /app/argocd-notifications-controller
-        - --config
-        - /app/config/config.yaml
-        - --notifiers
-        - /app/secret/notifiers.yaml
         image: alexmt/argocd-notifications:latest
         imagePullPolicy: Always
         name: argocd-notifications-controller
-        volumeMounts:
-        - mountPath: /app/config
-          name: config
-        - mountPath: /app/secret
-          name: notifiers
         workingDir: /app
       serviceAccountName: argocd-notifications-controller
-      volumes:
-      - name: notifiers
-        secret:
-          secretName: argocd-notifications-secret
-      - configMap:
-          name: argocd-notifications-cm
-        name: config
