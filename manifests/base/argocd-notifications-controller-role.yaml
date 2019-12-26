@@ -9,6 +9,7 @@ rules:
   - applications
   - appprojects
   verbs:
+  - get
   - list
   - watch
   - update
