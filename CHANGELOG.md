@@ -1,11 +1,14 @@
 # Changelog
 
 
-## v0.2.0 (Not released)
+## v0.2.0 (2019-12-26)
 
 ### Features
 * support setting hot reload
+* embed built-in triggers/templates into binary instead of default config map
 * support enabling/disabling triggers
+* support customizing built-in triggers/templates
+* add on-sync-running/on-sync-succeeded triggers and templates
 
 ### Bug Fixes
 * fix sending same notification twice

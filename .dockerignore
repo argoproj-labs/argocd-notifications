@@ -2,3 +2,4 @@ Dockerfile
 .idea
 notifiers-secret.yaml
 manifests
+README.md
