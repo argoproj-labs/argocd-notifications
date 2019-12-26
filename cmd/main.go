@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/argoproj-labs/argocd-notifications/assets"
-
 	"github.com/argoproj-labs/argocd-notifications/controller"
 	"github.com/argoproj-labs/argocd-notifications/notifiers"
 	"github.com/argoproj-labs/argocd-notifications/triggers"
@@ -30,7 +29,7 @@ const (
 	configMapName            = "argocd-notifications-cm"
 	secretName               = "argocd-notifications-secret"
 	settingsResyncDuration   = 3 * time.Minute
-	argocdURLContextVariable = "argocdURL"
+	argocdURLContextVariable = "argocdUrl"
 )
 
 type config struct {
