@@ -1,6 +1,11 @@
 # Changelog
 
 
+## v0.2.1 (2019-12-29)
+
+### Bug Fixes
+* built-in triggers are disabled by default
+
 ## v0.2.0 (2019-12-26)
 
 ### Features
