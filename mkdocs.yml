@@ -1,6 +1,10 @@
 site_name: Argo CD Notifications
 repo_url: https://github.com/alexmt/argocd-notifications
 strict: true
+google_analytics:
+- 'UA-105170809-5'
+- 'auto'
+
 theme:
   name: material
   palette:
