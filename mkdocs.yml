@@ -1,0 +1,21 @@
+site_name: Argo CD Notifications
+repo_url: https://github.com/alexmt/argocd-notifications
+strict: true
+theme:
+  name: material
+  palette:
+    primary: teal
+  font:
+    text: 'Work Sans'
+markdown_extensions:
+- codehilite
+- admonition
+- markdown_include.include:
+    base_path: docs
+- toc:
+    permalink: true
+nav:
+  - Overview: index.md
+  - triggers_and_templates.md
+  - recipients.md
+  - built-in.md

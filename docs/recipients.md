@@ -1,0 +1,32 @@
+# Recipients
+
+The list of recipients is not stored in a centralized configuration file. Instead, recipients might be configured using
+`Application` or `AppProject` CRD annotations. The example below demonstrates how to subscribe to the email 
+notifications triggered for a specific application:
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    recipients.argocd-notifications.argoproj.io: email:<sample-email>
+```
+
+The example below demonstrates how to get to the Slack message on a notification of the any project application:
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  annotations:
+    recipients.argocd-notifications.argoproj.io: slack:<sample-channel-name>
+```
+
+## Notification Services
+
+Each recipient is prefixed with the notification service type such as `slack` or `email`. The notification services are
+configured in the `notifiers.yaml` field of the `argocd-notifications-secret.yaml` Secret:
+
+```yaml
+{!argocd-notifications-secret.yaml!}
+```
