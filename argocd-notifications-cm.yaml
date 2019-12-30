@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-cm
+data:
+  config.yaml: |
+    triggers:
+      - name: on-sync-status-unknown
+        condition: app.status.sync.status == 'Unknown'
+        template: app-sync-status
+        enabled: true
+    templates:
+      - name: app-sync-status
+        title: Application {{.app.metadata.name}} sync status is {{.app.status.sync.status}}
+        body: |
+          Application {{.app.metadata.name}} sync is {{.app.status.sync.status}}.
+          Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
