@@ -8,7 +8,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/argoproj-labs/argocd-notifications/assets"
+	"github.com/argoproj-labs/argocd-notifications/builtin"
+
 	"github.com/argoproj-labs/argocd-notifications/controller"
 	"github.com/argoproj-labs/argocd-notifications/notifiers"
 	"github.com/argoproj-labs/argocd-notifications/triggers"
@@ -43,10 +44,10 @@ var (
 )
 
 func init() {
-	defaultCfg = config{Context: map[string]string{argocdURLContextVariable: "https://localhost:4000"}}
-	err := yaml.Unmarshal([]byte(assets.DefaultConfig), &defaultCfg)
-	if err != nil {
-		panic(err)
+	defaultCfg = config{
+		Templates: builtin.Templates,
+		Triggers:  builtin.Triggers,
+		Context:   map[string]string{argocdURLContextVariable: "https://localhost:4000"},
 	}
 }
 

@@ -10,6 +10,7 @@ require (
 	github.com/json-iterator/go v1.1.8 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/nlopes/slack v0.5.0
+	github.com/olekukonko/tablewriter v0.0.4
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.5 // indirect
@@ -25,5 +26,5 @@ require (
 	k8s.io/apimachinery v0.0.0-20191028221656-72ed19daf4bb
 	k8s.io/client-go v0.0.0-20191114101535-6c5935290e33
 	k8s.io/klog v1.0.0 // indirect
-	k8s.io/utils v0.0.0-20191114200735-6ca3b61696b6 // indirect
+	k8s.io/utils v0.0.0-20191114200735-6ca3b61696b6
 )

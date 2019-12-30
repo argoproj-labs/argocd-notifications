@@ -11,10 +11,11 @@ import (
 )
 
 type NotificationTrigger struct {
-	Name      string `json:"name,omitempty"`
-	Condition string `json:"condition,omitempty"`
-	Template  string `json:"template,omitempty"`
-	Enabled   *bool  `json:"enabled,omitempty"`
+	Name        string `json:"name,omitempty"`
+	Condition   string `json:"condition,omitempty"`
+	Description string `json:"description,omitempty"`
+	Template    string `json:"template,omitempty"`
+	Enabled     *bool  `json:"enabled,omitempty"`
 }
 
 type NotificationTemplate struct {
