@@ -1,27 +1,32 @@
 package assets
 
-const (
+var (
 	DefaultConfig = `
     triggers:
       - name: on-sync-status-unknown
         condition: app.status.sync.status == 'Unknown'
         template: app-sync-status
+        enabled: false
 
       - name: on-sync-failed
         condition: app.status.operationState.phase in ['Error', 'Failed']
         template: app-sync-failed
+        enabled: false
 
       - name: on-sync-running
         condition: app.status.operationState.phase in ['Running']
         template: app-sync-running
+        enabled: false
 
       - name: on-sync-succeeded
         condition: app.status.operationState.phase in ['Succeeded']
         template: app-sync-succeeded
+        enabled: false
 
       - name: on-health-degraded
         condition: app.status.health.status == 'Degraded'
         template: app-health-degraded
+        enabled: false
 
     templates:
       - name: app-sync-status
