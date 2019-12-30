@@ -36,7 +36,7 @@
     
     
       
-        <title>Built-in Triggers and Templates [WIP] - Argo CD Notifications</title>
+        <title>Built-in Triggers and Templates - Argo CD Notifications</title>
       
     
     
@@ -85,7 +85,7 @@
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
     <label class="md-overlay" data-md-component="overlay" for="__drawer"></label>
     
-      <a href="#built-in-triggers-and-templates-wip" tabindex="1" class="md-skip">
+      <a href="#built-in-triggers-and-templates" tabindex="1" class="md-skip">
         Skip to content
       </a>
     
@@ -111,7 +111,7 @@
             </span>
             <span class="md-header-nav__topic">
               
-                Built-in Triggers and Templates [WIP]
+                Built-in Triggers and Templates
               
             </span>
           
@@ -267,11 +267,11 @@
     
     
       <label class="md-nav__link md-nav__link--active" for="__toc">
-        Built-in Triggers and Templates [WIP]
+        Built-in Triggers and Templates
       </label>
     
-    <a href="./" title="Built-in Triggers and Templates [WIP]" class="md-nav__link md-nav__link--active">
-      Built-in Triggers and Templates [WIP]
+    <a href="./" title="Built-in Triggers and Templates" class="md-nav__link md-nav__link--active">
+      Built-in Triggers and Templates
     </a>
     
       
@@ -295,6 +295,47 @@
   <a href="#templates" class="md-nav__link">
     Templates
   </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#app-sync-status" class="md-nav__link">
+    app-sync-status
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app-sync-succeeded" class="md-nav__link">
+    app-sync-succeeded
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app-sync-failed" class="md-nav__link">
+    app-sync-failed
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app-sync-running" class="md-nav__link">
+    app-sync-running
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app-health-degraded" class="md-nav__link">
+    app-health-degraded
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -341,6 +382,47 @@
     Templates
   </a>
   
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#app-sync-status" class="md-nav__link">
+    app-sync-status
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app-sync-succeeded" class="md-nav__link">
+    app-sync-succeeded
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app-sync-failed" class="md-nav__link">
+    app-sync-failed
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app-sync-running" class="md-nav__link">
+    app-sync-running
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app-health-degraded" class="md-nav__link">
+    app-health-degraded
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
       
@@ -362,23 +444,83 @@
                   <a href="https://github.com/alexmt/argocd-notifications/edit/master/docs/built-in.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
                 
                 
-                <h1 id="built-in-triggers-and-templates-wip">Built-in Triggers and Templates [WIP]<a class="headerlink" href="#built-in-triggers-and-templates-wip" title="Permanent link">&para;</a></h1>
+                <h1 id="built-in-triggers-and-templates">Built-in Triggers and Templates<a class="headerlink" href="#built-in-triggers-and-templates" title="Permanent link">&para;</a></h1>
 <h2 id="triggers">Triggers<a class="headerlink" href="#triggers" title="Permanent link">&para;</a></h2>
-<ul>
-<li>on-sync-status-unknown</li>
-<li>on-sync-failed</li>
-<li>on-sync-running</li>
-<li>on-sync-succeeded</li>
-<li>on-health-degraded</li>
-</ul>
+<table>
+<thead>
+<tr>
+<th>NAME</th>
+<th>DESCRIPTION</th>
+<th>TEMPLATE</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>on-sync-status-unknown</td>
+<td>Application status is 'Unknown'</td>
+<td><a href="#app-sync-status">app-sync-status</a></td>
+</tr>
+<tr>
+<td>on-sync-failed</td>
+<td>Application syncing has failed</td>
+<td><a href="#app-sync-failed">app-sync-failed</a></td>
+</tr>
+<tr>
+<td>on-sync-running</td>
+<td>Application is being synced</td>
+<td><a href="#app-sync-running">app-sync-running</a></td>
+</tr>
+<tr>
+<td>on-sync-succeeded</td>
+<td>Application syncing has succeeded</td>
+<td><a href="#app-sync-succeeded">app-sync-succeeded</a></td>
+</tr>
+<tr>
+<td>on-health-degraded</td>
+<td>Application has degraded</td>
+<td><a href="#app-health-degraded">app-health-degraded</a></td>
+</tr>
+</tbody>
+</table>
 <h2 id="templates">Templates<a class="headerlink" href="#templates" title="Permanent link">&para;</a></h2>
-<ul>
-<li>app-sync-status</li>
-<li>app-sync-succeeded</li>
-<li>app-sync-failed</li>
-<li>app-sync-running</li>
-<li>app-health-degraded</li>
-</ul>
+<h3 id="app-sync-status">app-sync-status<a class="headerlink" href="#app-sync-status" title="Permanent link">&para;</a></h3>
+<p><strong>title</strong>: <code>Application {{.app.metadata.name}} sync status is {{.app.status.sync.status}}</code></p>
+<p><strong>body</strong>:</p>
+<div class="codehilite"><pre><span></span><span class="x">Application </span><span class="cp">{{</span><span class="nv">.app.metadata.name</span><span class="cp">}}</span><span class="x"> sync is </span><span class="cp">{{</span><span class="nv">.app.status.sync.status</span><span class="cp">}}</span><span class="x">.</span>
+<span class="x">Application details: </span><span class="cp">{{</span><span class="nv">.context.argocdUrl</span><span class="cp">}}</span><span class="x">/applications/</span><span class="cp">{{</span><span class="nv">.app.metadata.name</span><span class="cp">}}</span><span class="x">.</span>
+</pre></div>
+
+
+<h3 id="app-sync-succeeded">app-sync-succeeded<a class="headerlink" href="#app-sync-succeeded" title="Permanent link">&para;</a></h3>
+<p><strong>title</strong>: <code>Application {{.app.metadata.name}} has been successfully synced.</code></p>
+<p><strong>body</strong>:</p>
+<div class="codehilite"><pre><span></span><span class="x">Application </span><span class="cp">{{</span><span class="nv">.app.metadata.name</span><span class="cp">}}</span><span class="x"> has been successfully synced at </span><span class="cp">{{</span><span class="nv">.app.status.operationState.finishedAt</span><span class="cp">}}</span><span class="x">.</span>
+<span class="x">Sync operation details is available at: </span><span class="cp">{{</span><span class="nv">.context.argocdUrl</span><span class="cp">}}</span><span class="x">/applications/</span><span class="cp">{{</span><span class="nv">.app.metadata.name</span><span class="cp">}}</span><span class="x">?operation=true .</span>
+</pre></div>
+
+
+<h3 id="app-sync-failed">app-sync-failed<a class="headerlink" href="#app-sync-failed" title="Permanent link">&para;</a></h3>
+<p><strong>title</strong>: <code>Failed to sync application {{.app.metadata.name}}.</code></p>
+<p><strong>body</strong>:</p>
+<div class="codehilite"><pre><span></span><span class="x">The sync operation of application </span><span class="cp">{{</span><span class="nv">.app.metadata.name</span><span class="cp">}}</span><span class="x"> has failed at </span><span class="cp">{{</span><span class="nv">.app.status.operationState.finishedAt</span><span class="cp">}}</span><span class="x"> with the following error: </span><span class="cp">{{</span><span class="nv">.app.status.operationState.message</span><span class="cp">}}</span><span class="x"></span>
+<span class="x">Sync operation details is available at: </span><span class="cp">{{</span><span class="nv">.context.argocdUrl</span><span class="cp">}}</span><span class="x">/applications/</span><span class="cp">{{</span><span class="nv">.app.metadata.name</span><span class="cp">}}</span><span class="x">?operation=true .</span>
+</pre></div>
+
+
+<h3 id="app-sync-running">app-sync-running<a class="headerlink" href="#app-sync-running" title="Permanent link">&para;</a></h3>
+<p><strong>title</strong>: <code>Start syncing application {{.app.metadata.name}}.</code></p>
+<p><strong>body</strong>:</p>
+<div class="codehilite"><pre><span></span><span class="x">The sync operation of application </span><span class="cp">{{</span><span class="nv">.app.metadata.name</span><span class="cp">}}</span><span class="x"> has started at </span><span class="cp">{{</span><span class="nv">.app.status.operationState.startedAt</span><span class="cp">}}</span><span class="x">.</span>
+<span class="x">Sync operation details is available at: </span><span class="cp">{{</span><span class="nv">.context.argocdUrl</span><span class="cp">}}</span><span class="x">/applications/</span><span class="cp">{{</span><span class="nv">.app.metadata.name</span><span class="cp">}}</span><span class="x">?operation=true .</span>
+</pre></div>
+
+
+<h3 id="app-health-degraded">app-health-degraded<a class="headerlink" href="#app-health-degraded" title="Permanent link">&para;</a></h3>
+<p><strong>title</strong>: <code>Application {{.app.metadata.name}} has degraded.</code></p>
+<p><strong>body</strong>:</p>
+<div class="codehilite"><pre><span></span><span class="x">Application </span><span class="cp">{{</span><span class="nv">.app.metadata.name</span><span class="cp">}}</span><span class="x"> has degraded.</span>
+<span class="x">Application details: </span><span class="cp">{{</span><span class="nv">.context.argocdUrl</span><span class="cp">}}</span><span class="x">/applications/</span><span class="cp">{{</span><span class="nv">.app.metadata.name</span><span class="cp">}}</span><span class="x">.</span>
+</pre></div>
                 
                   
                 
