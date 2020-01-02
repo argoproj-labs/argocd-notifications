@@ -70,7 +70,7 @@ spec:
       containers:
       - command:
         - /app/argocd-notifications-controller
-        image: alexmt/argocd-notifications:v0.2.1
+        image: alexmt/argocd-notifications:v0.2.2
         imagePullPolicy: Always
         name: argocd-notifications-controller
         workingDir: /app
