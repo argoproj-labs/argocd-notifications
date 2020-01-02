@@ -224,8 +224,8 @@ func (cfg *config) merge(other *config) *config {
 	}
 	for _, item := range other.Triggers {
 		if existing, ok := triggersMap[item.Name]; ok {
-			existing.Condition = coalesce(item.Condition)
-			existing.Template = coalesce(item.Template)
+			existing.Condition = coalesce(item.Condition, existing.Condition)
+			existing.Template = coalesce(item.Template, existing.Template)
 			if item.Enabled != nil {
 				existing.Enabled = item.Enabled
 			}
@@ -241,8 +241,8 @@ func (cfg *config) merge(other *config) *config {
 	}
 	for _, item := range other.Templates {
 		if existing, ok := templatesMap[item.Name]; ok {
-			existing.Body = coalesce(item.Body)
-			existing.Title = coalesce(item.Title)
+			existing.Body = coalesce(item.Body, existing.Body)
+			existing.Title = coalesce(item.Title, existing.Title)
 			templatesMap[item.Name] = existing
 		} else {
 			templatesMap[item.Name] = item
