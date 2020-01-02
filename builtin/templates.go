@@ -7,7 +7,10 @@ var (
 		Name:  "app-sync-status",
 		Title: "Application {{.app.metadata.name}} sync status is {{.app.status.sync.status}}",
 		Body: `Application {{.app.metadata.name}} sync is {{.app.status.sync.status}}.
-Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.`,
+Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
+{{range $c := .app.status.conditions}}
+     * {{$c.message}}
+{{end}}`,
 	}, {
 		Name:  "app-sync-succeeded",
 		Title: "Application {{.app.metadata.name}} has been successfully synced.",
