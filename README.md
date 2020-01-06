@@ -17,4 +17,4 @@ it is focused on Argo CD use cases and ultimately provides a better user experie
 
 # Documentation
 
-Go to the complete [documentation](https://alexmt.github.io/argocd-notifications/) to learn more.
+Go to the complete [documentation](https://argoproj-labs.github.io/argocd-notifications/) to learn more.
