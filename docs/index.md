@@ -11,7 +11,7 @@ So you can just enable them instead of reinventing new ones.
 1. Install Argo CD Notifications
 
 ```
-kubectl apply -n argocd -f https://raw.githubusercontent.com/alexmt/argocd-notifications/stable/manifests/install.yaml
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/argocd-notifications/stable/manifests/install.yaml
 ```
 
 2. Configure integration with your Slack in `argocd-notifications-secret` secret:
