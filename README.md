@@ -1,4 +1,4 @@
-[![codecov](https://codecov.io/gh/argoproj-labs/argocd-notifications/branch/master/graph/badge.svg)](https://codecov.io/gh/argoproj/argocd-notifications)
+[![codecov](https://codecov.io/gh/argoproj-labs/argocd-notifications/branch/master/graph/badge.svg)](https://codecov.io/gh/argoproj-labs/argocd-notifications)
 
 # Argo CD Notifications
 
