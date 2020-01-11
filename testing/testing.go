@@ -15,6 +15,24 @@ func WithAnnotations(annotations map[string]string) func(app *unstructured.Unstr
 	}
 }
 
+func WithSyncStatus(status string) func(app *unstructured.Unstructured) {
+	return func(app *unstructured.Unstructured) {
+		_ = unstructured.SetNestedField(app.Object, status, "status", "sync", "status")
+	}
+}
+
+func WithSyncOperationPhase(phase string) func(app *unstructured.Unstructured) {
+	return func(app *unstructured.Unstructured) {
+		_ = unstructured.SetNestedField(app.Object, phase, "status", "operationState", "phase")
+	}
+}
+
+func WithHealthStatus(status string) func(app *unstructured.Unstructured) {
+	return func(app *unstructured.Unstructured) {
+		_ = unstructured.SetNestedField(app.Object, status, "status", "health", "status")
+	}
+}
+
 func NewApp(name string, modifiers ...func(app *unstructured.Unstructured)) *unstructured.Unstructured {
 	app := unstructured.Unstructured{}
 	app.SetGroupVersionKind(schema.GroupVersionKind{Group: "argoproj.io", Kind: "application", Version: "v1alpha1"})
