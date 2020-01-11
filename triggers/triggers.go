@@ -1,5 +1,7 @@
 package triggers
 
+//go:generate mockgen -destination=./mocks/triggers.go -package=mocks github.com/argoproj-labs/argocd-notifications/triggers Trigger
+
 import (
 	"bytes"
 	"fmt"

@@ -206,7 +206,7 @@ func (c *notificationController) processApp(app *unstructured.Unstructured, logE
 	for triggerKey, t := range c.triggers {
 		triggered, err := t.Triggered(app)
 		if err != nil {
-			logEntry.Debugf("Failed to execute condition of trigger %: %v", triggerKey, err)
+			logEntry.Debugf("Failed to execute condition of trigger %s: %v", triggerKey, err)
 		}
 		recipients := c.getRecipients(app)
 		triggerAnnotation := fmt.Sprintf("%s.%s", triggerKey, annotationPostfix)

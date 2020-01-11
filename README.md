@@ -1,3 +1,5 @@
+[![codecov](https://codecov.io/gh/argoproj-labs/argocd-notifications/branch/master/graph/badge.svg)](https://codecov.io/gh/argoproj/argocd-notifications)
+
 # Argo CD Notifications
 
 Argo CD Notifications continuously monitors Argo CD applications and provides a flexible way to notify

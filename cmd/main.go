@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/argoproj-labs/argocd-notifications/builtin"
-
 	"github.com/argoproj-labs/argocd-notifications/controller"
 	"github.com/argoproj-labs/argocd-notifications/notifiers"
 	"github.com/argoproj-labs/argocd-notifications/triggers"
@@ -159,10 +158,10 @@ func watchConfig(clientset kubernetes.Interface, namespace string, callback func
 		if secret != nil && configMap != nil {
 			if t, n, c, err := parseConfig(configMap.Data, secret.Data["notifiers.yaml"]); err == nil {
 				if err = callback(t, n, c); err != nil {
-					log.Fatal("Failed to start controller: %v", err)
+					log.Fatalf("Failed to start controller: %v", err)
 				}
 			} else {
-				log.Fatal("Failed to parse new settings: %v", err)
+				log.Fatalf("Failed to parse new settings: %v", err)
 			}
 		}
 	}

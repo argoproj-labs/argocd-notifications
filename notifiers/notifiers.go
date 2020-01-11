@@ -5,6 +5,8 @@ type Config struct {
 	Slack *SlackOptions `json:"slack"`
 }
 
+//go:generate mockgen -destination=./mocks/notifiers.go -package=mocks github.com/argoproj-labs/argocd-notifications/notifiers Notifier
+
 type Notifier interface {
 	Send(title string, body string, recipient string) error
 }
