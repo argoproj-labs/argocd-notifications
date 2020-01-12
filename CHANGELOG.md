@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.3.0 (Not released)
+
+### Features
+* Trigger specific subscriptions
+
+### Other
+* Move repo and docker image to https://github.com/argoproj-labs/argocd-notifications
 
 ## v0.2.1 (2019-12-29)
 

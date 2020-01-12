@@ -9,9 +9,15 @@ const (
 	TestNamespace = "default"
 )
 
-func WithAnnotations(annotations map[string]string) func(app *unstructured.Unstructured) {
+func WithAnnotations(annotations map[string]string) func(obj *unstructured.Unstructured) {
 	return func(app *unstructured.Unstructured) {
 		app.SetAnnotations(annotations)
+	}
+}
+
+func WithProject(project string) func(app *unstructured.Unstructured) {
+	return func(app *unstructured.Unstructured) {
+		_ = unstructured.SetNestedField(app.Object, project, "spec", "project")
 	}
 }
 
@@ -42,4 +48,15 @@ func NewApp(name string, modifiers ...func(app *unstructured.Unstructured)) *uns
 		modifiers[i](&app)
 	}
 	return &app
+}
+
+func NewProject(name string, modifiers ...func(app *unstructured.Unstructured)) *unstructured.Unstructured {
+	proj := unstructured.Unstructured{}
+	proj.SetGroupVersionKind(schema.GroupVersionKind{Group: "argoproj.io", Kind: "appproject", Version: "v1alpha1"})
+	proj.SetName(name)
+	proj.SetNamespace(TestNamespace)
+	for i := range modifiers {
+		modifiers[i](&proj)
+	}
+	return &proj
 }
