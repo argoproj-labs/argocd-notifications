@@ -22,6 +22,20 @@ metadata:
     recipients.argocd-notifications.argoproj.io: slack:<sample-channel-name>
 ```
 
+## Trigger Specific Subscription (v0.3)
+
+It is possible to subscribe recipient to a specific trigger instead of all triggers. The annotation key should be
+prefixed with `<trigger-name>.`. The example below demonstrates how to receive only `on-sync-failed` trigger
+notifications:
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    on-sync-failed.recipients.argocd-notifications.argoproj.io: email:<sample-email>
+```
+
 ## Notification Services
 
 Each recipient is prefixed with the notification service type such as `slack` or `email`. The notification services are
