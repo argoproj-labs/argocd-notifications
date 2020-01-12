@@ -298,6 +298,13 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#trigger-specific-subscription-v03" class="md-nav__link">
+    Trigger Specific Subscription (v0.3)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#notification-services" class="md-nav__link">
     Notification Services
   </a>
@@ -348,6 +355,13 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#trigger-specific-subscription-v03" class="md-nav__link">
+    Trigger Specific Subscription (v0.3)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#notification-services" class="md-nav__link">
     Notification Services
   </a>
@@ -391,6 +405,18 @@ notifications triggered for a specific application:</p>
 <span class="nt">metadata</span><span class="p">:</span>
   <span class="nt">annotations</span><span class="p">:</span>
     <span class="nt">recipients.argocd-notifications.argoproj.io</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">slack:&lt;sample-channel-name&gt;</span>
+</pre></div>
+
+
+<h2 id="trigger-specific-subscription-v03">Trigger Specific Subscription (v0.3)<a class="headerlink" href="#trigger-specific-subscription-v03" title="Permanent link">&para;</a></h2>
+<p>It is possible to subscribe recipient to a specific trigger instead of all triggers. The annotation key should be
+prefixed with <code>&lt;trigger-name&gt;.</code>. The example below demonstrates how to receive only <code>on-sync-failed</code> trigger
+notifications:</p>
+<div class="codehilite"><pre><span></span><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">argoproj.io/v1alpha1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Application</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">annotations</span><span class="p">:</span>
+    <span class="nt">on-sync-failed.recipients.argocd-notifications.argoproj.io</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">email:&lt;sample-email&gt;</span>
 </pre></div>
 
 
