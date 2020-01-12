@@ -51,6 +51,10 @@ func newController(t *testing.T, ctx context.Context, client dynamic.Interface) 
 	if err != nil {
 		return nil, nil, nil, err
 	}
+	err = c.Init(ctx)
+	if err != nil {
+		return nil, nil, nil, err
+	}
 	return c.(*notificationController), trigger, notifier, err
 }
 
@@ -108,6 +112,38 @@ func TestRemovesAnnotationIfNoTrigger(t *testing.T) {
 	assert.Empty(t, app.GetAnnotations()[fmt.Sprintf("mock.%s", annotationPostfix)])
 }
 
+func TestGetRecipients(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.TODO())
+	defer cancel()
+	app := NewApp("test", WithProject("default"), WithAnnotations(map[string]string{
+		recipientsAnnotation: "slack:test1",
+	}))
+	appProj := NewProject("default", WithAnnotations(map[string]string{
+		recipientsAnnotation: "slack:test2",
+		fmt.Sprintf("on-app-sync-unknown.%s", recipientsAnnotation): "slack:test3",
+	}))
+	ctrl, _, _, err := newController(t, ctx, fake.NewSimpleDynamicClient(runtime.NewScheme(), app, appProj))
+	assert.NoError(t, err)
+
+	recipients := ctrl.getRecipients(app, "on-app-health-degraded")
+	assert.Equal(t, map[string]bool{"slack:test1": true, "slack:test2": true}, recipients)
+}
+
+func TestGetRecipientsFromAnnotations_NoTriggerNameInAnnotation(t *testing.T) {
+	recipients := getRecipientsFromAnnotations(
+		map[string]string{recipientsAnnotation: "slack:test"}, "on-app-sync-unknown")
+	assert.ElementsMatch(t, recipients, []string{"slack:test"})
+}
+
+func TestGetRecipientsFromAnnotations_HasTriggerNameInAnnotation(t *testing.T) {
+	recipients := getRecipientsFromAnnotations(map[string]string{
+		recipientsAnnotation: "slack:test",
+		fmt.Sprintf("on-app-sync-unknown.%s", recipientsAnnotation):    "slack:test1",
+		fmt.Sprintf("on-app-health-degraded.%s", recipientsAnnotation): "slack:test2",
+	}, "on-app-sync-unknown")
+	assert.ElementsMatch(t, recipients, []string{"slack:test", "slack:test1"})
+}
+
 func TestUpdatedAnnotationsSavedAsPatch(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
@@ -127,8 +163,6 @@ func TestUpdatedAnnotationsSavedAsPatch(t *testing.T) {
 	assert.NoError(t, err)
 
 	trigger.EXPECT().Triggered(gomock.Any()).Return(false, nil).AnyTimes()
-	err = ctrl.Init(ctx)
-	assert.NoError(t, err)
 
 	go ctrl.Run(ctx, 1)
 
