@@ -160,29 +160,39 @@ func (c *notificationController) notify(title string, body string, recipient str
 	return notifier.Send(title, body, parts[1])
 }
 
-func getRecipientsFromAnnotations(annotations map[string]string) []string {
+func getRecipientsFromAnnotations(annotations map[string]string, trigger string) []string {
 	recipients := make([]string, 0)
-	for _, recipient := range strings.Split(annotations[recipientsAnnotation], ",") {
-		if recipient = strings.TrimSpace(recipient); recipient != "" {
-			recipients = append(recipients, recipient)
+	for k, annotation := range annotations {
+		if !strings.HasSuffix(k, recipientsAnnotation) {
+			continue
+		}
+		if name := strings.TrimRight(k[0:len(k)-len(recipientsAnnotation)], "."); name != "" && name != trigger {
+			continue
+		}
+
+		for _, recipient := range strings.Split(annotation, ",") {
+			if recipient = strings.TrimSpace(recipient); recipient != "" {
+				recipients = append(recipients, recipient)
+			}
 		}
 	}
+
 	return recipients
 }
 
-func (c *notificationController) getRecipients(app *unstructured.Unstructured) map[string]bool {
+func (c *notificationController) getRecipients(app *unstructured.Unstructured, trigger string) map[string]bool {
 	recipients := make(map[string]bool)
 	if annotations := app.GetAnnotations(); annotations != nil {
-		for _, recipient := range getRecipientsFromAnnotations(annotations) {
+		for _, recipient := range getRecipientsFromAnnotations(annotations, trigger) {
 			recipients[recipient] = true
 		}
 	}
 	projName, ok, err := unstructured.NestedString(app.Object, "spec", "project")
-	if !ok && err != nil {
+	if !ok || err != nil {
 		return recipients
 	}
 	projObj, ok, err := c.appProjInformer.GetIndexer().GetByKey(fmt.Sprintf("%s/%s", app.GetNamespace(), projName))
-	if ok && err != nil {
+	if !ok || err != nil {
 		return recipients
 	}
 	proj, ok := projObj.(*unstructured.Unstructured)
@@ -190,7 +200,7 @@ func (c *notificationController) getRecipients(app *unstructured.Unstructured) m
 		return recipients
 	}
 	if annotations := proj.GetAnnotations(); annotations != nil {
-		for _, recipient := range getRecipientsFromAnnotations(annotations) {
+		for _, recipient := range getRecipientsFromAnnotations(annotations, trigger) {
 			recipients[recipient] = true
 		}
 	}
@@ -208,7 +218,7 @@ func (c *notificationController) processApp(app *unstructured.Unstructured, logE
 		if err != nil {
 			logEntry.Debugf("Failed to execute condition of trigger %s: %v", triggerKey, err)
 		}
-		recipients := c.getRecipients(app)
+		recipients := c.getRecipients(app, triggerKey)
 		triggerAnnotation := fmt.Sprintf("%s.%s", triggerKey, annotationPostfix)
 		logEntry.Infof("Trigger %s result: %v", triggerKey, triggered)
 		if triggered {
