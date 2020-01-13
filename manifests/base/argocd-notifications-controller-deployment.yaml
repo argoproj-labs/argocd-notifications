@@ -17,7 +17,7 @@ spec:
         - command:
             - /app/argocd-notifications-controller
           workingDir: /app
-          image: alexmt/argocd-notifications:latest
+          image: argoprojlabs/argocd-notifications:latest
           imagePullPolicy: Always
           name: argocd-notifications-controller
       serviceAccountName: argocd-notifications-controller
