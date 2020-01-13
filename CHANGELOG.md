@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.3.0 (Not released)
+## v0.3.0 (2020-01-13)
 
 ### Features
 * Trigger specific subscriptions
