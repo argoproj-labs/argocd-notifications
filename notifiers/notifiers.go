@@ -1,8 +1,9 @@
 package notifiers
 
 type Config struct {
-	Email *EmailOptions `json:"email"`
-	Slack *SlackOptions `json:"slack"`
+	Email *EmailOptions       `json:"email"`
+	Slack *SlackOptions       `json:"slack"`
+	Opsgenie *OpsgenieOptions `json:"opsgenie"`
 }
 
 //go:generate mockgen -destination=./mocks/notifiers.go -package=mocks github.com/argoproj-labs/argocd-notifications/notifiers Notifier
@@ -18,6 +19,9 @@ func GetAll(config Config) map[string]Notifier {
 	}
 	if config.Slack != nil {
 		res["slack"] = NewSlackNotifier(*config.Slack)
+	}
+	if config.Opsgenie != nil {
+		res["opsgenie"] = NewOpsgenieNotifier(*config.Opsgenie)
 	}
 	return res
 }

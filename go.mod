@@ -14,6 +14,7 @@ require (
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/nlopes/slack v0.5.0
 	github.com/olekukonko/tablewriter v0.0.4
+	github.com/opsgenie/opsgenie-go-sdk-v2 v1.0.5
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.5 // indirect
