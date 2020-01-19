@@ -22,6 +22,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }} #required
           file: ./coverage.out
   publish:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
@@ -29,6 +30,4 @@ jobs:
         env:
           USERNAME: ${{ secrets.USERNAME }}
           PASSWORD: ${{ secrets.TOKEN }}
-      - run: make image DOCKER_PUSH=$PUSH IMAGE_PREFIX=docker.pkg.github.com/argoproj/argo-cd IMAGE_TAG=$(cat ./VERSION)-${GITHUB_SHA::8}
-        env:
-          PUSH: ${{github.event_name == 'push' && github.ref == 'refs/heads/master'}}
+      - run: make image DOCKER_PUSH=true IMAGE_PREFIX=docker.pkg.github.com/argoproj-labs/argocd-notifications IMAGE_TAG=$(cat ./VERSION)-${GITHUB_SHA::8}
