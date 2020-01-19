@@ -29,5 +29,6 @@ jobs:
         env:
           USERNAME: ${{ secrets.USERNAME }}
           PASSWORD: ${{ secrets.TOKEN }}
-          PUSH: ${{github.event_name == 'push' && github.ref == 'refs/heads/master'}}
       - run: make image DOCKER_PUSH=$PUSH IMAGE_PREFIX=docker.pkg.github.com/argoproj/argo-cd IMAGE_TAG=$(cat ./VERSION)-${GITHUB_SHA::8}
+        env:
+          PUSH: ${{github.event_name == 'push' && github.ref == 'refs/heads/master'}}
