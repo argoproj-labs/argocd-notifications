@@ -258,10 +258,46 @@
       
 
 
-  <li class="md-nav__item">
-    <a href="../triggers_and_templates/" title="Triggers and Templates" class="md-nav__link">
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2">
+    
+    <label class="md-nav__link" for="nav-2">
       Triggers and Templates
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-2">
+        Triggers and Templates
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../triggers_and_templates/" title="Overview" class="md-nav__link">
+      Overview
     </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../triggers_and_templates/slack/" title="Slack (v0.4.0+)" class="md-nav__link">
+      Slack (v0.4.0+)
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
   </li>
 
     
@@ -325,8 +361,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#app-sync-status" class="md-nav__link">
-    app-sync-status
+  <a href="#app-sync-status-unknown" class="md-nav__link">
+    app-sync-status-unknown
   </a>
   
 </li>
@@ -411,8 +447,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#app-sync-status" class="md-nav__link">
-    app-sync-status
+  <a href="#app-sync-status-unknown" class="md-nav__link">
+    app-sync-status-unknown
   </a>
   
 </li>
@@ -483,7 +519,7 @@
 <tr>
 <td>on-sync-status-unknown</td>
 <td>Application status is 'Unknown'</td>
-<td><a href="#app-sync-status">app-sync-status</a></td>
+<td><a href="#app-sync-status-unknown">app-sync-status-unknown</a></td>
 </tr>
 <tr>
 <td>on-sync-failed</td>
@@ -508,27 +544,32 @@
 </tbody>
 </table>
 <h2 id="templates">Templates<a class="headerlink" href="#templates" title="Permanent link">&para;</a></h2>
-<h3 id="app-sync-status">app-sync-status<a class="headerlink" href="#app-sync-status" title="Permanent link">&para;</a></h3>
-<p><strong>title</strong>: <code>Application {{.app.metadata.name}} sync status is {{.app.status.sync.status}}</code></p>
+<h3 id="app-sync-status-unknown">app-sync-status-unknown<a class="headerlink" href="#app-sync-status-unknown" title="Permanent link">&para;</a></h3>
+<p><strong>title</strong>: <code>Application {{.app.metadata.name}} sync status is 'Unknown'</code></p>
 <p><strong>body</strong>:</p>
-<div class="codehilite"><pre><span></span><span class="x">Application </span><span class="cp">{{</span><span class="nv">.app.metadata.name</span><span class="cp">}}</span><span class="x"> sync is </span><span class="cp">{{</span><span class="nv">.app.status.sync.status</span><span class="cp">}}</span><span class="x">.</span>
+<div class="codehilite"><pre><span></span><span class="cp">{{</span><span class="k">if</span> <span class="nv">eq</span> <span class="nv">.context.notificationType</span> <span class="s2">&quot;slack&quot;</span><span class="cp">}}</span><span class="x">:exclamation:</span><span class="cp">{{</span><span class="nv">end</span><span class="cp">}}</span><span class="x"> Application </span><span class="cp">{{</span><span class="nv">.app.metadata.name</span><span class="cp">}}</span><span class="x"> sync is &#39;Unknown&#39;.</span>
 <span class="x">Application details: </span><span class="cp">{{</span><span class="nv">.context.argocdUrl</span><span class="cp">}}</span><span class="x">/applications/</span><span class="cp">{{</span><span class="nv">.app.metadata.name</span><span class="cp">}}</span><span class="x">.</span>
+<span class="cp">{{</span><span class="k">if</span> <span class="nv">ne</span> <span class="nv">.context.notificationType</span> <span class="s2">&quot;slack&quot;</span><span class="cp">}}</span><span class="x"></span>
+<span class="cp">{{</span><span class="nv">range</span> <span class="err">$</span><span class="nv">c</span> <span class="o">:=</span> <span class="nv">.app.status.conditions</span><span class="cp">}}</span><span class="x"></span>
+<span class="x">     * </span><span class="cp">{{</span><span class="err">$</span><span class="nv">c.message</span><span class="cp">}}</span><span class="x"></span>
+<span class="cp">{{</span><span class="nv">end</span><span class="cp">}}</span><span class="x"></span>
+<span class="cp">{{</span><span class="nv">end</span><span class="cp">}}</span><span class="x"></span>
 </pre></div>
 
 
 <h3 id="app-sync-succeeded">app-sync-succeeded<a class="headerlink" href="#app-sync-succeeded" title="Permanent link">&para;</a></h3>
 <p><strong>title</strong>: <code>Application {{.app.metadata.name}} has been successfully synced.</code></p>
 <p><strong>body</strong>:</p>
-<div class="codehilite"><pre><span></span><span class="x">Application </span><span class="cp">{{</span><span class="nv">.app.metadata.name</span><span class="cp">}}</span><span class="x"> has been successfully synced at </span><span class="cp">{{</span><span class="nv">.app.status.operationState.finishedAt</span><span class="cp">}}</span><span class="x">.</span>
-<span class="x">Sync operation details is available at: </span><span class="cp">{{</span><span class="nv">.context.argocdUrl</span><span class="cp">}}</span><span class="x">/applications/</span><span class="cp">{{</span><span class="nv">.app.metadata.name</span><span class="cp">}}</span><span class="x">?operation=true .</span>
+<div class="codehilite"><pre><span></span><span class="cp">{{</span><span class="k">if</span> <span class="nv">eq</span> <span class="nv">.context.notificationType</span> <span class="s2">&quot;slack&quot;</span><span class="cp">}}</span><span class="x">:white_check_mark:</span><span class="cp">{{</span><span class="nv">end</span><span class="cp">}}</span><span class="x"> Application </span><span class="cp">{{</span><span class="nv">.app.metadata.name</span><span class="cp">}}</span><span class="x"> has been successfully synced at </span><span class="cp">{{</span><span class="nv">.app.status.operationState.finishedAt</span><span class="cp">}}</span><span class="x">.</span>
+<span class="x">Sync operation details are available at: </span><span class="cp">{{</span><span class="nv">.context.argocdUrl</span><span class="cp">}}</span><span class="x">/applications/</span><span class="cp">{{</span><span class="nv">.app.metadata.name</span><span class="cp">}}</span><span class="x">?operation=true .</span>
 </pre></div>
 
 
 <h3 id="app-sync-failed">app-sync-failed<a class="headerlink" href="#app-sync-failed" title="Permanent link">&para;</a></h3>
 <p><strong>title</strong>: <code>Failed to sync application {{.app.metadata.name}}.</code></p>
 <p><strong>body</strong>:</p>
-<div class="codehilite"><pre><span></span><span class="x">The sync operation of application </span><span class="cp">{{</span><span class="nv">.app.metadata.name</span><span class="cp">}}</span><span class="x"> has failed at </span><span class="cp">{{</span><span class="nv">.app.status.operationState.finishedAt</span><span class="cp">}}</span><span class="x"> with the following error: </span><span class="cp">{{</span><span class="nv">.app.status.operationState.message</span><span class="cp">}}</span><span class="x"></span>
-<span class="x">Sync operation details is available at: </span><span class="cp">{{</span><span class="nv">.context.argocdUrl</span><span class="cp">}}</span><span class="x">/applications/</span><span class="cp">{{</span><span class="nv">.app.metadata.name</span><span class="cp">}}</span><span class="x">?operation=true .</span>
+<div class="codehilite"><pre><span></span><span class="cp">{{</span><span class="k">if</span> <span class="nv">eq</span> <span class="nv">.context.notificationType</span> <span class="s2">&quot;slack&quot;</span><span class="cp">}}</span><span class="x">:exclamation:</span><span class="cp">{{</span><span class="nv">end</span><span class="cp">}}</span><span class="x">  The sync operation of application </span><span class="cp">{{</span><span class="nv">.app.metadata.name</span><span class="cp">}}</span><span class="x"> has failed at </span><span class="cp">{{</span><span class="nv">.app.status.operationState.finishedAt</span><span class="cp">}}</span><span class="x"> with the following error: </span><span class="cp">{{</span><span class="nv">.app.status.operationState.message</span><span class="cp">}}</span><span class="x"></span>
+<span class="x">Sync operation details are available at: </span><span class="cp">{{</span><span class="nv">.context.argocdUrl</span><span class="cp">}}</span><span class="x">/applications/</span><span class="cp">{{</span><span class="nv">.app.metadata.name</span><span class="cp">}}</span><span class="x">?operation=true .</span>
 </pre></div>
 
 
@@ -536,14 +577,14 @@
 <p><strong>title</strong>: <code>Start syncing application {{.app.metadata.name}}.</code></p>
 <p><strong>body</strong>:</p>
 <div class="codehilite"><pre><span></span><span class="x">The sync operation of application </span><span class="cp">{{</span><span class="nv">.app.metadata.name</span><span class="cp">}}</span><span class="x"> has started at </span><span class="cp">{{</span><span class="nv">.app.status.operationState.startedAt</span><span class="cp">}}</span><span class="x">.</span>
-<span class="x">Sync operation details is available at: </span><span class="cp">{{</span><span class="nv">.context.argocdUrl</span><span class="cp">}}</span><span class="x">/applications/</span><span class="cp">{{</span><span class="nv">.app.metadata.name</span><span class="cp">}}</span><span class="x">?operation=true .</span>
+<span class="x">Sync operation details are available at: </span><span class="cp">{{</span><span class="nv">.context.argocdUrl</span><span class="cp">}}</span><span class="x">/applications/</span><span class="cp">{{</span><span class="nv">.app.metadata.name</span><span class="cp">}}</span><span class="x">?operation=true .</span>
 </pre></div>
 
 
 <h3 id="app-health-degraded">app-health-degraded<a class="headerlink" href="#app-health-degraded" title="Permanent link">&para;</a></h3>
 <p><strong>title</strong>: <code>Application {{.app.metadata.name}} has degraded.</code></p>
 <p><strong>body</strong>:</p>
-<div class="codehilite"><pre><span></span><span class="x">Application </span><span class="cp">{{</span><span class="nv">.app.metadata.name</span><span class="cp">}}</span><span class="x"> has degraded.</span>
+<div class="codehilite"><pre><span></span><span class="cp">{{</span><span class="k">if</span> <span class="nv">eq</span> <span class="nv">.context.notificationType</span> <span class="s2">&quot;slack&quot;</span><span class="cp">}}</span><span class="x">:exclamation:</span><span class="cp">{{</span><span class="nv">end</span><span class="cp">}}</span><span class="x"> Application </span><span class="cp">{{</span><span class="nv">.app.metadata.name</span><span class="cp">}}</span><span class="x"> has degraded.</span>
 <span class="x">Application details: </span><span class="cp">{{</span><span class="nv">.context.argocdUrl</span><span class="cp">}}</span><span class="x">/applications/</span><span class="cp">{{</span><span class="nv">.app.metadata.name</span><span class="cp">}}</span><span class="x">.</span>
 </pre></div>
                 
