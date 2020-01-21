@@ -10,6 +10,8 @@ import (
 	"github.com/antonmedv/expr"
 	"github.com/antonmedv/expr/vm"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+
+	"github.com/argoproj-labs/argocd-notifications/notifiers"
 )
 
 type NotificationTrigger struct {
@@ -21,19 +23,20 @@ type NotificationTrigger struct {
 }
 
 type NotificationTemplate struct {
-	Name  string `json:"name,omitempty"`
-	Title string `json:"title,omitempty"`
-	Body  string `json:"body,omitempty"`
+	notifiers.Notification `json:"-"`
+	Name                   string `json:"name,omitempty"`
 }
 
 type Trigger interface {
 	Triggered(app *unstructured.Unstructured) (bool, error)
-	FormatNotification(app *unstructured.Unstructured, context map[string]string) (string, string, error)
+	FormatNotification(app *unstructured.Unstructured, context map[string]string) (*notifiers.Notification, error)
 }
 
 type template struct {
-	title *htmptemplate.Template
-	body  *htmptemplate.Template
+	title            *htmptemplate.Template
+	body             *htmptemplate.Template
+	slackAttachments *htmptemplate.Template
+	slackBlocks      *htmptemplate.Template
 }
 
 type trigger struct {
@@ -58,7 +61,7 @@ func (t *trigger) Triggered(app *unstructured.Unstructured) (bool, error) {
 	return false, nil
 }
 
-func (t *trigger) FormatNotification(app *unstructured.Unstructured, context map[string]string) (string, string, error) {
+func (t *trigger) FormatNotification(app *unstructured.Unstructured, context map[string]string) (*notifiers.Notification, error) {
 	vars := map[string]interface{}{
 		"app":     app.Object,
 		"context": context,
@@ -66,14 +69,34 @@ func (t *trigger) FormatNotification(app *unstructured.Unstructured, context map
 	var title bytes.Buffer
 	err := t.template.title.Execute(&title, vars)
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
 	var body bytes.Buffer
 	err = t.template.body.Execute(&body, vars)
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
-	return title.String(), body.String(), nil
+	notification := &notifiers.Notification{Title: title.String(), Body: body.String()}
+	if t.template.slackAttachments != nil || t.template.slackBlocks != nil {
+		notification.Slack = &notifiers.SlackSpecific{}
+	}
+	if t.template.slackAttachments != nil {
+		var slackAttachments bytes.Buffer
+		err = t.template.slackAttachments.Execute(&slackAttachments, vars)
+		if err != nil {
+			return nil, err
+		}
+		notification.Slack.Attachments = slackAttachments.String()
+	}
+	if t.template.slackBlocks != nil {
+		var slackBlocks bytes.Buffer
+		err = t.template.slackBlocks.Execute(&slackBlocks, vars)
+		if err != nil {
+			return nil, err
+		}
+		notification.Slack.Blocks = slackBlocks.String()
+	}
+	return notification, nil
 }
 
 func parseTemplates(templates []NotificationTemplate) (map[string]template, error) {
@@ -87,7 +110,20 @@ func parseTemplates(templates []NotificationTemplate) (map[string]template, erro
 		if err != nil {
 			return nil, err
 		}
-		res[nt.Name] = template{title: title, body: body}
+		t := template{title: title, body: body}
+		if nt.Slack != nil {
+			slackAttachments, err := htmptemplate.New(nt.Name).Parse(nt.Slack.Attachments)
+			if err != nil {
+				return nil, err
+			}
+			t.slackAttachments = slackAttachments
+			slackBlocks, err := htmptemplate.New(nt.Name).Parse(nt.Slack.Blocks)
+			if err != nil {
+				return nil, err
+			}
+			t.slackBlocks = slackBlocks
+		}
+		res[nt.Name] = t
 	}
 	return res, nil
 }

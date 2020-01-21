@@ -3,6 +3,7 @@ package notifiers
 import (
 	"context"
 	"fmt"
+
 	"github.com/opsgenie/opsgenie-go-sdk-v2/alert"
 	"github.com/opsgenie/opsgenie-go-sdk-v2/client"
 )
@@ -20,18 +21,18 @@ func NewOpsgenieNotifier(opts OpsgenieOptions) Notifier {
 	return &opsgenieNotifier{opts: opts}
 }
 
-func (n *opsgenieNotifier) Send(title string, body string, recipient string) error {
+func (n *opsgenieNotifier) Send(notification Notification, recipient string) error {
 	apiKey, ok := n.opts.ApiKeys[recipient]
 	if !ok {
 		return fmt.Errorf("no API key configured for recipient %s", recipient)
 	}
 	alertClient, _ := alert.NewClient(&client.Config{
-		ApiKey: apiKey,
+		ApiKey:         apiKey,
 		OpsGenieAPIURL: client.ApiUrl(n.opts.ApiUrl),
 	})
 	_, err := alertClient.Create(context.TODO(), &alert.CreateAlertRequest{
-		Message: title,
-		Description: body,
+		Message:     notification.Title,
+		Description: notification.Body,
 		Responders: []alert.Responder{
 			{
 				Type: "team",

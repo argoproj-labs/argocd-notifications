@@ -3,6 +3,8 @@ package triggers
 import (
 	"testing"
 
+	"github.com/argoproj-labs/argocd-notifications/notifiers"
+
 	testingutil "github.com/argoproj-labs/argocd-notifications/testing"
 
 	"github.com/stretchr/testify/assert"
@@ -19,9 +21,11 @@ func TestGetTriggers_FailsIfReferencesNonExistingTemplate(t *testing.T) {
 
 func TestGetTriggers(t *testing.T) {
 	triggers, err := GetTriggers([]NotificationTemplate{{
-		Name:  "template",
-		Title: "the title: {{.app.metadata.name}}",
-		Body:  "the body: {{.app.metadata.name}}",
+		Name: "template",
+		Notification: notifiers.Notification{
+			Title: "the title: {{.app.metadata.name}}",
+			Body:  "the body: {{.app.metadata.name}}",
+		},
 	}}, []NotificationTrigger{{
 		Name:      "trigger",
 		Template:  "template",
@@ -40,8 +44,8 @@ func TestGetTriggers(t *testing.T) {
 	assert.NoError(t, err)
 	assert.False(t, ok)
 
-	title, body, err := trigger.FormatNotification(testingutil.NewApp("test"), map[string]string{})
+	notification, err := trigger.FormatNotification(testingutil.NewApp("test"), map[string]string{})
 	assert.NoError(t, err)
-	assert.Equal(t, "the title: test", title)
-	assert.Equal(t, "the body: test", body)
+	assert.Equal(t, "the title: test", notification.Title)
+	assert.Equal(t, "the body: test", notification.Body)
 }

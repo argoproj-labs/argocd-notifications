@@ -3,6 +3,7 @@ package notifiers
 import (
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"net/http"
 
 	"github.com/nlopes/slack"
@@ -22,7 +23,7 @@ func NewSlackNotifier(opts SlackOptions) Notifier {
 	return &slackNotifier{opts: opts}
 }
 
-func (n *slackNotifier) Send(_ string, body string, recipient string) error {
+func (n *slackNotifier) Send(notification Notification, recipient string) error {
 	client := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
@@ -31,9 +32,25 @@ func (n *slackNotifier) Send(_ string, body string, recipient string) error {
 		},
 	}
 	s := slack.New(n.opts.Token, slack.OptionHTTPClient(client))
-	_, _, err := s.PostMessageContext(
-		context.TODO(),
-		recipient,
-		slack.MsgOptionText(body, false))
+	msgOptions := []slack.MsgOption{slack.MsgOptionText(notification.Body, false)}
+
+	if notification.Slack != nil {
+		attachments := make([]slack.Attachment, 0)
+		if notification.Slack.Attachments != "" {
+			if err := json.Unmarshal([]byte(notification.Slack.Attachments), &attachments); err != nil {
+				return err
+			}
+		}
+
+		blocks := slack.Blocks{}
+		if notification.Slack.Blocks != "" {
+			if err := json.Unmarshal([]byte(notification.Slack.Blocks), &blocks); err != nil {
+				return err
+			}
+		}
+		msgOptions = append(msgOptions, slack.MsgOptionAttachments(attachments...), slack.MsgOptionBlocks(blocks.BlockSet...))
+	}
+
+	_, _, err := s.PostMessageContext(context.TODO(), recipient, msgOptions...)
 	return err
 }
