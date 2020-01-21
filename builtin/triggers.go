@@ -10,7 +10,7 @@ var (
 		Name:        "on-sync-status-unknown",
 		Condition:   "app.status.sync.status == 'Unknown'",
 		Description: "Application status is 'Unknown'",
-		Template:    "app-sync-status",
+		Template:    "app-sync-status-unknown",
 		Enabled:     pointer.BoolPtr(false),
 	}, {
 		Name:        "on-sync-failed",

@@ -5,6 +5,7 @@
 package mocks
 
 import (
+	notifiers "github.com/argoproj-labs/argocd-notifications/notifiers"
 	gomock "github.com/golang/mock/gomock"
 	unstructured "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	reflect "reflect"
@@ -34,13 +35,12 @@ func (m *MockTrigger) EXPECT() *MockTriggerMockRecorder {
 }
 
 // FormatNotification mocks base method
-func (m *MockTrigger) FormatNotification(arg0 *unstructured.Unstructured, arg1 map[string]string) (string, string, error) {
+func (m *MockTrigger) FormatNotification(arg0 *unstructured.Unstructured, arg1 map[string]string) (*notifiers.Notification, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FormatNotification", arg0, arg1)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(string)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret0, _ := ret[0].(*notifiers.Notification)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // FormatNotification indicates an expected call of FormatNotification
