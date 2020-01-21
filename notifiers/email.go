@@ -21,7 +21,7 @@ func NewEmailNotifier(opts EmailOptions) Notifier {
 	return &emailNotifier{opts: opts}
 }
 
-func (n *emailNotifier) Send(title string, body string, recipient string) error {
+func (n *emailNotifier) Send(notification Notification, recipient string) error {
 	return smtp.New(smtp.Options{
 		From:               n.opts.From,
 		Host:               n.opts.Host,
@@ -29,5 +29,5 @@ func (n *emailNotifier) Send(title string, body string, recipient string) error 
 		InsecureSkipVerify: n.opts.InsecureSkipVerify,
 		Password:           n.opts.Password,
 		Username:           n.opts.Username,
-	}).WithSubject(title).WithBody(body).To(recipient).Send()
+	}).WithSubject(notification.Title).WithBody(notification.Body).To(recipient).Send()
 }

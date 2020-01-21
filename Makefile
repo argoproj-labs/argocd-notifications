@@ -7,6 +7,11 @@ DOCKER_PUSH?=false
 test:
 	go test ./... -coverprofile=coverage.out
 
+.PHONY: generate
+generate:
+	go generate ./...
+	./hack/docs.sh
+
 .PHONY: image
 image:
 	docker build -t $(IMAGE_PREFIX)/argocd-notifications:$(IMAGE_TAG) .

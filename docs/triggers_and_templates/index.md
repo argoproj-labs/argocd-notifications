@@ -1,4 +1,4 @@
-# Triggers and Templates
+# Overview
 
 Triggers and templates are configured in the `config.yaml` field of the `argocd-notification-cm` ConfigMap:
 

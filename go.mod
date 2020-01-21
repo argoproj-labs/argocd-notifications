@@ -12,7 +12,7 @@ require (
 	github.com/imdario/mergo v0.3.8 // indirect
 	github.com/json-iterator/go v1.1.8 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
-	github.com/nlopes/slack v0.5.0
+	github.com/nlopes/slack v0.6.0
 	github.com/olekukonko/tablewriter v0.0.4
 	github.com/opsgenie/opsgenie-go-sdk-v2 v1.0.5
 	github.com/sirupsen/logrus v1.4.2

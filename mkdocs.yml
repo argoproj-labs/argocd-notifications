@@ -20,6 +20,8 @@ markdown_extensions:
     permalink: true
 nav:
   - Overview: index.md
-  - triggers_and_templates.md
+  - Triggers and Templates:
+    - triggers_and_templates/index.md
+    - triggers_and_templates/slack.md
   - recipients.md
   - built-in.md

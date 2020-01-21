@@ -30,6 +30,7 @@ import (
 const (
 	resyncPeriod      = 60 * time.Second
 	annotationPostfix = "argocd-notifications.argoproj.io"
+	notificationType  = "notificationType"
 )
 
 var (
@@ -148,18 +149,6 @@ func (c *notificationController) Run(ctx context.Context, processors int) {
 	log.Warn("Controller has stopped.")
 }
 
-func (c *notificationController) notify(title string, body string, recipient string) error {
-	parts := strings.Split(recipient, ":")
-	if len(parts) < 2 {
-		return fmt.Errorf("%s is not valid recipient. Expected recipient format is <type>:<name>", recipient)
-	}
-	notifier, ok := c.notifiers[parts[0]]
-	if !ok {
-		return fmt.Errorf("%s is not valid recipient type.", parts[0])
-	}
-	return notifier.Send(title, body, parts[1])
-}
-
 func getRecipientsFromAnnotations(annotations map[string]string, trigger string) []string {
 	recipients := make([]string, 0)
 	for k, annotation := range annotations {
@@ -206,6 +195,13 @@ func (c *notificationController) getRecipients(app *unstructured.Unstructured, t
 	}
 	return recipients
 }
+func copyMap(in map[string]string) map[string]string {
+	out := make(map[string]string)
+	for k, v := range in {
+		out[k] = v
+	}
+	return out
+}
 
 func (c *notificationController) processApp(app *unstructured.Unstructured, logEntry *log.Entry) error {
 	refreshed := false
@@ -240,14 +236,26 @@ func (c *notificationController) processApp(app *unstructured.Unstructured, logE
 			}
 
 			if !alreadyNotified {
-				logEntry.Infof("Sending %s notification", triggerKey)
-				title, body, err := t.FormatNotification(app, c.context)
-				if err != nil {
-					return err
-				}
 				successful := true
 				for recipient := range recipients {
-					if err = c.notify(title, body, recipient); err != nil {
+					parts := strings.Split(recipient, ":")
+					if len(parts) < 2 {
+						return fmt.Errorf("%s is not valid recipient. Expected recipient format is <type>:<name>", recipient)
+					}
+					notifierType := parts[0]
+					notifier, ok := c.notifiers[notifierType]
+					if !ok {
+						return fmt.Errorf("%s is not valid recipient type.", notifierType)
+					}
+
+					logEntry.Infof("Sending %s notification", triggerKey)
+					ctx := copyMap(c.context)
+					ctx[notificationType] = notifierType
+					notification, err := t.FormatNotification(app, ctx)
+					if err != nil {
+						return err
+					}
+					if err = notifier.Send(*notification, parts[1]); err != nil {
 						logEntry.Errorf("Failed to notify recipient %s defined in app %s/%s: %v",
 							recipient, app.GetNamespace(), app.GetName(), err)
 						successful = false

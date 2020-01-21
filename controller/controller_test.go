@@ -68,8 +68,9 @@ func TestSendsNotificationIfTriggered(t *testing.T) {
 	assert.NoError(t, err)
 
 	trigger.EXPECT().Triggered(app).Return(true, nil)
-	trigger.EXPECT().FormatNotification(app, map[string]string{}).Return("title", "body", nil)
-	notifier.EXPECT().Send("title", "body", "recipient").Return(nil)
+	trigger.EXPECT().FormatNotification(app, map[string]string{"notificationType": "mock"}).Return(
+		&notifiers.Notification{Title: "title", Body: "body"}, nil)
+	notifier.EXPECT().Send(notifiers.Notification{Title: "title", Body: "body"}, "recipient").Return(nil)
 
 	err = ctrl.processApp(app, logEntry)
 
