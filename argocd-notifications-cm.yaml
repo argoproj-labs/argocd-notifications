@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: argocd-cm
+  name: argocd-notifications-cm
 data:
   config.yaml: |
     triggers:
