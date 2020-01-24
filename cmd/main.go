@@ -87,7 +87,7 @@ func newCommand() *cobra.Command {
 			}
 
 			var cancelPrev context.CancelFunc
-			watchConfig(k8sClient, namespace, func(triggers map[string]triggers.Trigger, notifiers map[string]notifiers.Notifier, contextVals map[string]string) error {
+			watchConfig(context.Background(), k8sClient, namespace, func(triggers map[string]triggers.Trigger, notifiers map[string]notifiers.Notifier, contextVals map[string]string) error {
 				if cancelPrev != nil {
 					log.Info("Settings had been updated. Restarting controller...")
 					cancelPrev()
@@ -142,7 +142,7 @@ func parseConfig(configData map[string]string, notifiersData []byte) (map[string
 	return t, notifiers.GetAll(notifiersConfig), cfg.Context, nil
 }
 
-func watchConfig(clientset kubernetes.Interface, namespace string, callback func(map[string]triggers.Trigger, map[string]notifiers.Notifier, map[string]string) error) {
+func watchConfig(ctx context.Context, clientset kubernetes.Interface, namespace string, callback func(map[string]triggers.Trigger, map[string]notifiers.Notifier, map[string]string) error) {
 	var secret *v1.Secret
 	var configMap *v1.ConfigMap
 	lock := &sync.Mutex{}
@@ -197,10 +197,10 @@ func watchConfig(clientset kubernetes.Interface, namespace string, callback func
 			onSecretChanged(newObj)
 		},
 	})
-	go secretInformer.Run(context.Background().Done())
-	go cmInformer.Run(context.Background().Done())
+	go secretInformer.Run(ctx.Done())
+	go cmInformer.Run(ctx.Done())
 
-	if !cache.WaitForCacheSync(context.Background().Done(), cmInformer.HasSynced, secretInformer.HasSynced) {
+	if !cache.WaitForCacheSync(ctx.Done(), cmInformer.HasSynced, secretInformer.HasSynced) {
 		log.Fatal(errors.New("timed out waiting for caches to sync"))
 	}
 }
@@ -242,6 +242,14 @@ func (cfg *config) merge(other *config) *config {
 		if existing, ok := templatesMap[item.Name]; ok {
 			existing.Body = coalesce(item.Body, existing.Body)
 			existing.Title = coalesce(item.Title, existing.Title)
+			if item.Slack != nil {
+				if existing.Slack == nil {
+					existing.Slack = &notifiers.SlackSpecific{Blocks: item.Slack.Blocks, Attachments: item.Slack.Attachments}
+				} else {
+					existing.Slack.Attachments = coalesce(item.Slack.Attachments, existing.Slack.Attachments)
+					existing.Slack.Blocks = coalesce(item.Slack.Blocks, existing.Slack.Blocks)
+				}
+			}
 			templatesMap[item.Name] = existing
 		} else {
 			templatesMap[item.Name] = item
