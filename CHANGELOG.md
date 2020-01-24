@@ -1,6 +1,8 @@
 # Changelog
 
-## v0.4.0 (Not released)
+## v0.5.0 (Not released)
+
+## v0.4.0 (2020-01-24)
 
 * Opsgenie support (thanks to [Dominik Münch](https://github.com/muenchdo))
 * Slack message blocks and attachments support
