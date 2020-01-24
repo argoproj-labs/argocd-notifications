@@ -12,7 +12,6 @@ type SlackSpecific struct {
 }
 
 type Notification struct {
-	Name  string `json:"name,omitempty"`
 	Title string `json:"title,omitempty"`
 	Body  string `json:"body,omitempty"`
 	Slack *SlackSpecific
