@@ -23,8 +23,8 @@ type NotificationTrigger struct {
 }
 
 type NotificationTemplate struct {
-	notifiers.Notification `json:"-"`
-	Name                   string `json:"name,omitempty"`
+	notifiers.Notification
+	Name string `json:"name,omitempty"`
 }
 
 type Trigger interface {
