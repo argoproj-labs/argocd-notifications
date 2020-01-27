@@ -14,6 +14,86 @@ import (
 	"github.com/argoproj-labs/argocd-notifications/triggers"
 )
 
+func TestParseConfigMapYaml(t *testing.T) {
+	configData := map[string]string{
+		"config.yaml": `
+triggers:
+  - name: on-sync-status-custom
+    condition: app.status.operationState.phase in ['Custom']
+    description: Application custom trigger
+    template: app-sync-status
+    enabled: true
+templates:
+  - name: app-sync-status
+    title: Application {{.app.metadata.name}} sync status is {{.app.status.sync.status}}
+    body: |
+      Application {{.app.metadata.name}} sync is {{.app.status.sync.status}}.
+      Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
+    slack:
+      attachments: |
+        [{
+          "title": "{{.app.metadata.name}}",
+          "title_link": "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+          "color": "#18be52",
+          "fields": [{
+            "title": "Sync Status",
+            "value": "{{.app.status.sync.status}}",
+            "short": true
+          }, {
+            "title": "Repository",
+            "value": "{{.app.spec.source.repoURL}}",
+            "short": true
+          }]
+        }]
+context:
+    argocdUrl: testUrl`}
+
+	chk := true
+	expectCfg := &config{
+		Triggers: []triggers.NotificationTrigger{
+			{
+				Name:        "on-sync-status-custom",
+				Condition:   "app.status.operationState.phase in ['Custom']",
+				Description: "Application custom trigger",
+				Template:    "app-sync-status",
+				Enabled:     &chk,
+			},
+		},
+		Templates: []triggers.NotificationTemplate{{
+			Name: "app-sync-status",
+			Notification: notifiers.Notification{
+				Title: "Application {{.app.metadata.name}} sync status is {{.app.status.sync.status}}",
+				Body: `Application {{.app.metadata.name}} sync is {{.app.status.sync.status}}.
+Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
+`,
+				Slack: &notifiers.SlackSpecific{
+					Attachments: `[{
+  "title": "{{.app.metadata.name}}",
+  "title_link": "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+  "color": "#18be52",
+  "fields": [{
+    "title": "Sync Status",
+    "value": "{{.app.status.sync.status}}",
+    "short": true
+  }, {
+    "title": "Repository",
+    "value": "{{.app.spec.source.repoURL}}",
+    "short": true
+  }]
+}]
+`,
+					Blocks: "",
+				}},
+		}},
+		Context: map[string]string{"argocdUrl": "testUrl"},
+	}
+	actualCfg, err := parseConfigMapYaml(configData)
+	assert.NoError(t, err)
+	assert.Equal(t, expectCfg.Templates, actualCfg.Templates)
+	assert.Equal(t, expectCfg.Triggers, actualCfg.Triggers)
+	assert.Equal(t, expectCfg.Context, actualCfg.Context)
+}
+
 func TestMergeConfigTemplate(t *testing.T) {
 	cfg := config{
 		Templates: []triggers.NotificationTemplate{{
