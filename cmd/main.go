@@ -127,6 +127,13 @@ func parseConfigMapYaml(configData map[string]string) (cfg *config, err error) {
 	}
 	return cfg, nil
 }
+func parseSecretYaml(notifiersData []byte) (notifiersConfig notifiers.Config, err error) {
+	err = yaml.Unmarshal(notifiersData, &notifiersConfig)
+	if err != nil {
+		return notifiers.Config{}, err
+	}
+	return notifiersConfig, nil
+}
 func parseConfig(configData map[string]string, notifiersData []byte) (map[string]triggers.Trigger, map[string]notifiers.Notifier, map[string]string, error) {
 	cfg, err := parseConfigMapYaml(configData)
 	if err != nil {
@@ -137,9 +144,7 @@ func parseConfig(configData map[string]string, notifiersData []byte) (map[string
 	if err != nil {
 		return nil, nil, nil, err
 	}
-
-	notifiersConfig := notifiers.Config{}
-	err = yaml.Unmarshal(notifiersData, &notifiersConfig)
+	notifiersConfig, err := parseSecretYaml(notifiersData)
 	if err != nil {
 		return nil, nil, nil, err
 	}
