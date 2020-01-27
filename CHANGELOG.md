@@ -2,6 +2,11 @@
 
 ## v0.5.0 (Not released)
 
+## v0.4.1 (2020-01-26)
+
+###  Bug Fixes
+* fix: notification config parse (#19) ( thanks to [@yutachaos](https://github.com/yutachaos) ! )
+
 ## v0.4.0 (2020-01-24)
 
 * Opsgenie support (thanks to [Dominik Münch](https://github.com/muenchdo))
