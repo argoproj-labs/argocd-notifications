@@ -48,7 +48,6 @@ templates:
 context:
     argocdUrl: testUrl`}
 
-	chk := true
 	expectCfg := &config{
 		Triggers: []triggers.NotificationTrigger{
 			{
@@ -56,7 +55,7 @@ context:
 				Condition:   "app.status.operationState.phase in ['Custom']",
 				Description: "Application custom trigger",
 				Template:    "app-sync-status",
-				Enabled:     &chk,
+				Enabled:     pointer.BoolPtr(true),
 			},
 		},
 		Templates: []triggers.NotificationTemplate{{
