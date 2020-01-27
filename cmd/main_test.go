@@ -48,7 +48,6 @@ templates:
 context:
     argocdUrl: testUrl`}
 
-	chk := true
 	expectCfg := &config{
 		Triggers: []triggers.NotificationTrigger{
 			{
@@ -56,7 +55,7 @@ context:
 				Condition:   "app.status.operationState.phase in ['Custom']",
 				Description: "Application custom trigger",
 				Template:    "app-sync-status",
-				Enabled:     &chk,
+				Enabled:     pointer.BoolPtr(true),
 			},
 		},
 		Templates: []triggers.NotificationTemplate{{
@@ -89,9 +88,46 @@ Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
 	}
 	actualCfg, err := parseConfigMapYaml(configData)
 	assert.NoError(t, err)
-	assert.Equal(t, expectCfg.Templates, actualCfg.Templates)
-	assert.Equal(t, expectCfg.Triggers, actualCfg.Triggers)
-	assert.Equal(t, expectCfg.Context, actualCfg.Context)
+	assert.Equal(t, expectCfg, actualCfg)
+}
+
+func TestParseSecretYaml(t *testing.T) {
+	notifiersData := []byte(`
+email:
+  host: smtp.gmail.com
+  port: 587
+  from: <myemail>@gmail.com
+  username: <myemail>@gmail.com
+  password: <mypassword>
+slack:
+  token: <my-token>
+opsgenie:
+  apiUrl: api.opsgenie.com
+  apiKeys:
+    <team-id>: <my-api-key>`)
+
+	expectNotifiersCfg := notifiers.Config{
+		Email: &notifiers.EmailOptions{
+			Host:               "smtp.gmail.com",
+			Port:               587,
+			From:               "<myemail>@gmail.com",
+			InsecureSkipVerify: false,
+			Username:           "<myemail>@gmail.com",
+			Password:           "<mypassword>",
+		},
+		Slack: &notifiers.SlackOptions{
+			Token:              "<my-token>",
+			Channels:           nil,
+			InsecureSkipVerify: false,
+		},
+		Opsgenie: &notifiers.OpsgenieOptions{
+			ApiUrl:  "api.opsgenie.com",
+			ApiKeys: map[string]string{"<team-id>": "<my-api-key>"},
+		},
+	}
+	actualNotifiersCfg, err := parseSecretYaml(notifiersData)
+	assert.NoError(t, err)
+	assert.Equal(t, expectNotifiersCfg, actualNotifiersCfg)
 }
 
 func TestMergeConfigTemplate(t *testing.T) {
