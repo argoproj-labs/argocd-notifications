@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"fmt"
 	htmptemplate "html/template"
+	"time"
 
 	"github.com/antonmedv/expr"
 	"github.com/antonmedv/expr/vm"
@@ -52,8 +53,27 @@ func GetTriggers(templatesCfg []NotificationTemplate, triggersCfg []Notification
 	return parseTriggers(triggersCfg, templates)
 }
 
+func spawnExprEnvs(opts map[string]interface{}) interface{} {
+	envs := map[string]interface{}{
+		"toTime": func(timestamp string) time.Time {
+			res, err := time.Parse(time.RFC3339, timestamp)
+			if err != nil {
+				panic(err)
+			}
+			return res
+		},
+		"now": func() time.Time { return time.Now() },
+	}
+	for name, env := range opts {
+		envs[name] = env
+	}
+
+	return envs
+}
+
 func (t *trigger) Triggered(app *unstructured.Unstructured) (bool, error) {
-	if res, err := expr.Run(t.condition, map[string]interface{}{"app": app.Object}); err != nil {
+	envs := map[string]interface{}{"app": app.Object}
+	if res, err := expr.Run(t.condition, spawnExprEnvs(envs)); err != nil {
 		return false, err
 	} else if boolRes, ok := res.(bool); ok {
 		return boolRes, nil
