@@ -101,6 +101,7 @@ email:
   password: <mypassword>
 slack:
   token: <my-token>
+  username: <override-username>
 opsgenie:
   apiUrl: api.opsgenie.com
   apiKeys:
@@ -116,6 +117,7 @@ opsgenie:
 			Password:           "<mypassword>",
 		},
 		Slack: &notifiers.SlackOptions{
+			Username:           "<override-username>",
 			Token:              "<my-token>",
 			Channels:           nil,
 			InsecureSkipVerify: false,
