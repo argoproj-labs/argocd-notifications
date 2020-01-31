@@ -142,7 +142,7 @@ func TestGetTriggers_UsingExprVm(t *testing.T) {
 	}}, []NotificationTrigger{{
 		Name:      "trigger",
 		Template:  "template",
-		Condition: "app.metadata.name == 'foo' && app.status.operationState.phase in ['Running'] && time.now().Sub(time.parse(app.status.operationState.startedAt)).Minutes() >= 5",
+		Condition: "app.metadata.name == 'foo' && app.status.operationState.phase in ['Running'] && time.Now().Sub(time.Parse(app.status.operationState.startedAt)).Minutes() >= 5",
 	}})
 	assert.NoError(t, err)
 

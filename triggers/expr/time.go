@@ -6,13 +6,13 @@ import (
 
 func init() {
 	helpers := map[string]interface{}{
-		"parse": toTime,
-		"now":   now,
+		"Parse": parse,
+		"Now":   now,
 	}
 	register("time", helpers)
 }
 
-func toTime(timestamp string) time.Time {
+func parse(timestamp string) time.Time {
 	res, err := time.Parse(time.RFC3339, timestamp)
 	if err != nil {
 		panic(err)
