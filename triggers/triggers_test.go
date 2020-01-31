@@ -124,14 +124,11 @@ func TestSpawnExprEnvs(t *testing.T) {
 	envs, ok := spawnExprEnvs(opts).(map[string]interface{})
 	assert.True(t, ok)
 
-	_, hasToTime := envs["toTime"]
-	assert.True(t, hasToTime)
-
-	_, hasNow := envs["now"]
-	assert.True(t, hasNow)
-
 	_, hasApp := envs["app"]
 	assert.True(t, hasApp)
+
+	_, hasTimeNamespace := envs["time"]
+	assert.True(t, hasTimeNamespace)
 
 }
 
@@ -145,7 +142,7 @@ func TestGetTriggers_UsingExprVm(t *testing.T) {
 	}}, []NotificationTrigger{{
 		Name:      "trigger",
 		Template:  "template",
-		Condition: "app.metadata.name == 'foo' && app.status.operationState.phase in ['Running'] && now().Sub(toTime(app.status.operationState.startedAt)).Minutes() >= 5",
+		Condition: "app.metadata.name == 'foo' && app.status.operationState.phase in ['Running'] && time.now().Sub(time.parse(app.status.operationState.startedAt)).Minutes() >= 5",
 	}})
 	assert.NoError(t, err)
 

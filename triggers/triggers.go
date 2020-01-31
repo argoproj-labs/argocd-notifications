@@ -6,13 +6,13 @@ import (
 	"bytes"
 	"fmt"
 	htmptemplate "html/template"
-	"time"
 
 	"github.com/antonmedv/expr"
 	"github.com/antonmedv/expr/vm"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
 	"github.com/argoproj-labs/argocd-notifications/notifiers"
+	exprHelpers "github.com/argoproj-labs/argocd-notifications/triggers/expr"
 )
 
 type NotificationTrigger struct {
@@ -54,16 +54,7 @@ func GetTriggers(templatesCfg []NotificationTemplate, triggersCfg []Notification
 }
 
 func spawnExprEnvs(opts map[string]interface{}) interface{} {
-	envs := map[string]interface{}{
-		"toTime": func(timestamp string) time.Time {
-			res, err := time.Parse(time.RFC3339, timestamp)
-			if err != nil {
-				panic(err)
-			}
-			return res
-		},
-		"now": func() time.Time { return time.Now() },
-	}
+	envs := exprHelpers.Spawn()
 	for name, env := range opts {
 		envs[name] = env
 	}
