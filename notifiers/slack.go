@@ -33,7 +33,10 @@ func (n *slackNotifier) Send(notification Notification, recipient string) error 
 		},
 	}
 	s := slack.New(n.opts.Token, slack.OptionHTTPClient(client))
-	msgOptions := []slack.MsgOption{slack.MsgOptionText(notification.Body, false), slack.MsgOptionUsername(n.opts.Username)}
+	msgOptions := []slack.MsgOption{slack.MsgOptionText(notification.Body, false)}
+	if n.opts.Username != "" {
+		msgOptions = append(msgOptions, slack.MsgOptionUsername(n.opts.Username))
+	}
 
 	if notification.Slack != nil {
 		attachments := make([]slack.Attachment, 0)
