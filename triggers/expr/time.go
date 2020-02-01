@@ -5,11 +5,14 @@ import (
 )
 
 func init() {
-	helpers := map[string]interface{}{
+	register("time", newTimeExprs())
+}
+
+func newTimeExprs() map[string]interface{} {
+	return map[string]interface{}{
 		"Parse": parse,
 		"Now":   now,
 	}
-	register("time", helpers)
 }
 
 func parse(timestamp string) time.Time {

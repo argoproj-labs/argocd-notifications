@@ -126,10 +126,6 @@ func TestSpawnExprEnvs(t *testing.T) {
 
 	_, hasApp := envs["app"]
 	assert.True(t, hasApp)
-
-	_, hasTimeNamespace := envs["time"]
-	assert.True(t, hasTimeNamespace)
-
 }
 
 func TestGetTriggers_UsingExprVm(t *testing.T) {
