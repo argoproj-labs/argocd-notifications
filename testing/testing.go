@@ -1,6 +1,8 @@
 package testing
 
 import (
+	"time"
+
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -30,6 +32,13 @@ func WithSyncStatus(status string) func(app *unstructured.Unstructured) {
 func WithSyncOperationPhase(phase string) func(app *unstructured.Unstructured) {
 	return func(app *unstructured.Unstructured) {
 		_ = unstructured.SetNestedField(app.Object, phase, "status", "operationState", "phase")
+	}
+}
+
+func WithSyncOperationStartAt(t time.Time) func(app *unstructured.Unstructured) {
+	return func(app *unstructured.Unstructured) {
+		ts := t.Format(time.RFC3339)
+		_ = unstructured.SetNestedField(app.Object, ts, "status", "operationState", "startedAt")
 	}
 }
 
