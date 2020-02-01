@@ -2,6 +2,7 @@ package triggers
 
 import (
 	"testing"
+	"time"
 
 	"github.com/argoproj-labs/argocd-notifications/notifiers"
 
@@ -116,4 +117,45 @@ func TestGetTriggers_UsingSlack(t *testing.T) {
 	assert.Equal(t, "the body: test", notification.Body)
 	assert.Equal(t, "Application test Application details: testUrl/applications/test.", notification.Slack.Attachments)
 	assert.Equal(t, "Application test Application details: testUrl/applications/test.", notification.Slack.Blocks)
+}
+
+func TestSpawnExprEnvs(t *testing.T) {
+	opts := map[string]interface{}{"app": "dummy"}
+	envs, ok := spawnExprEnvs(opts).(map[string]interface{})
+	assert.True(t, ok)
+
+	_, hasApp := envs["app"]
+	assert.True(t, hasApp)
+}
+
+func TestGetTriggers_UsingExprVm(t *testing.T) {
+	triggers, err := GetTriggers([]NotificationTemplate{{
+		Name: "template",
+		Notification: notifiers.Notification{
+			Title: "the title: {{.app.metadata.name}}",
+			Body:  "the body: {{.app.metadata.name}}",
+		},
+	}}, []NotificationTrigger{{
+		Name:      "trigger",
+		Template:  "template",
+		Condition: "app.metadata.name == 'foo' && app.status.operationState.phase in ['Running'] && time.Now().Sub(time.Parse(app.status.operationState.startedAt)).Minutes() >= 5",
+	}})
+	assert.NoError(t, err)
+
+	trigger, ok := triggers["trigger"]
+	assert.True(t, ok)
+
+	before2Minute := time.Now().Add(-2 * time.Minute)
+	ok, err = trigger.Triggered(testingutil.NewApp("bar",
+		testingutil.WithSyncOperationPhase("Running"),
+		testingutil.WithSyncOperationStartAt(before2Minute)))
+	assert.NoError(t, err)
+	assert.False(t, ok)
+
+	before5Minute := time.Now().Add(-5 * time.Minute)
+	ok, err = trigger.Triggered(testingutil.NewApp("foo",
+		testingutil.WithSyncOperationPhase("Running"),
+		testingutil.WithSyncOperationStartAt(before5Minute)))
+	assert.NoError(t, err)
+	assert.True(t, ok)
 }
