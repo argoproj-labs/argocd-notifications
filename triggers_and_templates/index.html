@@ -311,6 +311,19 @@
     Triggers
   </a>
   
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#functions" class="md-nav__link">
+    Functions
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -339,6 +352,66 @@
   <li class="md-nav__item">
     <a href="slack/" title="Slack (v0.4.0+)" class="md-nav__link">
       Slack (v0.4.0+)
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3">
+    
+    <label class="md-nav__link" for="nav-3">
+      Notification Services
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-3">
+        Notification Services
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../services/overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../services/slack/" title="Slack" class="md-nav__link">
+      Slack
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../services/opsgenie/" title="Opsgenie" class="md-nav__link">
+      Opsgenie
     </a>
   </li>
 
@@ -396,6 +469,19 @@
   <a href="#triggers" class="md-nav__link">
     Triggers
   </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#functions" class="md-nav__link">
+    Functions
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -465,6 +551,12 @@ and notification template reference.</p>
 evaluation is powered by <a href="https://github.com/antonmedv/expr">antonmedv/expr</a>. The condition language syntax is described
 at <a href="https://github.com/antonmedv/expr/blob/master/docs/Language-Definition.md">Language-Definition.md</a>.</li>
 <li><strong>enabled</strong> - flag that indicates if trigger is enabled or not. By default trigger is enabled.</li>
+</ul>
+<h3 id="functions">Functions<a class="headerlink" href="#functions" title="Permanent link">&para;</a></h3>
+<p>Following functions can be used with-in the condition expression:</p>
+<ul>
+<li><code>time.Now</code> - executes function built-in Golang <a href="https://golang.org/pkg/time/#Now">time.Now</a> function.</li>
+<li><code>time.Parse</code> - parses specified string using RFC3339 layout</li>
 </ul>
 <h2 id="templates">Templates<a class="headerlink" href="#templates" title="Permanent link">&para;</a></h2>
 <p>The notification template is used to generate the notification content. The template is leveraging
