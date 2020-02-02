@@ -2,6 +2,9 @@
 
 ## v0.5.0 (Not released)
 
+### Features
+* feat: support `time.Now()` and `time.Parse(...)` in trigger condition ( thanks to [@HatsuneMiku3939](https://github.com/HatsuneMiku3939) )
+
 ## v0.4.1 (2020-01-26)
 
 ###  Bug Fixes
