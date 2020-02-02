@@ -27,7 +27,7 @@ evaluation is powered by [antonmedv/expr](https://github.com/antonmedv/expr). Th
 at [Language-Definition.md](https://github.com/antonmedv/expr/blob/master/docs/Language-Definition.md).
 * **enabled** - flag that indicates if trigger is enabled or not. By default trigger is enabled.
 
-### Functions
+### Functions (v0.5+)
 
 Following functions can be used with-in the condition expression:
 
