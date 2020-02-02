@@ -22,6 +22,8 @@ metadata:
     recipients.argocd-notifications.argoproj.io: slack:<sample-channel-name>
 ```
 
+Each recipient is prefixed with the [notification service type](./services/overview.md) such as `slack` or `email`.
+
 ## Trigger Specific Subscription (v0.3)
 
 It is possible to subscribe recipient to a specific trigger instead of all triggers. The annotation key should be
@@ -36,11 +38,3 @@ metadata:
     on-sync-failed.recipients.argocd-notifications.argoproj.io: email:<sample-email>
 ```
 
-## Notification Services
-
-Each recipient is prefixed with the notification service type such as `slack` or `email`. The notification services are
-configured in the `notifiers.yaml` field of the `argocd-notifications-secret.yaml` Secret:
-
-```yaml
-{!argocd-notifications-secret.yaml!}
-```
