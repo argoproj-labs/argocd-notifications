@@ -476,17 +476,17 @@ users about important changes in the application state. Using flexible mechanism
 Argo CD Notifications includes the set of useful <a href="built-in/">built-in</a> triggers and templates.
 So you can just enable them instead of reinventing new ones.</p>
 <h2 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h2>
-<ol>
+<ul>
 <li>Install Argo CD Notifications</li>
-</ol>
+</ul>
 <div class="codehilite"><pre><span></span><span class="err">kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/argocd-notifications/stable/manifests/install.yaml</span>
 </pre></div>
 
 
-<ol>
+<ul>
 <li>Configure integration with your Slack in <code>argocd-notifications-secret</code> secret:</li>
-</ol>
-<div class="codehilite"><pre><span></span>kubectl apply -f - <span class="s">&lt;&lt; EOF</span>
+</ul>
+<div class="codehilite"><pre><span></span>kubectl apply -n argocd -f - <span class="s">&lt;&lt; EOF</span>
 <span class="s">apiVersion: v1</span>
 <span class="s">kind: Secret</span>
 <span class="s">metadata:</span>
@@ -500,10 +500,10 @@ So you can just enable them instead of reinventing new ones.</p>
 </pre></div>
 
 
-<ol>
+<ul>
 <li>Enable built-in trigger in the <code>argocd-notifications-cm</code> config map:</li>
-</ol>
-<div class="codehilite"><pre><span></span>kubectl apply -f - <span class="s">&lt;&lt; EOF</span>
+</ul>
+<div class="codehilite"><pre><span></span>kubectl apply -n argocd -f - <span class="s">&lt;&lt; EOF</span>
 <span class="s">apiVersion: v1</span>
 <span class="s">kind: ConfigMap</span>
 <span class="s">metadata:</span>
@@ -517,11 +517,11 @@ So you can just enable them instead of reinventing new ones.</p>
 </pre></div>
 
 
-<ol>
+<ul>
 <li>Subscribe to notifications by adding the <code>recipients.argocd-notifications.argoproj.io</code> annotation to the Argo CD
 application or project:</li>
-</ol>
-<div class="codehilite"><pre><span></span>kubectl patch app &lt;my-app&gt; -p <span class="s1">&#39;{&quot;metadata&quot;: {&quot;annotations&quot;: {&quot;recipients.argocd-notifications.argoproj.io&quot;:&quot;slack:&lt;my-channel&gt;&quot;}}}&#39;</span> --type merge
+</ul>
+<div class="codehilite"><pre><span></span>kubectl patch app &lt;my-app&gt; -n argocd -p <span class="s1">&#39;{&quot;metadata&quot;: {&quot;annotations&quot;: {&quot;recipients.argocd-notifications.argoproj.io&quot;:&quot;slack:&lt;my-channel&gt;&quot;}}}&#39;</span> --type merge
 </pre></div>
 
 
