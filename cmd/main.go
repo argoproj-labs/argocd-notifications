@@ -118,15 +118,18 @@ func newCommand() *cobra.Command {
 	command.Flags().StringVar(&namespace, "namespace", "", "Namespace which controller handles. Current namespace if empty.")
 	return &command
 }
+
 func parseConfigMapYaml(configData map[string]string) (cfg *config, err error) {
+	cfg = &config{}
 	if data, ok := configData["config.yaml"]; ok {
 		err = yaml.Unmarshal([]byte(data), &cfg)
 		if err != nil {
-			return &config{}, err
+			return cfg, err
 		}
 	}
 	return cfg, nil
 }
+
 func parseConfig(configData map[string]string, notifiersData []byte) (map[string]triggers.Trigger, map[string]notifiers.Notifier, map[string]string, error) {
 	cfg, err := parseConfigMapYaml(configData)
 	if err != nil {

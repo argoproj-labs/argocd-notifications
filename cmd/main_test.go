@@ -94,6 +94,14 @@ Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
 	assert.Equal(t, expectCfg.Context, actualCfg.Context)
 }
 
+func TestParseConfigYaml_EmptyMap(t *testing.T) {
+	cfg, err := parseConfigMapYaml(map[string]string{})
+	assert.NoError(t, err)
+	assert.Empty(t, cfg.Templates)
+	assert.Empty(t, cfg.Triggers)
+	assert.Empty(t, cfg.Context)
+}
+
 func TestMergeConfigTemplate(t *testing.T) {
 	cfg := config{
 		Templates: []triggers.NotificationTemplate{{
