@@ -10,4 +10,4 @@ resources:
 - argocd-notifications-controller-role.yaml
 images:
   - name: argoprojlabs/argocd-notifications
-    newTag: v0.4.1
+    newTag: v0.4.2
