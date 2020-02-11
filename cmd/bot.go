@@ -10,6 +10,7 @@ import (
 func newBotCommand() *cobra.Command {
 	var (
 		clientConfig clientcmd.ClientConfig
+		namespace    string
 		port         int
 	)
 	var command = cobra.Command{
@@ -23,11 +24,18 @@ func newBotCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			server := bot.NewServer(dynamicClient)
+			if namespace == "" {
+				namespace, _, err = clientConfig.Namespace()
+				if err != nil {
+					return err
+				}
+			}
+			server := bot.NewServer(dynamicClient, namespace)
 			return server.Serve(port)
 		},
 	}
 	clientConfig = addKubectlFlagsToCmd(&command)
 	command.Flags().IntVar(&port, "port", 8080, "Port number.")
+	command.Flags().StringVar(&namespace, "namespace", "", "Namespace which bot handles. Current namespace if empty.")
 	return &command
 }

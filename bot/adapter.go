@@ -3,6 +3,7 @@ package bot
 import "net/http"
 
 type ListSubscriptions struct {
+	Channel string
 }
 
 type Command struct {

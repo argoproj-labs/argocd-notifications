@@ -11,13 +11,14 @@ import (
 	"time"
 
 	"github.com/argoproj-labs/argocd-notifications/notifiers"
+	"github.com/argoproj-labs/argocd-notifications/shared/clients"
+	sharedrecipients "github.com/argoproj-labs/argocd-notifications/shared/recipients"
 	"github.com/argoproj-labs/argocd-notifications/triggers"
 
 	log "github.com/sirupsen/logrus"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -28,13 +29,8 @@ import (
 )
 
 const (
-	resyncPeriod      = 60 * time.Second
-	annotationPostfix = "argocd-notifications.argoproj.io"
-	notificationType  = "notificationType"
-)
-
-var (
-	recipientsAnnotation = "recipients." + annotationPostfix
+	resyncPeriod     = 60 * time.Second
+	notificationType = "notificationType"
 )
 
 type NotificationController interface {
@@ -49,7 +45,7 @@ func NewController(client dynamic.Interface,
 	context map[string]string,
 	appLabelSelector string,
 ) (NotificationController, error) {
-	appClient := createAppClient(client, namespace)
+	appClient := clients.NewAppClient(client, namespace)
 	queue := workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter())
 
 	appInformer := newInformer(appClient, appLabelSelector)
@@ -70,7 +66,7 @@ func NewController(client dynamic.Interface,
 			},
 		},
 	)
-	appProjInformer := newInformer(createAppProjClient(client, namespace), "")
+	appProjInformer := newInformer(clients.NewAppProjClient(client, namespace), "")
 
 	return &notificationController{
 		appClient:       appClient,
@@ -81,12 +77,6 @@ func NewController(client dynamic.Interface,
 		notifiers:       notifiers,
 		context:         context,
 	}, nil
-}
-
-func createAppClient(client dynamic.Interface, namespace string) dynamic.ResourceInterface {
-	appResource := schema.GroupVersionResource{Group: "argoproj.io", Version: "v1alpha1", Resource: "applications"}
-	resClient := client.Resource(appResource).Namespace(namespace)
-	return resClient
 }
 
 func newInformer(resClient dynamic.ResourceInterface, selector string) cache.SharedIndexInformer {
@@ -106,12 +96,6 @@ func newInformer(resClient dynamic.ResourceInterface, selector string) cache.Sha
 		cache.Indexers{},
 	)
 	return informer
-}
-
-func createAppProjClient(client dynamic.Interface, namespace string) dynamic.ResourceInterface {
-	appResource := schema.GroupVersionResource{Group: "argoproj.io", Version: "v1alpha1", Resource: "appprojects"}
-	resClient := client.Resource(appResource).Namespace(namespace)
-	return resClient
 }
 
 type notificationController struct {
@@ -149,30 +133,10 @@ func (c *notificationController) Run(ctx context.Context, processors int) {
 	log.Warn("Controller has stopped.")
 }
 
-func getRecipientsFromAnnotations(annotations map[string]string, trigger string) []string {
-	recipients := make([]string, 0)
-	for k, annotation := range annotations {
-		if !strings.HasSuffix(k, recipientsAnnotation) {
-			continue
-		}
-		if name := strings.TrimRight(k[0:len(k)-len(recipientsAnnotation)], "."); name != "" && name != trigger {
-			continue
-		}
-
-		for _, recipient := range strings.Split(annotation, ",") {
-			if recipient = strings.TrimSpace(recipient); recipient != "" {
-				recipients = append(recipients, recipient)
-			}
-		}
-	}
-
-	return recipients
-}
-
 func (c *notificationController) getRecipients(app *unstructured.Unstructured, trigger string) map[string]bool {
 	recipients := make(map[string]bool)
 	if annotations := app.GetAnnotations(); annotations != nil {
-		for _, recipient := range getRecipientsFromAnnotations(annotations, trigger) {
+		for _, recipient := range sharedrecipients.GetRecipientsFromAnnotations(annotations, trigger) {
 			recipients[recipient] = true
 		}
 	}
@@ -189,7 +153,7 @@ func (c *notificationController) getRecipients(app *unstructured.Unstructured, t
 		return recipients
 	}
 	if annotations := proj.GetAnnotations(); annotations != nil {
-		for _, recipient := range getRecipientsFromAnnotations(annotations, trigger) {
+		for _, recipient := range sharedrecipients.GetRecipientsFromAnnotations(annotations, trigger) {
 			recipients[recipient] = true
 		}
 	}
@@ -215,7 +179,7 @@ func (c *notificationController) processApp(app *unstructured.Unstructured, logE
 			logEntry.Debugf("Failed to execute condition of trigger %s: %v", triggerKey, err)
 		}
 		recipients := c.getRecipients(app, triggerKey)
-		triggerAnnotation := fmt.Sprintf("%s.%s", triggerKey, annotationPostfix)
+		triggerAnnotation := fmt.Sprintf("%s.%s", triggerKey, sharedrecipients.AnnotationPostfix)
 		logEntry.Infof("Trigger %s result: %v", triggerKey, triggered)
 		if triggered {
 			_, alreadyNotified := annotations[triggerAnnotation]
