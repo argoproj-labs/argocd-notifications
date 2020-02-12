@@ -5,7 +5,7 @@ package triggers
 import (
 	"bytes"
 	"fmt"
-	htmptemplate "html/template"
+	htmltemplate "html/template"
 
 	"github.com/antonmedv/expr"
 	"github.com/antonmedv/expr/vm"
@@ -35,10 +35,10 @@ type Trigger interface {
 }
 
 type template struct {
-	title            *htmptemplate.Template
-	body             *htmptemplate.Template
-	slackAttachments *htmptemplate.Template
-	slackBlocks      *htmptemplate.Template
+	title            *htmltemplate.Template
+	body             *htmltemplate.Template
+	slackAttachments *htmltemplate.Template
+	slackBlocks      *htmltemplate.Template
 }
 
 type trigger struct {
@@ -114,22 +114,22 @@ func (t *trigger) FormatNotification(app *unstructured.Unstructured, context map
 func parseTemplates(templates []NotificationTemplate) (map[string]template, error) {
 	res := make(map[string]template)
 	for _, nt := range templates {
-		title, err := htmptemplate.New(nt.Name).Funcs(sprig.FuncMap()).Parse(nt.Title)
+		title, err := htmltemplate.New(nt.Name).Funcs(sprig.FuncMap()).Parse(nt.Title)
 		if err != nil {
 			return nil, err
 		}
-		body, err := htmptemplate.New(nt.Name).Funcs(sprig.FuncMap()).Parse(nt.Body)
+		body, err := htmltemplate.New(nt.Name).Funcs(sprig.FuncMap()).Parse(nt.Body)
 		if err != nil {
 			return nil, err
 		}
 		t := template{title: title, body: body}
 		if nt.Slack != nil {
-			slackAttachments, err := htmptemplate.New(nt.Name).Funcs(sprig.FuncMap()).Parse(nt.Slack.Attachments)
+			slackAttachments, err := htmltemplate.New(nt.Name).Funcs(sprig.FuncMap()).Parse(nt.Slack.Attachments)
 			if err != nil {
 				return nil, err
 			}
 			t.slackAttachments = slackAttachments
-			slackBlocks, err := htmptemplate.New(nt.Name).Funcs(sprig.FuncMap()).Parse(nt.Slack.Blocks)
+			slackBlocks, err := htmltemplate.New(nt.Name).Funcs(sprig.FuncMap()).Parse(nt.Slack.Blocks)
 			if err != nil {
 				return nil, err
 			}
