@@ -12,6 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
 	"github.com/argoproj-labs/argocd-notifications/notifiers"
+	"github.com/Masterminds/sprig"
 	exprHelpers "github.com/argoproj-labs/argocd-notifications/triggers/expr"
 )
 
@@ -113,22 +114,22 @@ func (t *trigger) FormatNotification(app *unstructured.Unstructured, context map
 func parseTemplates(templates []NotificationTemplate) (map[string]template, error) {
 	res := make(map[string]template)
 	for _, nt := range templates {
-		title, err := htmptemplate.New(nt.Name).Parse(nt.Title)
+		title, err := htmptemplate.New(nt.Name).Funcs(sprig.FuncMap()).Parse(nt.Title)
 		if err != nil {
 			return nil, err
 		}
-		body, err := htmptemplate.New(nt.Name).Parse(nt.Body)
+		body, err := htmptemplate.New(nt.Name).Funcs(sprig.FuncMap()).Parse(nt.Body)
 		if err != nil {
 			return nil, err
 		}
 		t := template{title: title, body: body}
 		if nt.Slack != nil {
-			slackAttachments, err := htmptemplate.New(nt.Name).Parse(nt.Slack.Attachments)
+			slackAttachments, err := htmptemplate.New(nt.Name).Funcs(sprig.FuncMap()).Parse(nt.Slack.Attachments)
 			if err != nil {
 				return nil, err
 			}
 			t.slackAttachments = slackAttachments
-			slackBlocks, err := htmptemplate.New(nt.Name).Parse(nt.Slack.Blocks)
+			slackBlocks, err := htmptemplate.New(nt.Name).Funcs(sprig.FuncMap()).Parse(nt.Slack.Blocks)
 			if err != nil {
 				return nil, err
 			}
