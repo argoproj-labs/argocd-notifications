@@ -113,23 +113,27 @@ func (t *trigger) FormatNotification(app *unstructured.Unstructured, context map
 
 func parseTemplates(templates []NotificationTemplate) (map[string]template, error) {
 	res := make(map[string]template)
+	f := sprig.FuncMap()
+	delete(f, "env")
+	delete(f, "expandenv")
+
 	for _, nt := range templates {
-		title, err := htmltemplate.New(nt.Name).Funcs(sprig.FuncMap()).Parse(nt.Title)
+		title, err := htmltemplate.New(nt.Name).Funcs(f).Parse(nt.Title)
 		if err != nil {
 			return nil, err
 		}
-		body, err := htmltemplate.New(nt.Name).Funcs(sprig.FuncMap()).Parse(nt.Body)
+		body, err := htmltemplate.New(nt.Name).Funcs(f).Parse(nt.Body)
 		if err != nil {
 			return nil, err
 		}
 		t := template{title: title, body: body}
 		if nt.Slack != nil {
-			slackAttachments, err := htmltemplate.New(nt.Name).Funcs(sprig.FuncMap()).Parse(nt.Slack.Attachments)
+			slackAttachments, err := htmltemplate.New(nt.Name).Funcs(f).Parse(nt.Slack.Attachments)
 			if err != nil {
 				return nil, err
 			}
 			t.slackAttachments = slackAttachments
-			slackBlocks, err := htmltemplate.New(nt.Name).Funcs(sprig.FuncMap()).Parse(nt.Slack.Blocks)
+			slackBlocks, err := htmltemplate.New(nt.Name).Funcs(f).Parse(nt.Slack.Blocks)
 			if err != nil {
 				return nil, err
 			}
