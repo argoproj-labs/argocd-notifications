@@ -5,7 +5,7 @@ package triggers
 import (
 	"bytes"
 	"fmt"
-	texttemplate "html/template"
+	texttemplate "text/template"
 
 	"github.com/antonmedv/expr"
 	"github.com/antonmedv/expr/vm"
