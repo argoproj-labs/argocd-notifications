@@ -113,7 +113,7 @@ func (t *trigger) FormatNotification(app *unstructured.Unstructured, context map
 
 func parseTemplates(templates []NotificationTemplate) (map[string]template, error) {
 	res := make(map[string]template)
-	f := sprig.FuncMap()
+	f := sprig.TxtFuncMap()
 	delete(f, "env")
 	delete(f, "expandenv")
 
