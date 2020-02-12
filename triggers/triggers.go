@@ -5,7 +5,7 @@ package triggers
 import (
 	"bytes"
 	"fmt"
-	htmltemplate "html/template"
+	"text/template"
 
 	"github.com/antonmedv/expr"
 	"github.com/antonmedv/expr/vm"
@@ -35,10 +35,10 @@ type Trigger interface {
 }
 
 type template struct {
-	title            *htmltemplate.Template
-	body             *htmltemplate.Template
-	slackAttachments *htmltemplate.Template
-	slackBlocks      *htmltemplate.Template
+	title            *template.Template
+	body             *template.Template
+	slackAttachments *template.Template
+	slackBlocks      *template.Template
 }
 
 type trigger struct {
@@ -118,22 +118,22 @@ func parseTemplates(templates []NotificationTemplate) (map[string]template, erro
 	delete(f, "expandenv")
 
 	for _, nt := range templates {
-		title, err := htmltemplate.New(nt.Name).Funcs(f).Parse(nt.Title)
+		title, err := template.New(nt.Name).Funcs(f).Parse(nt.Title)
 		if err != nil {
 			return nil, err
 		}
-		body, err := htmltemplate.New(nt.Name).Funcs(f).Parse(nt.Body)
+		body, err := template.New(nt.Name).Funcs(f).Parse(nt.Body)
 		if err != nil {
 			return nil, err
 		}
 		t := template{title: title, body: body}
 		if nt.Slack != nil {
-			slackAttachments, err := htmltemplate.New(nt.Name).Funcs(f).Parse(nt.Slack.Attachments)
+			slackAttachments, err := template.New(nt.Name).Funcs(f).Parse(nt.Slack.Attachments)
 			if err != nil {
 				return nil, err
 			}
 			t.slackAttachments = slackAttachments
-			slackBlocks, err := htmltemplate.New(nt.Name).Funcs(f).Parse(nt.Slack.Blocks)
+			slackBlocks, err := template.New(nt.Name).Funcs(f).Parse(nt.Slack.Blocks)
 			if err != nil {
 				return nil, err
 			}
