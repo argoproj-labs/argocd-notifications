@@ -22,10 +22,6 @@ func (s *slack) Parse(r *http.Request) (Command, error) {
 	if err != nil {
 		return cmd, err
 	}
-	subscriber := query.Get("user_name")
-	if subscriber == "" {
-		return cmd, errors.New("request does not have user info")
-	}
 	channel := query.Get("channel_name")
 	if channel == "" {
 		return cmd, errors.New("request does not have channel")
@@ -36,11 +32,36 @@ func (s *slack) Parse(r *http.Request) (Command, error) {
 	}
 	command := parts[0]
 
-	cmd.Subscriber = fmt.Sprintf("slack:%s", subscriber)
+	cmd.Recipient = fmt.Sprintf("slack:%s", channel)
 
 	switch command {
 	case "list-subscriptions":
-		cmd.ListSubscriptions = &ListSubscriptions{Channel: fmt.Sprintf("slack:%s", channel)}
+		cmd.ListSubscriptions = &ListSubscriptions{}
+	case "subscribe", "unsubscribe":
+		if len(parts) < 2 {
+			return cmd, fmt.Errorf("command %s expects at least one argument", command)
+		}
+		update := &UpdateSubscription{}
+		nameParts := strings.Split(parts[1], ":")
+		if len(nameParts) == 1 {
+			nameParts = append([]string{"app"}, nameParts...)
+		}
+		switch nameParts[0] {
+		case "app":
+			update.App = nameParts[1]
+		case "proj":
+			update.Project = nameParts[1]
+		default:
+			return cmd, fmt.Errorf("incorrect name argument: %s", parts[1])
+		}
+		if len(parts) > 2 {
+			update.Trigger = parts[2]
+		}
+		if command == "subscribe" {
+			cmd.Subscribe = update
+		} else {
+			cmd.Unsubscribe = update
+		}
 	default:
 		return cmd, fmt.Errorf("command %s is not supported", command)
 	}

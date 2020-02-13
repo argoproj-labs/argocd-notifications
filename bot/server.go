@@ -10,6 +10,7 @@ import (
 	"github.com/argoproj-labs/argocd-notifications/shared/recipients"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/dynamic"
 )
 
@@ -47,29 +48,83 @@ func (s *server) handler(adapter Adapter) func(http.ResponseWriter, *http.Reques
 func (s *server) execute(cmd Command) (string, error) {
 	switch {
 	case cmd.ListSubscriptions != nil:
-		return s.listSubscriptions(cmd.ListSubscriptions.Channel)
+		return s.listSubscriptions(cmd.Recipient)
+	case cmd.Subscribe != nil:
+		return s.updateSubscription(cmd.Recipient, true, *cmd.Subscribe)
+	case cmd.Unsubscribe != nil:
+		return s.updateSubscription(cmd.Recipient, false, *cmd.Unsubscribe)
 	default:
 		return "", errors.New("unknown command")
 	}
 }
 
-func sliceHasString(items []string, item string) bool {
+func findStringIndex(items []string, item string) int {
 	for i := range items {
 		if items[i] == item {
-			return true
+			return i
 		}
 	}
-	return false
+	return -1
 }
 
-func (s *server) listSubscriptions(receiver string) (string, error) {
+func (s *server) updateSubscription(recipient string, subscribe bool, opts UpdateSubscription) (string, error) {
+	var name string
+	var client dynamic.ResourceInterface
+	switch {
+	case opts.App != "":
+		name = opts.App
+		client = s.appClient
+	case opts.Project != "":
+		name = opts.Project
+		client = s.appProjClient
+	default:
+		return "", errors.New("either application or project name must be specified")
+	}
+	obj, err := client.Get(name, v1.GetOptions{})
+	if err != nil {
+		return "", err
+	}
+	existingRecipients := recipients.GetRecipientsFromAnnotations(obj.GetAnnotations(), opts.Trigger)
+	index := findStringIndex(existingRecipients, recipient)
+	subscribed := index > -1
+	if subscribed == subscribe {
+		if subscribe {
+			return fmt.Sprintf("%s already subscribed", recipient), nil
+		}
+		return fmt.Sprintf("%s is not subscribed", recipient), nil
+	}
+
+	annotationKey := recipients.RecipientsAnnotation
+	if opts.Trigger != "" {
+		annotationKey = fmt.Sprintf("%s.%s", opts.Trigger, recipients.RecipientsAnnotation)
+	}
+	annotationValue := ""
+	if subscribe {
+		annotationValue = strings.Join(append(existingRecipients, recipient), ",")
+	} else {
+		annotationValue = strings.Join(append(existingRecipients[:index], existingRecipients[index+1:]...), ",")
+	}
+	_, err = client.Patch(name, types.MergePatchType, []byte(fmt.Sprintf(`{
+			"metadata": {
+				"annotations": {
+					"%s": "%s"
+				}
+			}
+		}`, annotationKey, annotationValue)), v1.PatchOptions{})
+	if err != nil {
+		return "", err
+	}
+	return "subscription updated", nil
+}
+
+func (s *server) listSubscriptions(recipient string) (string, error) {
 	appList, err := s.appClient.List(v1.ListOptions{})
 	if err != nil {
 		return "", err
 	}
 	var apps []string
 	for _, app := range appList.Items {
-		if sliceHasString(recipients.GetRecipientsFromAnnotations(app.GetAnnotations(), ""), receiver) {
+		if findStringIndex(recipients.GetRecipientsFromAnnotations(app.GetAnnotations(), ""), recipient) > -1 {
 			apps = append(apps, fmt.Sprintf("%s/%s", app.GetNamespace(), app.GetName()))
 		}
 	}
@@ -79,14 +134,14 @@ func (s *server) listSubscriptions(receiver string) (string, error) {
 	}
 	var appProjs []string
 	for _, appProj := range appProjList.Items {
-		if sliceHasString(recipients.GetRecipientsFromAnnotations(appProj.GetAnnotations(), ""), receiver) {
+		if findStringIndex(recipients.GetRecipientsFromAnnotations(appProj.GetAnnotations(), ""), recipient) > -1 {
 			appProjs = append(appProjs, fmt.Sprintf("%s/%s", appProj.GetNamespace(), appProj.GetName()))
 		}
 	}
-	response := fmt.Sprintf("The %s has no subscriptions.", receiver)
+	response := fmt.Sprintf("The %s has no subscriptions.", recipient)
 	if len(apps) > 0 || len(appProjs) > 0 {
 		response = fmt.Sprintf("The %s is subscribed to %d applications and %d projects.",
-			receiver, len(apps), len(appProjs))
+			recipient, len(apps), len(appProjs))
 		if len(apps) > 0 {
 			response = fmt.Sprintf("%s\nApplications: %s.", response, strings.Join(apps, ", "))
 		}

@@ -3,12 +3,19 @@ package bot
 import "net/http"
 
 type ListSubscriptions struct {
-	Channel string
+}
+
+type UpdateSubscription struct {
+	App     string
+	Project string
+	Trigger string
 }
 
 type Command struct {
-	Subscriber string
-	*ListSubscriptions
+	Recipient         string
+	ListSubscriptions *ListSubscriptions
+	Subscribe         *UpdateSubscription
+	Unsubscribe       *UpdateSubscription
 }
 
 type Adapter interface {
