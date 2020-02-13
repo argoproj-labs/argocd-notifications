@@ -5,13 +5,14 @@ package triggers
 import (
 	"bytes"
 	"fmt"
-	htmptemplate "html/template"
+	texttemplate "text/template"
 
 	"github.com/antonmedv/expr"
 	"github.com/antonmedv/expr/vm"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
 	"github.com/argoproj-labs/argocd-notifications/notifiers"
+	"github.com/Masterminds/sprig"
 	exprHelpers "github.com/argoproj-labs/argocd-notifications/triggers/expr"
 )
 
@@ -34,10 +35,10 @@ type Trigger interface {
 }
 
 type template struct {
-	title            *htmptemplate.Template
-	body             *htmptemplate.Template
-	slackAttachments *htmptemplate.Template
-	slackBlocks      *htmptemplate.Template
+	title            *texttemplate.Template
+	body             *texttemplate.Template
+	slackAttachments *texttemplate.Template
+	slackBlocks      *texttemplate.Template
 }
 
 type trigger struct {
@@ -112,23 +113,27 @@ func (t *trigger) FormatNotification(app *unstructured.Unstructured, context map
 
 func parseTemplates(templates []NotificationTemplate) (map[string]template, error) {
 	res := make(map[string]template)
+	f := sprig.TxtFuncMap()
+	delete(f, "env")
+	delete(f, "expandenv")
+
 	for _, nt := range templates {
-		title, err := htmptemplate.New(nt.Name).Parse(nt.Title)
+		title, err := texttemplate.New(nt.Name).Funcs(f).Parse(nt.Title)
 		if err != nil {
 			return nil, err
 		}
-		body, err := htmptemplate.New(nt.Name).Parse(nt.Body)
+		body, err := texttemplate.New(nt.Name).Funcs(f).Parse(nt.Body)
 		if err != nil {
 			return nil, err
 		}
 		t := template{title: title, body: body}
 		if nt.Slack != nil {
-			slackAttachments, err := htmptemplate.New(nt.Name).Parse(nt.Slack.Attachments)
+			slackAttachments, err := texttemplate.New(nt.Name).Funcs(f).Parse(nt.Slack.Attachments)
 			if err != nil {
 				return nil, err
 			}
 			t.slackAttachments = slackAttachments
-			slackBlocks, err := htmptemplate.New(nt.Name).Parse(nt.Slack.Blocks)
+			slackBlocks, err := texttemplate.New(nt.Name).Funcs(f).Parse(nt.Slack.Blocks)
 			if err != nil {
 				return nil, err
 			}

@@ -3,15 +3,20 @@ module github.com/argoproj-labs/argocd-notifications
 go 1.12
 
 require (
+	github.com/Masterminds/goutils v1.1.0 // indirect
+	github.com/Masterminds/semver v1.5.0 // indirect
+	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/antonmedv/expr v1.4.1
 	github.com/evanphx/json-patch v4.5.0+incompatible // indirect
 	github.com/ghodss/yaml v1.0.0
 	github.com/golang/groupcache v0.0.0-20180513044358-24b0969c4cb7 // indirect
 	github.com/golang/mock v1.3.1
 	github.com/googleapis/gnostic v0.3.1 // indirect
+	github.com/huandu/xstrings v1.3.0 // indirect
 	github.com/imdario/mergo v0.3.8 // indirect
 	github.com/json-iterator/go v1.1.8 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
+	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/nlopes/slack v0.6.0
 	github.com/olekukonko/tablewriter v0.0.4
 	github.com/opsgenie/opsgenie-go-sdk-v2 v1.0.5
