@@ -62,6 +62,35 @@ func TestParse_UnsubscribeApp(t *testing.T) {
 	assert.Equal(t, cmd.Recipient, "slack:test")
 }
 
+func TestParse_WrongCommandHelpResponse(t *testing.T) {
+	s := slack{}
+
+	_, err := s.Parse(httptest.NewRequest("GET", "http://localhost/slack",
+		bytes.NewBufferString("text=wrong&channel_name=test")))
+	assert.Error(t, err)
+
+	assert.Contains(t, err.Error(), "Need some help")
+}
+
+func TestParse_NoCommandHelpResponse(t *testing.T) {
+	s := slack{}
+
+	_, err := s.Parse(httptest.NewRequest("GET", "http://localhost/slack",
+		bytes.NewBufferString("channel_name=test")))
+	assert.Error(t, err)
+
+	assert.Contains(t, err.Error(), "Need some help")
+}
+
+func TestParse_NoAppArgument(t *testing.T) {
+	s := slack{}
+
+	_, err := s.Parse(httptest.NewRequest("GET", "http://localhost/slack",
+		bytes.NewBufferString("text=unsubscribe&channel_name=test")))
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "at least one argument expected")
+}
+
 func TestSendResponse(t *testing.T) {
 	s := slack{}
 	w := httptest.NewRecorder()
@@ -71,15 +100,5 @@ func TestSendResponse(t *testing.T) {
 	resp := w.Result()
 	body, _ := ioutil.ReadAll(resp.Body)
 
-	assert.Equal(t, `{
-    "blocks": [
-        {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": "test"
-            }
-        }
-    ]
-}`, string(body))
+	assert.Equal(t, `{"blocks":[{"type":"section","text":{"type":"mrkdwn","text":"test"}}]}`, string(body))
 }
