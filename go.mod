@@ -1,6 +1,6 @@
 module github.com/argoproj-labs/argocd-notifications
 
-go 1.12
+go 1.13
 
 require (
 	github.com/Masterminds/goutils v1.1.0 // indirect
@@ -38,3 +38,6 @@ require (
 	k8s.io/klog v1.0.0 // indirect
 	k8s.io/utils v0.0.0-20191114200735-6ca3b61696b6
 )
+
+// https://github.com/golang/go/issues/33546#issuecomment-519656923
+replace github.com/go-check/check => github.com/go-check/check v0.0.0-20180628173108-788fd7840127
