@@ -7,22 +7,18 @@ import (
 	"testing"
 	"time"
 
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-
-	kubetesting "k8s.io/client-go/testing"
-
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/dynamic/fake"
-
-	"k8s.io/client-go/dynamic"
-
+	"github.com/golang/mock/gomock"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/golang/mock/gomock"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/dynamic/fake"
+	kubetesting "k8s.io/client-go/testing"
 
 	"github.com/argoproj-labs/argocd-notifications/notifiers"
 	notifiermocks "github.com/argoproj-labs/argocd-notifications/notifiers/mocks"
+	"github.com/argoproj-labs/argocd-notifications/shared/recipients"
 	. "github.com/argoproj-labs/argocd-notifications/testing"
 	"github.com/argoproj-labs/argocd-notifications/triggers"
 	triggermocks "github.com/argoproj-labs/argocd-notifications/triggers/mocks"
@@ -62,7 +58,7 @@ func TestSendsNotificationIfTriggered(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 	app := NewApp("test", WithAnnotations(map[string]string{
-		recipientsAnnotation: "mock:recipient",
+		recipients.RecipientsAnnotation: "mock:recipient",
 	}))
 	ctrl, trigger, notifier, err := newController(t, ctx, fake.NewSimpleDynamicClient(runtime.NewScheme(), app))
 	assert.NoError(t, err)
@@ -75,15 +71,15 @@ func TestSendsNotificationIfTriggered(t *testing.T) {
 	err = ctrl.processApp(app, logEntry)
 
 	assert.NoError(t, err)
-	assert.NotEmpty(t, app.GetAnnotations()[fmt.Sprintf("mock.%s", annotationPostfix)])
+	assert.NotEmpty(t, app.GetAnnotations()[fmt.Sprintf("mock.%s", recipients.AnnotationPostfix)])
 }
 
 func TestDoesNotSendNotificationIfAnnotationPresent(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 	app := NewApp("test", WithAnnotations(map[string]string{
-		recipientsAnnotation:                      "mock:recipient",
-		fmt.Sprintf("mock.%s", annotationPostfix): time.Now().Format(time.RFC3339),
+		recipients.RecipientsAnnotation:                      "mock:recipient",
+		fmt.Sprintf("mock.%s", recipients.AnnotationPostfix): time.Now().Format(time.RFC3339),
 	}))
 	ctrl, trigger, _, err := newController(t, ctx, fake.NewSimpleDynamicClient(runtime.NewScheme(), app))
 	assert.NoError(t, err)
@@ -99,8 +95,8 @@ func TestRemovesAnnotationIfNoTrigger(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 	app := NewApp("test", WithAnnotations(map[string]string{
-		recipientsAnnotation:                      "mock:recipient",
-		fmt.Sprintf("mock.%s", annotationPostfix): time.Now().Format(time.RFC3339),
+		recipients.RecipientsAnnotation:                      "mock:recipient",
+		fmt.Sprintf("mock.%s", recipients.AnnotationPostfix): time.Now().Format(time.RFC3339),
 	}))
 	ctrl, trigger, _, err := newController(t, ctx, fake.NewSimpleDynamicClient(runtime.NewScheme(), app))
 	assert.NoError(t, err)
@@ -110,18 +106,18 @@ func TestRemovesAnnotationIfNoTrigger(t *testing.T) {
 	err = ctrl.processApp(app, logEntry)
 
 	assert.NoError(t, err)
-	assert.Empty(t, app.GetAnnotations()[fmt.Sprintf("mock.%s", annotationPostfix)])
+	assert.Empty(t, app.GetAnnotations()[fmt.Sprintf("mock.%s", recipients.AnnotationPostfix)])
 }
 
 func TestGetRecipients(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 	app := NewApp("test", WithProject("default"), WithAnnotations(map[string]string{
-		recipientsAnnotation: "slack:test1",
+		recipients.RecipientsAnnotation: "slack:test1",
 	}))
 	appProj := NewProject("default", WithAnnotations(map[string]string{
-		recipientsAnnotation: "slack:test2",
-		fmt.Sprintf("on-app-sync-unknown.%s", recipientsAnnotation): "slack:test3",
+		recipients.RecipientsAnnotation:                                        "slack:test2",
+		fmt.Sprintf("on-app-sync-unknown.%s", recipients.RecipientsAnnotation): "slack:test3",
 	}))
 	ctrl, _, _, err := newController(t, ctx, fake.NewSimpleDynamicClient(runtime.NewScheme(), app, appProj))
 	assert.NoError(t, err)
@@ -130,27 +126,12 @@ func TestGetRecipients(t *testing.T) {
 	assert.Equal(t, map[string]bool{"slack:test1": true, "slack:test2": true}, recipients)
 }
 
-func TestGetRecipientsFromAnnotations_NoTriggerNameInAnnotation(t *testing.T) {
-	recipients := getRecipientsFromAnnotations(
-		map[string]string{recipientsAnnotation: "slack:test"}, "on-app-sync-unknown")
-	assert.ElementsMatch(t, recipients, []string{"slack:test"})
-}
-
-func TestGetRecipientsFromAnnotations_HasTriggerNameInAnnotation(t *testing.T) {
-	recipients := getRecipientsFromAnnotations(map[string]string{
-		recipientsAnnotation: "slack:test",
-		fmt.Sprintf("on-app-sync-unknown.%s", recipientsAnnotation):    "slack:test1",
-		fmt.Sprintf("on-app-health-degraded.%s", recipientsAnnotation): "slack:test2",
-	}, "on-app-sync-unknown")
-	assert.ElementsMatch(t, recipients, []string{"slack:test", "slack:test1"})
-}
-
 func TestUpdatedAnnotationsSavedAsPatch(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 	app := NewApp("test", WithAnnotations(map[string]string{
-		recipientsAnnotation:                      "mock:recipient",
-		fmt.Sprintf("mock.%s", annotationPostfix): time.Now().Format(time.RFC3339),
+		recipients.RecipientsAnnotation:                      "mock:recipient",
+		fmt.Sprintf("mock.%s", recipients.AnnotationPostfix): time.Now().Format(time.RFC3339),
 	}))
 
 	patchCh := make(chan []byte)
@@ -174,7 +155,7 @@ func TestUpdatedAnnotationsSavedAsPatch(t *testing.T) {
 		patch := map[string]interface{}{}
 		err = json.Unmarshal(patchData, &patch)
 		assert.NoError(t, err)
-		val, ok, err := unstructured.NestedFieldNoCopy(patch, "metadata", "annotations", fmt.Sprintf("mock.%s", annotationPostfix))
+		val, ok, err := unstructured.NestedFieldNoCopy(patch, "metadata", "annotations", fmt.Sprintf("mock.%s", recipients.AnnotationPostfix))
 		assert.NoError(t, err)
 		assert.True(t, ok)
 		assert.Nil(t, val)
