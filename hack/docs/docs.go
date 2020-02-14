@@ -10,7 +10,7 @@ import (
 	"github.com/olekukonko/tablewriter"
 )
 
-func generate(out io.Writer) error {
+func generate(out io.Writer) {
 	fmt.Println("# Built-in Triggers and Templates")
 	fmt.Println("## Triggers")
 
@@ -29,12 +29,8 @@ func generate(out io.Writer) error {
 	for _, t := range builtin.Templates {
 		fmt.Fprintf(out, "### %s\n**title**: `%s`\n\n**body**:\n```\n%s\n```\n", t.Name, t.Title, t.Body)
 	}
-	return nil
 }
 
 func main() {
-	err := generate(os.Stdout)
-	if err != nil {
-		panic(err)
-	}
+	generate(os.Stdout)
 }

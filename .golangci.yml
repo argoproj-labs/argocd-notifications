@@ -1,0 +1,16 @@
+run:
+  timeout: 2m
+  skip-dirs:
+    - .../../mocks
+linters:
+  enable:
+    - vet
+    - deadcode
+    - goimports
+    - varcheck
+    - structcheck
+    - ineffassign
+    - unconvert
+    - unparam
+service:
+  golangci-lint-version: v1.23.6
