@@ -7,12 +7,11 @@ import (
 	"net/http"
 	"strings"
 
-	"k8s.io/apimachinery/pkg/types"
-
 	"github.com/argoproj-labs/argocd-notifications/shared/clients"
 	"github.com/argoproj-labs/argocd-notifications/shared/recipients"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/dynamic"
 )
 
