@@ -159,13 +159,6 @@ func (c *notificationController) getRecipients(app *unstructured.Unstructured, t
 	}
 	return recipients
 }
-func copyMap(in map[string]string) map[string]string {
-	out := make(map[string]string)
-	for k, v := range in {
-		out[k] = v
-	}
-	return out
-}
 
 func (c *notificationController) processApp(app *unstructured.Unstructured, logEntry *log.Entry) error {
 	refreshed := false
@@ -213,7 +206,7 @@ func (c *notificationController) processApp(app *unstructured.Unstructured, logE
 					}
 
 					logEntry.Infof("Sending %s notification", triggerKey)
-					ctx := copyMap(c.context)
+					ctx := sharedrecipients.CopyStringMap(c.context)
 					ctx[notificationType] = notifierType
 					notification, err := t.FormatNotification(app, ctx)
 					if err != nil {

@@ -1,16 +1,18 @@
 package bot
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 
+	"k8s.io/apimachinery/pkg/types"
+
 	"github.com/argoproj-labs/argocd-notifications/shared/clients"
 	"github.com/argoproj-labs/argocd-notifications/shared/recipients"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/dynamic"
 )
 
@@ -67,6 +69,35 @@ func findStringIndex(items []string, item string) int {
 	return -1
 }
 
+func addSubscription(recipient string, trigger string, annotations map[string]string) map[string]string {
+	annotations = recipients.CopyStringMap(annotations)
+	annotationKey := recipients.RecipientsAnnotation
+	if trigger != "" {
+		annotationKey = fmt.Sprintf("%s.%s", trigger, annotationKey)
+	}
+	existingRecipients := recipients.ParseRecipients(annotations[annotationKey])
+	if index := findStringIndex(existingRecipients, recipient); index < 0 {
+		annotations[annotationKey] = strings.Join(append(existingRecipients, recipient), ",")
+	}
+	return annotations
+}
+
+func removeSubscription(recipient string, trigger string, annotations map[string]string) map[string]string {
+	annotations = recipients.CopyStringMap(annotations)
+	for _, k := range recipients.GetAnnotationKeys(annotations, trigger) {
+		existingRecipients := recipients.ParseRecipients(annotations[k])
+		if index := findStringIndex(existingRecipients, recipient); index > -1 {
+			newRecipients := append(existingRecipients[:index], existingRecipients[index+1:]...)
+			if len(newRecipients) > 0 {
+				annotations[k] = strings.Join(newRecipients, ",")
+			} else {
+				delete(annotations, k)
+			}
+		}
+	}
+	return annotations
+}
+
 func (s *server) updateSubscription(recipient string, subscribe bool, opts UpdateSubscription) (string, error) {
 	var name string
 	var client dynamic.ResourceInterface
@@ -84,36 +115,30 @@ func (s *server) updateSubscription(recipient string, subscribe bool, opts Updat
 	if err != nil {
 		return "", err
 	}
-	existingRecipients := recipients.GetRecipientsFromAnnotations(obj.GetAnnotations(), opts.Trigger)
-	index := findStringIndex(existingRecipients, recipient)
-	subscribed := index > -1
-	if subscribed == subscribe {
-		if subscribe {
-			return fmt.Sprintf("%s already subscribed", recipient), nil
+	oldAnnotations := recipients.CopyStringMap(obj.GetAnnotations())
+	var newAnnotations map[string]string
+	if subscribe {
+		newAnnotations = addSubscription(recipient, opts.Trigger, obj.GetAnnotations())
+	} else {
+		newAnnotations = removeSubscription(recipient, opts.Trigger, obj.GetAnnotations())
+	}
+	annotationsPatch := recipients.AnnotationsPatch(oldAnnotations, newAnnotations)
+	if len(annotationsPatch) > 0 {
+		patch := map[string]map[string]interface{}{
+			"metadata": {
+				"annotations": annotationsPatch,
+			},
 		}
-		return fmt.Sprintf("%s is not subscribed", recipient), nil
+		patchData, err := json.Marshal(patch)
+		if err != nil {
+			return "", err
+		}
+		_, err = client.Patch(name, types.MergePatchType, patchData, v1.PatchOptions{})
+		if err != nil {
+			return "", err
+		}
 	}
 
-	annotationKey := recipients.RecipientsAnnotation
-	if opts.Trigger != "" {
-		annotationKey = fmt.Sprintf("%s.%s", opts.Trigger, recipients.RecipientsAnnotation)
-	}
-	annotationValue := ""
-	if subscribe {
-		annotationValue = strings.Join(append(existingRecipients, recipient), ",")
-	} else {
-		annotationValue = strings.Join(append(existingRecipients[:index], existingRecipients[index+1:]...), ",")
-	}
-	_, err = client.Patch(name, types.MergePatchType, []byte(fmt.Sprintf(`{
-			"metadata": {
-				"annotations": {
-					"%s": "%s"
-				}
-			}
-		}`, annotationKey, annotationValue)), v1.PatchOptions{})
-	if err != nil {
-		return "", err
-	}
 	return "subscription updated", nil
 }
 

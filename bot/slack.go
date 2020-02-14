@@ -27,7 +27,7 @@ func (s *slack) Parse(r *http.Request) (Command, error) {
 		return cmd, errors.New("request does not have channel")
 	}
 	parts := strings.Fields(query.Get("text"))
-	if len(channel) < 1 {
+	if len(parts) < 1 {
 		return cmd, errors.New("request does not have command")
 	}
 	command := parts[0]
