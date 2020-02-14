@@ -18,7 +18,10 @@ type Command struct {
 	Unsubscribe       *UpdateSubscription
 }
 
+// Adapter encapsulates integration with the notification service
 type Adapter interface {
+	// Parses requested command
 	Parse(r *http.Request) (Command, error)
+	// Sends formatted response
 	SendResponse(content string, w http.ResponseWriter)
 }
