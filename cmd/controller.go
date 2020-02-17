@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -207,6 +208,16 @@ func watchConfig(ctx context.Context, clientset kubernetes.Interface, namespace 
 
 	if !cache.WaitForCacheSync(ctx.Done(), cmInformer.HasSynced, secretInformer.HasSynced) {
 		log.Fatal(errors.New("timed out waiting for caches to sync"))
+	}
+	var missingWarn []string
+	if len(cmInformer.GetStore().List()) == 0 {
+		missingWarn = append(missingWarn, fmt.Sprintf("config map %s", configMapName))
+	}
+	if len(secretInformer.GetStore().List()) == 0 {
+		missingWarn = append(missingWarn, fmt.Sprintf("secret %s", secretName))
+	}
+	if len(missingWarn) > 0 {
+		log.Warnf("Cannot find %s. Waiting when both config map and secret are created.", strings.Join(missingWarn, " and "))
 	}
 }
 
