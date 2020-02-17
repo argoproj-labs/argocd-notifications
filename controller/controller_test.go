@@ -31,10 +31,8 @@ var (
 func newController(t *testing.T, ctx context.Context, client dynamic.Interface) (*notificationController, *triggermocks.MockTrigger, *notifiermocks.MockNotifier, error) {
 	mockCtrl := gomock.NewController(t)
 	go func() {
-		select {
-		case <-ctx.Done():
-			mockCtrl.Finish()
-		}
+		<-ctx.Done()
+		mockCtrl.Finish()
 	}()
 	trigger := triggermocks.NewMockTrigger(mockCtrl)
 	notifier := notifiermocks.NewMockNotifier(mockCtrl)

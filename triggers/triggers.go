@@ -11,8 +11,8 @@ import (
 	"github.com/antonmedv/expr/vm"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
-	"github.com/argoproj-labs/argocd-notifications/notifiers"
 	"github.com/Masterminds/sprig"
+	"github.com/argoproj-labs/argocd-notifications/notifiers"
 	exprHelpers "github.com/argoproj-labs/argocd-notifications/triggers/expr"
 )
 
@@ -147,7 +147,7 @@ func parseTemplates(templates []NotificationTemplate) (map[string]template, erro
 func parseTriggers(triggers []NotificationTrigger, templates map[string]template) (map[string]Trigger, error) {
 	res := make(map[string]Trigger)
 	for _, t := range triggers {
-		if t.Enabled != nil && *t.Enabled == false {
+		if t.Enabled != nil && !*t.Enabled {
 			continue
 		}
 		condition, err := expr.Compile(t.Condition)
