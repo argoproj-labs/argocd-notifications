@@ -7,6 +7,10 @@ DOCKER_PUSH?=false
 test:
 	go test ./... -coverprofile=coverage.out
 
+.PHONY: lint
+lint:
+	golangci-lint run
+
 .PHONY: generate
 generate:
 	go generate ./...
