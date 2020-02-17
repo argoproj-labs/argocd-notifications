@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- ../controller
+- argocd-notifications-bot-rolebinding.yaml
+- argocd-notifications-bot-sa.yaml
+- argocd-notifications-bot-deployment.yaml
+- argocd-notifications-bot-role.yaml
+- argocd-notifications-bot-service.yaml

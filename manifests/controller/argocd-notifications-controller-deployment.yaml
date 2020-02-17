@@ -15,7 +15,8 @@ spec:
     spec:
       containers:
         - command:
-            - /app/argocd-notifications-controller
+            - /app/argocd-notifications
+            - controller
           workingDir: /app
           image: argoprojlabs/argocd-notifications:latest
           imagePullPolicy: Always

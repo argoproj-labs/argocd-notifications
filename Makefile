@@ -11,8 +11,13 @@ test:
 lint:
 	golangci-lint run
 
+.PHONY: manifests
+manifests:
+	kustomize build manifests/controller > manifests/install.yaml
+	kustomize build manifests/bot > manifests/install-bot.yaml
+
 .PHONY: generate
-generate:
+generate: manifests
 	go generate ./...
 	./hack/docs.sh
 

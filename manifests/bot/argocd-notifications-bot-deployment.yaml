@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: argocd-notifications-bot
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: argocd-notifications-bot
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: argocd-notifications-bot
+    spec:
+      containers:
+        - command:
+            - /app/argocd-notifications
+            - bot
+          workingDir: /app
+          image: argoprojlabs/argocd-notifications:latest
+          imagePullPolicy: Always
+          name: argocd-notifications-bot
+      serviceAccountName: argocd-notifications-bot
