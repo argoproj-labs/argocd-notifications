@@ -17,10 +17,12 @@ import (
 
 type Server interface {
 	Serve(port int) error
+	AddAdapter(path string, adapter Adapter)
 }
 
 func NewServer(dynamicClient dynamic.Interface, namespace string) *server {
 	return &server{
+		mux:           http.NewServeMux(),
 		appClient:     clients.NewAppClient(dynamicClient, namespace),
 		appProjClient: clients.NewAppProjClient(dynamicClient, namespace),
 	}
@@ -29,6 +31,7 @@ func NewServer(dynamicClient dynamic.Interface, namespace string) *server {
 type server struct {
 	appClient     dynamic.ResourceInterface
 	appProjClient dynamic.ResourceInterface
+	mux           *http.ServeMux
 }
 
 func (s *server) handler(adapter Adapter) func(http.ResponseWriter, *http.Request) {
@@ -176,7 +179,10 @@ func (s *server) listSubscriptions(recipient string) (string, error) {
 	return response, nil
 }
 
+func (s *server) AddAdapter(pattern string, adapter Adapter) {
+	s.mux.HandleFunc(pattern, s.handler(adapter))
+}
+
 func (s *server) Serve(port int) error {
-	http.HandleFunc("/slack", s.handler(&slack{}))
-	return http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
+	return http.ListenAndServe(fmt.Sprintf(":%d", port), s.mux)
 }
