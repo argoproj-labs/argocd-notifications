@@ -1,16 +1,21 @@
-package bot
+package slack
 
 import (
 	"bytes"
 	"io/ioutil"
+	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
+var noopVerifier = func(data []byte, header http.Header) error {
+	return nil
+}
+
 func TestParse_ListSubscriptionsCommand(t *testing.T) {
-	s := slack{}
+	s := NewSlackAdapter(noopVerifier)
 
 	cmd, err := s.Parse(httptest.NewRequest("GET", "http://localhost/slack",
 		bytes.NewBufferString("text=list-subscriptions&channel_name=test")))
@@ -21,7 +26,7 @@ func TestParse_ListSubscriptionsCommand(t *testing.T) {
 }
 
 func TestParse_SubscribeAppTrigger(t *testing.T) {
-	s := slack{}
+	s := NewSlackAdapter(noopVerifier)
 
 	cmd, err := s.Parse(httptest.NewRequest("GET", "http://localhost/slack",
 		bytes.NewBufferString("text=subscribe%20foo%20on-sync-failed&channel_name=test")))
@@ -35,7 +40,7 @@ func TestParse_SubscribeAppTrigger(t *testing.T) {
 }
 
 func TestParse_SubscribeProject(t *testing.T) {
-	s := slack{}
+	s := NewSlackAdapter(noopVerifier)
 
 	cmd, err := s.Parse(httptest.NewRequest("GET", "http://localhost/slack",
 		bytes.NewBufferString("text=subscribe%20proj%3Afoo&channel_name=test")))
@@ -49,7 +54,7 @@ func TestParse_SubscribeProject(t *testing.T) {
 }
 
 func TestParse_UnsubscribeApp(t *testing.T) {
-	s := slack{}
+	s := NewSlackAdapter(noopVerifier)
 
 	cmd, err := s.Parse(httptest.NewRequest("GET", "http://localhost/slack",
 		bytes.NewBufferString("text=unsubscribe%20app%3Afoo&channel_name=test")))
@@ -63,7 +68,7 @@ func TestParse_UnsubscribeApp(t *testing.T) {
 }
 
 func TestParse_WrongCommandHelpResponse(t *testing.T) {
-	s := slack{}
+	s := NewSlackAdapter(noopVerifier)
 
 	_, err := s.Parse(httptest.NewRequest("GET", "http://localhost/slack",
 		bytes.NewBufferString("text=wrong&channel_name=test")))
@@ -73,7 +78,7 @@ func TestParse_WrongCommandHelpResponse(t *testing.T) {
 }
 
 func TestParse_NoCommandHelpResponse(t *testing.T) {
-	s := slack{}
+	s := NewSlackAdapter(noopVerifier)
 
 	_, err := s.Parse(httptest.NewRequest("GET", "http://localhost/slack",
 		bytes.NewBufferString("channel_name=test")))
@@ -83,7 +88,7 @@ func TestParse_NoCommandHelpResponse(t *testing.T) {
 }
 
 func TestParse_NoAppArgument(t *testing.T) {
-	s := slack{}
+	s := NewSlackAdapter(noopVerifier)
 
 	_, err := s.Parse(httptest.NewRequest("GET", "http://localhost/slack",
 		bytes.NewBufferString("text=unsubscribe&channel_name=test")))
@@ -92,7 +97,7 @@ func TestParse_NoAppArgument(t *testing.T) {
 }
 
 func TestSendResponse(t *testing.T) {
-	s := slack{}
+	s := NewSlackAdapter(noopVerifier)
 	w := httptest.NewRecorder()
 
 	s.SendResponse("test", w)

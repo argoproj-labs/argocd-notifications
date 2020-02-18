@@ -1,4 +1,4 @@
-package bot
+package slack
 
 import (
 	"bytes"
@@ -11,10 +11,17 @@ import (
 	"strings"
 	texttemplate "text/template"
 
+	"github.com/argoproj-labs/argocd-notifications/bot"
+
 	slackclient "github.com/nlopes/slack"
 )
 
+func NewSlackAdapter(verifier RequestVerifier) *slack {
+	return &slack{verifier: verifier}
+}
+
 type slack struct {
+	verifier RequestVerifier
 }
 
 func mustTemplate(text string) *texttemplate.Template {
@@ -58,17 +65,21 @@ func usageInstructions(query url.Values, command string, err error) string {
 	return usage.String()
 }
 
-func parseQuery(r *http.Request) (url.Values, error) {
+func (s *slack) parseQuery(r *http.Request) (url.Values, error) {
 	data, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		return nil, err
 	}
+	err = s.verifier(data, r.Header)
+	if err != nil {
+		return nil, fmt.Errorf("failed to verify request signature: %v", err)
+	}
 	return url.ParseQuery(string(data))
 }
 
-func (s *slack) Parse(r *http.Request) (Command, error) {
-	cmd := Command{}
-	query, err := parseQuery(r)
+func (s *slack) Parse(r *http.Request) (bot.Command, error) {
+	cmd := bot.Command{}
+	query, err := s.parseQuery(r)
 	if err != nil {
 		return cmd, err
 	}
@@ -86,12 +97,12 @@ func (s *slack) Parse(r *http.Request) (Command, error) {
 
 	switch command {
 	case "list-subscriptions":
-		cmd.ListSubscriptions = &ListSubscriptions{}
+		cmd.ListSubscriptions = &bot.ListSubscriptions{}
 	case "subscribe", "unsubscribe":
 		if len(parts) < 2 {
 			return cmd, errors.New(usageInstructions(query, command, errors.New("at least one argument expected")))
 		}
-		update := &UpdateSubscription{}
+		update := &bot.UpdateSubscription{}
 		nameParts := strings.Split(parts[1], ":")
 		if len(nameParts) == 1 {
 			nameParts = append([]string{"app"}, nameParts...)

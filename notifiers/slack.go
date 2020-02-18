@@ -12,6 +12,7 @@ import (
 type SlackOptions struct {
 	Username           string   `json:"username"`
 	Token              string   `json:"token"`
+	SigningSecret      string   `json:"signingSecret"`
 	Channels           []string `json:"channels"`
 	InsecureSkipVerify bool     `json:"insecureSkipVerify"`
 }

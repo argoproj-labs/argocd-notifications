@@ -6,44 +6,32 @@ import (
 	"fmt"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/argoproj-labs/argocd-notifications/builtin"
 	"github.com/argoproj-labs/argocd-notifications/controller"
 	"github.com/argoproj-labs/argocd-notifications/notifiers"
+	"github.com/argoproj-labs/argocd-notifications/shared/settings"
 	"github.com/argoproj-labs/argocd-notifications/triggers"
 
-	"github.com/ghodss/yaml"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/dynamic"
-	corev1 "k8s.io/client-go/informers/core/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
 const (
-	configMapName            = "argocd-notifications-cm"
-	secretName               = "argocd-notifications-secret"
-	settingsResyncDuration   = 3 * time.Minute
 	argocdURLContextVariable = "argocdUrl"
 )
 
-type config struct {
-	Triggers  []triggers.NotificationTrigger  `json:"triggers"`
-	Templates []triggers.NotificationTemplate `json:"templates"`
-	Context   map[string]string               `json:"context"`
-}
-
 var (
-	defaultCfg config
+	defaultCfg settings.Config
 )
 
 func init() {
-	defaultCfg = config{
+	defaultCfg = settings.Config{
 		Templates: builtin.Templates,
 		Triggers:  builtin.Triggers,
 		Context:   map[string]string{argocdURLContextVariable: "https://localhost:4000"},
@@ -112,36 +100,17 @@ func newControllerCommand() *cobra.Command {
 	return &command
 }
 
-func parseConfigMapYaml(configData map[string]string) (cfg *config, err error) {
-	cfg = &config{}
-	if data, ok := configData["config.yaml"]; ok {
-		err = yaml.Unmarshal([]byte(data), &cfg)
-		if err != nil {
-			return cfg, err
-		}
-	}
-	return cfg, nil
-}
-
-func parseSecretYaml(notifiersData []byte) (notifiersConfig notifiers.Config, err error) {
-	err = yaml.Unmarshal(notifiersData, &notifiersConfig)
-	if err != nil {
-		return notifiers.Config{}, err
-	}
-	return notifiersConfig, nil
-}
-
-func parseConfig(configData map[string]string, notifiersData []byte) (map[string]triggers.Trigger, map[string]notifiers.Notifier, map[string]string, error) {
-	cfg, err := parseConfigMapYaml(configData)
+func parseConfig(configMap *v1.ConfigMap, secret *v1.Secret) (map[string]triggers.Trigger, map[string]notifiers.Notifier, map[string]string, error) {
+	cfg, err := settings.ParseConfigMap(configMap)
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	cfg = defaultCfg.merge(cfg)
+	cfg = defaultCfg.Merge(cfg)
 	t, err := triggers.GetTriggers(cfg.Templates, cfg.Triggers)
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	notifiersConfig, err := parseSecretYaml(notifiersData)
+	notifiersConfig, err := settings.ParseSecret(secret)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -162,7 +131,7 @@ func watchConfig(ctx context.Context, clientset kubernetes.Interface, namespace 
 			configMap = newConfigMap
 		}
 		if secret != nil && configMap != nil {
-			if t, n, c, err := parseConfig(configMap.Data, secret.Data["notifiers.yaml"]); err == nil {
+			if t, n, c, err := parseConfig(configMap, secret); err == nil {
 				if err = callback(t, n, c); err != nil {
 					log.Fatalf("Failed to start controller: %v", err)
 				}
@@ -178,9 +147,7 @@ func watchConfig(ctx context.Context, clientset kubernetes.Interface, namespace 
 		}
 	}
 
-	cmInformer := corev1.NewFilteredConfigMapInformer(clientset, namespace, settingsResyncDuration, cache.Indexers{}, func(options *metav1.ListOptions) {
-		options.FieldSelector = fmt.Sprintf("metadata.name=%s", configMapName)
-	})
+	cmInformer := settings.NewConfigMapInformer(clientset, namespace)
 	cmInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		UpdateFunc: func(oldObj, newObj interface{}) {
 			onConfigMapChanged(newObj)
@@ -194,9 +161,7 @@ func watchConfig(ctx context.Context, clientset kubernetes.Interface, namespace 
 		}
 	}
 
-	secretInformer := corev1.NewFilteredSecretInformer(clientset, namespace, settingsResyncDuration, cache.Indexers{}, func(options *metav1.ListOptions) {
-		options.FieldSelector = fmt.Sprintf("metadata.name=%s", secretName)
-	})
+	secretInformer := settings.NewSecretInformer(clientset, namespace)
 	secretInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: onSecretChanged,
 		UpdateFunc: func(oldObj, newObj interface{}) {
@@ -211,81 +176,12 @@ func watchConfig(ctx context.Context, clientset kubernetes.Interface, namespace 
 	}
 	var missingWarn []string
 	if len(cmInformer.GetStore().List()) == 0 {
-		missingWarn = append(missingWarn, fmt.Sprintf("config map %s", configMapName))
+		missingWarn = append(missingWarn, fmt.Sprintf("config map %s", settings.ConfigMapName))
 	}
 	if len(secretInformer.GetStore().List()) == 0 {
-		missingWarn = append(missingWarn, fmt.Sprintf("secret %s", secretName))
+		missingWarn = append(missingWarn, fmt.Sprintf("secret %s", settings.SecretName))
 	}
 	if len(missingWarn) > 0 {
 		log.Warnf("Cannot find %s. Waiting when both config map and secret are created.", strings.Join(missingWarn, " and "))
 	}
-}
-
-func coalesce(first string, other ...string) string {
-	res := first
-	for i := range other {
-		if res != "" {
-			break
-		}
-		res = other[i]
-	}
-	return res
-}
-
-func (cfg *config) merge(other *config) *config {
-	triggersMap := map[string]triggers.NotificationTrigger{}
-	for i := range cfg.Triggers {
-		triggersMap[cfg.Triggers[i].Name] = cfg.Triggers[i]
-	}
-	for _, item := range other.Triggers {
-		if existing, ok := triggersMap[item.Name]; ok {
-			existing.Condition = coalesce(item.Condition, existing.Condition)
-			existing.Template = coalesce(item.Template, existing.Template)
-			if item.Enabled != nil {
-				existing.Enabled = item.Enabled
-			}
-			triggersMap[item.Name] = existing
-		} else {
-			triggersMap[item.Name] = item
-		}
-	}
-
-	templatesMap := map[string]triggers.NotificationTemplate{}
-	for i := range cfg.Templates {
-		templatesMap[cfg.Templates[i].Name] = cfg.Templates[i]
-	}
-	for _, item := range other.Templates {
-		if existing, ok := templatesMap[item.Name]; ok {
-			existing.Body = coalesce(item.Body, existing.Body)
-			existing.Title = coalesce(item.Title, existing.Title)
-			if item.Slack != nil {
-				if existing.Slack == nil {
-					existing.Slack = &notifiers.SlackSpecific{Blocks: item.Slack.Blocks, Attachments: item.Slack.Attachments}
-				} else {
-					existing.Slack.Attachments = coalesce(item.Slack.Attachments, existing.Slack.Attachments)
-					existing.Slack.Blocks = coalesce(item.Slack.Blocks, existing.Slack.Blocks)
-				}
-			}
-			templatesMap[item.Name] = existing
-		} else {
-			templatesMap[item.Name] = item
-		}
-	}
-
-	contextValues := map[string]string{}
-	for k, v := range cfg.Context {
-		contextValues[k] = v
-	}
-	for k, v := range other.Context {
-		contextValues[k] = v
-	}
-	res := &config{}
-	for k := range triggersMap {
-		res.Triggers = append(res.Triggers, triggersMap[k])
-	}
-	for k := range templatesMap {
-		res.Templates = append(res.Templates, templatesMap[k])
-	}
-	res.Context = contextValues
-	return res
 }
