@@ -32,7 +32,7 @@
         <meta name="lang:search.tokenizer" content="[\s\-]+">
       
       <link rel="shortcut icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.0.4, mkdocs-material-4.6.3">
+      <meta name="generator" content="mkdocs-1.1, mkdocs-material-4.6.3">
     
     
       
@@ -427,7 +427,32 @@
                 
                 
                 <h1 id="opsgenie">Opsgenie<a class="headerlink" href="#opsgenie" title="Permanent link">&para;</a></h1>
-<p>Please add instructions if you are using Opsgenie.</p>
+<p>To be able to send notifications with argocd-notifications you have to create an <a href="https://docs.opsgenie.com/docs/integrations-overview">API Integration</a> inside your <a href="https://docs.opsgenie.com/docs/teams">Opsgenie Team</a>.</p>
+<ol>
+<li>Login to Opsgenie at https://app.opsgenie.com or https://app.eu.opsgenie.com (if you have an account in the european union)</li>
+<li>Make sure you already have a team, if not follow this guide https://docs.opsgenie.com/docs/teams</li>
+<li>Click "Teams" in the Menu on the left</li>
+<li>Select the team that you want to notify</li>
+<li>In the teams configuration menu select "Integrations"</li>
+<li>click "Add Integration" in the top right corner</li>
+<li>Select "API" integration</li>
+<li>Give your integration a name, copy the "API key" and safe it somewhere for later</li>
+<li>Make sure the checkboxes for "Create and Update Access" and "enable" are selected, disable the other checkboxes to remove unnecessary permissions</li>
+<li>Click "Safe Integration" at the bottom</li>
+<li>Check your browser for the correct server apiURL. If it is "app.opsgenie.com" then use the us/international api url <code>api.opsgenie.com</code> in the next step, otherwise use <code>api.eu.opsgenie.com</code> (european api). </li>
+<li>You are finished with configuring opsgenie. Now you need to configure argocd-notifications. Use the apiUrl, the team name and the apiKey to configure the opsgenie integration in the <code>argocd-notifications-secret</code> secret. </li>
+</ol>
+<div class="codehilite"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Secret</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">argocd-notifications-secret</span>
+<span class="nt">stringData</span><span class="p">:</span>
+  <span class="nt">notifiers.yaml</span><span class="p">:</span> <span class="p p-Indicator">|</span>
+    <span class="no">opsgenie:</span>
+      <span class="no">apiUrl: &lt;api-url&gt;</span>
+      <span class="no">apiKeys:</span>
+        <span class="no">&lt;your-team&gt;: &lt;integration-api-key&gt;</span>
+</code></pre></div>
                 
                   
                 
@@ -500,7 +525,7 @@
     
       <script src="../../assets/javascripts/application.c33a9706.js"></script>
       
-      <script>app.initialize({version:"1.0.4",url:{base:"../.."}})</script>
+      <script>app.initialize({version:"1.1",url:{base:"../.."}})</script>
       
     
   </body>
