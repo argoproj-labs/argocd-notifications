@@ -5,12 +5,16 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"net/http"
+	"net/url"
+	"regexp"
 
 	"github.com/nlopes/slack"
+	log "github.com/sirupsen/logrus"
 )
 
 type SlackOptions struct {
 	Username           string   `json:"username"`
+	Icon               string   `json:"icon"`
 	Token              string   `json:"token"`
 	SigningSecret      string   `json:"signingSecret"`
 	Channels           []string `json:"channels"`
@@ -20,6 +24,8 @@ type SlackOptions struct {
 type slackNotifier struct {
 	opts SlackOptions
 }
+
+var validIconEmoij = regexp.MustCompile(`^:.+:$`)
 
 func NewSlackNotifier(opts SlackOptions) Notifier {
 	return &slackNotifier{opts: opts}
@@ -37,6 +43,15 @@ func (n *slackNotifier) Send(notification Notification, recipient string) error 
 	msgOptions := []slack.MsgOption{slack.MsgOptionText(notification.Body, false)}
 	if n.opts.Username != "" {
 		msgOptions = append(msgOptions, slack.MsgOptionUsername(n.opts.Username))
+	}
+	if n.opts.Icon != "" {
+		if validIconEmoij.MatchString(n.opts.Icon) {
+			msgOptions = append(msgOptions, slack.MsgOptionIconEmoji(n.opts.Icon))
+		} else if isValidIconURL(n.opts.Icon) {
+			msgOptions = append(msgOptions, slack.MsgOptionIconURL(n.opts.Icon))
+		} else {
+			log.Warnf("Icon reference '%v' is not a valid emoij or url", n.opts.Icon)
+		}
 	}
 
 	if notification.Slack != nil {
@@ -58,4 +73,18 @@ func (n *slackNotifier) Send(notification Notification, recipient string) error 
 
 	_, _, err := s.PostMessageContext(context.TODO(), recipient, msgOptions...)
 	return err
+}
+
+func isValidIconURL(iconURL string) bool {
+	_, err := url.ParseRequestURI(iconURL)
+	if err != nil {
+		return false
+	}
+
+	u, err := url.Parse(iconURL)
+	if err != nil || (u.Scheme == "" || !(u.Scheme == "http" || u.Scheme == "https")) || u.Host == "" {
+		return false
+	}
+
+	return true
 }
