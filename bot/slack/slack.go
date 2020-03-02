@@ -34,8 +34,8 @@ var commandsHelp = map[string]*texttemplate.Template{
 		"```{{.cmd}} subscribe <my-app> <optional-trigger>\n" +
 		"{{.cmd}} subscribe proj:<my-proj> <optional-trigger>```"),
 	"unsubscribe": mustTemplate("*Unsubscribe current channel*:\n" +
-		"```{{.cmd}} subscribe <my-app> <optional-trigger>\n" +
-		"{{.cmd}} subscribe proj:<my-proj> <optional-trigger>```"),
+		"```{{.cmd}} unsubscribe <my-app> <optional-trigger>\n" +
+		"{{.cmd}} unsubscribe proj:<my-proj> <optional-trigger>```"),
 }
 
 func usageInstructions(query url.Values, command string, err error) string {

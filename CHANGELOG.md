@@ -1,9 +1,12 @@
 # Changelog
 
-## v0.5.0 (Not released)
+## v0.5.0 (2020-03-01)
 
 ### Features
+* feat: support managing subscriptions using Slack bot
 * feat: support `time.Now()` and `time.Parse(...)` in trigger condition ( thanks to [@HatsuneMiku3939](https://github.com/HatsuneMiku3939) )
+* feat: Add icon emoij and icon url support for Slack messages ( thanks to [sboschman](https://github.com/sboschman) )
+* feat: Introduce sprig functions to templates( thanks to [imranismail](https://github.com/imranismail) )
 
 ###  Bug Fixes
 * fix: fix null pointer dereference error while config parsing

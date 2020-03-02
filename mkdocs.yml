@@ -27,5 +27,11 @@ nav:
     - services/overview.md
     - services/slack.md
     - services/opsgenie.md
-  - recipients.md
+    - services/telegram.md
+  - Recipients:
+    - recipients/overview.md
+    - recipients/bot.md
+    - recipients/slack-bot.md
+    - recipients/opsgenie-bot.md
+    - recipients/telegram-bot.md
   - built-in.md
