@@ -44,6 +44,7 @@ func newControllerCommand() *cobra.Command {
 		processorsCount  int
 		namespace        string
 		appLabelSelector string
+		logLevel         string
 	)
 	var command = cobra.Command{
 		Use: "controller",
@@ -66,6 +67,11 @@ func newControllerCommand() *cobra.Command {
 					return err
 				}
 			}
+			level, err := log.ParseLevel(logLevel)
+			if err != nil {
+				return err
+			}
+			log.SetLevel(level)
 
 			var cancelPrev context.CancelFunc
 			watchConfig(context.Background(), k8sClient, namespace, func(triggers map[string]triggers.Trigger, notifiers map[string]notifiers.Notifier, contextVals map[string]string) error {
@@ -97,6 +103,7 @@ func newControllerCommand() *cobra.Command {
 	command.Flags().IntVar(&processorsCount, "processors-count", 1, "Processors count.")
 	command.Flags().StringVar(&appLabelSelector, "app-label-selector", "", "App label selector.")
 	command.Flags().StringVar(&namespace, "namespace", "", "Namespace which controller handles. Current namespace if empty.")
+	command.Flags().StringVar(&logLevel, "loglevel", "info", "Set the logging level. One of: debug|info|warn|error")
 	return &command
 }
 
