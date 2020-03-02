@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: argocd-notification-bot
+  name: argocd-notifications-bot
 spec:
   ports:
     - name: server
@@ -9,5 +9,5 @@ spec:
       port: 80
       targetPort: 8080
   selector:
-    app.kubernetes.io/name: argocd-notification-bot
+    app.kubernetes.io/name: argocd-notifications-bot
   type: LoadBalancer
