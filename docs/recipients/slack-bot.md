@@ -29,5 +29,5 @@ The bot supports following commands:
 * `list-subscriptions` - list channel subscriptions
 * `subscribe <my-app> <optional-trigger>` - subscribes channel to the app notifications
 * `subscribe proj:<my-app> <optional-trigger>` - subscribes channel to the app project notifications
-* `unsubscribe <my-app> <optional-trigger>` - unsubscribes channel frm the app notifications
-* `unsubscribe proj:<my-app> <optional-trigger>` - unsubscribes channel frm the app project notifications
+* `unsubscribe <my-app> <optional-trigger>` - unsubscribes channel from the app notifications
+* `unsubscribe proj:<my-app> <optional-trigger>` - unsubscribes channel from the app project notifications
