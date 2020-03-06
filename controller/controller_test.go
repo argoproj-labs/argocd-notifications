@@ -159,3 +159,66 @@ func TestUpdatedAnnotationsSavedAsPatch(t *testing.T) {
 		assert.Nil(t, val)
 	}
 }
+
+func TestAppSyncStatusRefreshed(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.TODO())
+	defer cancel()
+	ctrl, _, _, err := newController(t, ctx, fake.NewSimpleDynamicClient(runtime.NewScheme()))
+	assert.NoError(t, err)
+
+	for name, tc := range testsAppSyncStatusRefreshed {
+		t.Run(name, func(t *testing.T) {
+			if tc.result {
+				assert.True(t, ctrl.isAppSyncStatusRefreshed(&unstructured.Unstructured{Object: tc.app}, logEntry))
+			} else {
+				assert.False(t, ctrl.isAppSyncStatusRefreshed(&unstructured.Unstructured{Object: tc.app}, logEntry))
+			}
+		})
+	}
+}
+
+var testsAppSyncStatusRefreshed = map[string]struct {
+	app    map[string]interface{}
+	result bool
+}{
+	"MissingOperationState": {app: map[string]interface{}{"status": map[string]interface{}{}}, result: true},
+	"MissingOperationStatePhase": {app: map[string]interface{}{
+		"status": map[string]interface{}{
+			"operationState": map[string]interface{}{},
+		},
+	}, result: true},
+	"RunningOperation": {app: map[string]interface{}{
+		"status": map[string]interface{}{
+			"operationState": map[string]interface{}{
+				"phase": "Running",
+			},
+		},
+	}, result: true},
+	"MissingFinishedAt": {app: map[string]interface{}{
+		"status": map[string]interface{}{
+			"operationState": map[string]interface{}{
+				"phase": "Succeeded",
+			},
+		},
+	}, result: false},
+	"Reconciled": {app: map[string]interface{}{
+		"status": map[string]interface{}{
+			"reconciledAt": "2020-03-01T13:37:00Z",
+			"observedAt":   "2020-03-01T13:37:00Z",
+			"operationState": map[string]interface{}{
+				"phase":      "Succeeded",
+				"finishedAt": "2020-03-01T13:37:00Z",
+			},
+		},
+	}, result: true},
+	"NotYetReconciled": {app: map[string]interface{}{
+		"status": map[string]interface{}{
+			"reconciledAt": "2020-03-01T00:13:37Z",
+			"observedAt":   "2020-03-01T00:13:37Z",
+			"operationState": map[string]interface{}{
+				"phase":      "Succeeded",
+				"finishedAt": "2020-03-01T13:37:00Z",
+			},
+		},
+	}, result: false},
+}

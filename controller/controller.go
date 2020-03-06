@@ -232,6 +232,52 @@ func (c *notificationController) processApp(app *unstructured.Unstructured, logE
 	return nil
 }
 
+// Checks if the application SyncStatus has been refreshed by Argo CD after an operation has completed
+func (c *notificationController) isAppSyncStatusRefreshed(app *unstructured.Unstructured, logEntry *log.Entry) bool {
+	_, ok, err := unstructured.NestedMap(app.Object, "status", "operationState")
+	if !ok || err != nil {
+		logEntry.Debug("No OperationState found, SyncStatus is assumed to be up-to-date")
+		return true
+	}
+
+	phase, ok, err := unstructured.NestedString(app.Object, "status", "operationState", "phase")
+	if !ok || err != nil {
+		logEntry.Debug("No OperationPhase found, SyncStatus is assumed to be up-to-date")
+		return true
+	}
+	switch phase {
+	case "Failed", "Error", "Succeeded":
+		finishedAtRaw, ok, err := unstructured.NestedString(app.Object, "status", "operationState", "finishedAt")
+		if !ok || err != nil {
+			logEntry.Debugf("No FinishedAt found for completed phase '%s', SyncStatus is assumed to be out-of-date", phase)
+			return false
+		}
+		finishedAt, err := time.Parse(time.RFC3339, finishedAtRaw)
+		if err != nil {
+			logEntry.Warnf("Failed to parse FinishedAt '%s'", finishedAtRaw)
+			return false
+		}
+		var reconciledAt, observedAt time.Time
+		reconciledAtRaw, ok, err := unstructured.NestedString(app.Object, "status", "reconciledAt")
+		if ok && err == nil {
+			reconciledAt, _ = time.Parse(time.RFC3339, reconciledAtRaw)
+		}
+		observedAtRaw, ok, err := unstructured.NestedString(app.Object, "status", "observedAt")
+		if ok && err == nil {
+			observedAt, _ = time.Parse(time.RFC3339, observedAtRaw)
+		}
+		if finishedAt.After(reconciledAt) && finishedAt.After(observedAt) {
+			logEntry.Debugf("SyncStatus out-of-date (FinishedAt=%v, ReconciledAt=%v, Observed=%v", finishedAt, reconciledAt, observedAt)
+			return false
+		}
+		logEntry.Debugf("SyncStatus up-to-date (FinishedAt=%v, ReconciledAt=%v, Observed=%v", finishedAt, reconciledAt, observedAt)
+	default:
+		logEntry.Debugf("Found phase '%s', SyncStatus is assumed to be up-to-date", phase)
+	}
+
+	return true
+}
+
 func (c *notificationController) processQueueItem() (processNext bool) {
 	key, shutdown := c.refreshQueue.Get()
 	if shutdown {
@@ -263,6 +309,10 @@ func (c *notificationController) processQueueItem() (processNext bool) {
 	appCopy := app.DeepCopy()
 	logEntry := log.WithField("app", key)
 	logEntry.Info("Start processing")
+	if refreshed := c.isAppSyncStatusRefreshed(appCopy, logEntry); !refreshed {
+		logEntry.Info("Processing skipped, sync status out of date")
+		return
+	}
 	err = c.processApp(appCopy, logEntry)
 	if err != nil {
 		logEntry.Errorf("Failed to process: %v", err)
