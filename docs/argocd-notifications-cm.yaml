@@ -5,13 +5,19 @@ metadata:
 data:
   config.yaml: |
     triggers:
+      # Enable existing built-in trigger
       - name: on-sync-status-unknown
-        condition: app.status.sync.status == 'Unknown'
-        template: app-sync-status
         enabled: true
+      # Define your custom trigger
+      - name: my-custom-trigger
+        condition: app.status.sync.status == 'Unknown'
+        template: my-custom-template
     templates:
+      # Add your custom template
+      - name: my-custom-template
+        title: Hello {{.app.metadata.name}}
+        body: |
+          Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
+      # Override one field in built-in template
       - name: app-sync-status
         title: Application {{.app.metadata.name}} sync status is {{.app.status.sync.status}}
-        body: |
-          Application {{.app.metadata.name}} sync is {{.app.status.sync.status}}.
-          Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.

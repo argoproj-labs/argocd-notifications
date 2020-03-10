@@ -1,4 +1,4 @@
-package expr
+package time
 
 import (
 	"testing"
@@ -13,7 +13,7 @@ func TestNewTimeExprs(t *testing.T) {
 	}
 
 	for _, fn := range funcs {
-		timeExprs := newTimeExprs()
+		timeExprs := NewExprs()
 		_, hasFunc := timeExprs[fn]
 		assert.True(t, hasFunc)
 	}

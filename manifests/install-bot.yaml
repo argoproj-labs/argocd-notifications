@@ -89,7 +89,7 @@ type: Opaque
 apiVersion: v1
 kind: Service
 metadata:
-  name: argocd-notification-bot
+  name: argocd-notifications-bot
 spec:
   ports:
   - name: server
@@ -97,7 +97,7 @@ spec:
     protocol: TCP
     targetPort: 8080
   selector:
-    app.kubernetes.io/name: argocd-notification-bot
+    app.kubernetes.io/name: argocd-notifications-bot
   type: LoadBalancer
 ---
 apiVersion: apps/v1

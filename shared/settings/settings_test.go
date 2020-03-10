@@ -110,7 +110,7 @@ context:
 				Body: `Application {{.app.metadata.name}} sync is {{.app.status.sync.status}}.
 Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
 `,
-				Slack: &notifiers.SlackSpecific{
+				Slack: &notifiers.SlackNotification{
 					Attachments: `[{
   "title": "{{.app.metadata.name}}",
   "title_link": "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
@@ -151,7 +151,7 @@ func TestMergeConfigTemplate(t *testing.T) {
 			Notification: notifiers.Notification{
 				Body:  "the body",
 				Title: "the title",
-				Slack: &notifiers.SlackSpecific{
+				Slack: &notifiers.SlackNotification{
 					Attachments: "attachments",
 				},
 			},
@@ -162,7 +162,7 @@ func TestMergeConfigTemplate(t *testing.T) {
 			Name: "foo",
 			Notification: notifiers.Notification{
 				Body: "new body",
-				Slack: &notifiers.SlackSpecific{
+				Slack: &notifiers.SlackNotification{
 					Blocks: "blocks",
 				},
 			},
@@ -179,7 +179,7 @@ func TestMergeConfigTemplate(t *testing.T) {
 		Notification: notifiers.Notification{
 			Title: "the title",
 			Body:  "new body",
-			Slack: &notifiers.SlackSpecific{
+			Slack: &notifiers.SlackNotification{
 				Attachments: "attachments",
 				Blocks:      "blocks",
 			},

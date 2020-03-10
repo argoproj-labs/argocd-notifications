@@ -29,6 +29,7 @@ nav:
     - services/opsgenie.md
     - services/grafana.md
     - services/telegram.md
+    - services/webhook.md
   - Recipients:
     - recipients/overview.md
     - recipients/bot.md

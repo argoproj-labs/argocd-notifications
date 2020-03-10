@@ -12,6 +12,11 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+type SlackNotification struct {
+	Attachments string `json:"attachments,omitempty"`
+	Blocks      string `json:"blocks,omitempty"`
+}
+
 type SlackOptions struct {
 	Username           string   `json:"username"`
 	Icon               string   `json:"icon"`

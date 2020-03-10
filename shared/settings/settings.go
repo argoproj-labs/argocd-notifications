@@ -2,6 +2,7 @@ package settings
 
 import (
 	"github.com/argoproj-labs/argocd-notifications/notifiers"
+	"github.com/argoproj-labs/argocd-notifications/shared/text"
 	"github.com/argoproj-labs/argocd-notifications/triggers"
 
 	"github.com/ghodss/yaml"
@@ -36,17 +37,6 @@ func ParseConfigMap(configMap *v1.ConfigMap) (cfg *Config, err error) {
 	return cfg, nil
 }
 
-func coalesce(first string, other ...string) string {
-	res := first
-	for i := range other {
-		if res != "" {
-			break
-		}
-		res = other[i]
-	}
-	return res
-}
-
 func (cfg *Config) Merge(other *Config) *Config {
 	triggersMap := map[string]triggers.NotificationTrigger{}
 	for i := range cfg.Triggers {
@@ -54,8 +44,8 @@ func (cfg *Config) Merge(other *Config) *Config {
 	}
 	for _, item := range other.Triggers {
 		if existing, ok := triggersMap[item.Name]; ok {
-			existing.Condition = coalesce(item.Condition, existing.Condition)
-			existing.Template = coalesce(item.Template, existing.Template)
+			existing.Condition = text.Coalesce(item.Condition, existing.Condition)
+			existing.Template = text.Coalesce(item.Template, existing.Template)
 			if item.Enabled != nil {
 				existing.Enabled = item.Enabled
 			}
@@ -71,14 +61,14 @@ func (cfg *Config) Merge(other *Config) *Config {
 	}
 	for _, item := range other.Templates {
 		if existing, ok := templatesMap[item.Name]; ok {
-			existing.Body = coalesce(item.Body, existing.Body)
-			existing.Title = coalesce(item.Title, existing.Title)
+			existing.Body = text.Coalesce(item.Body, existing.Body)
+			existing.Title = text.Coalesce(item.Title, existing.Title)
 			if item.Slack != nil {
 				if existing.Slack == nil {
-					existing.Slack = &notifiers.SlackSpecific{Blocks: item.Slack.Blocks, Attachments: item.Slack.Attachments}
+					existing.Slack = &notifiers.SlackNotification{Blocks: item.Slack.Blocks, Attachments: item.Slack.Attachments}
 				} else {
-					existing.Slack.Attachments = coalesce(item.Slack.Attachments, existing.Slack.Attachments)
-					existing.Slack.Blocks = coalesce(item.Slack.Blocks, existing.Slack.Blocks)
+					existing.Slack.Attachments = text.Coalesce(item.Slack.Attachments, existing.Slack.Attachments)
+					existing.Slack.Blocks = text.Coalesce(item.Slack.Blocks, existing.Slack.Blocks)
 				}
 			}
 			templatesMap[item.Name] = existing
