@@ -27,6 +27,7 @@ nav:
     - services/overview.md
     - services/slack.md
     - services/opsgenie.md
+    - services/grafana.md
     - services/telegram.md
   - Recipients:
     - recipients/overview.md
