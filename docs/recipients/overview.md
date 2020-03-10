@@ -22,6 +22,16 @@ metadata:
     recipients.argocd-notifications.argoproj.io: slack:<sample-channel-name>
 ```
 
+The example below demonstrates how to create a Grafana annotation for a specific application:
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    recipients.argocd-notifications.argoproj.io: grafana:tag1|tag2
+```
+
 Each recipient is prefixed with the [notification service type](../services/overview.md) such as `slack` or `email`.
 
 ## Trigger Specific Subscription (v0.3)
