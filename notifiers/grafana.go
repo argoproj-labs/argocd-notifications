@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"net/http"
 	"net/url"
 	"path"
