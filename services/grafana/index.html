@@ -36,7 +36,7 @@
     
     
       
-        <title>Overview - Argo CD Notifications</title>
+        <title>Grafana - Argo CD Notifications</title>
       
     
     
@@ -110,7 +110,7 @@
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
     <label class="md-overlay" data-md-component="overlay" for="__drawer"></label>
     
-      <a href="#overview" tabindex="0" class="md-skip">
+      <a href="#grafana" tabindex="0" class="md-skip">
         Skip to content
       </a>
     
@@ -136,7 +136,7 @@
             </span>
             <span class="md-header-nav__topic">
               
-                Overview
+                Grafana
               
             </span>
           
@@ -326,7 +326,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../services/overview/" title="Overview" class="md-nav__link">
+    <a href="../overview/" title="Overview" class="md-nav__link">
       Overview
     </a>
   </li>
@@ -338,7 +338,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../services/slack/" title="Slack" class="md-nav__link">
+    <a href="../slack/" title="Slack" class="md-nav__link">
       Slack
     </a>
   </li>
@@ -350,7 +350,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../services/opsgenie/" title="Opsgenie" class="md-nav__link">
+    <a href="../opsgenie/" title="Opsgenie" class="md-nav__link">
       Opsgenie
     </a>
   </li>
@@ -362,7 +362,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../services/telegram/" title="Telegram" class="md-nav__link">
+    <a href="../telegram/" title="Telegram" class="md-nav__link">
       Telegram
     </a>
   </li>
@@ -377,12 +377,10 @@
       
       
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+  <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-4" type="checkbox" id="nav-4" checked>
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-4" type="checkbox" id="nav-4">
     
     <label class="md-nav__link" for="nav-4">
       Recipients
@@ -398,56 +396,11 @@
           
           
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active">
-    
-    <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-    
-      
-    
-    
-      <label class="md-nav__link md-nav__link--active" for="__toc">
-        Overview
-      </label>
-    
-    <a href="./" title="Overview" class="md-nav__link md-nav__link--active">
+  <li class="md-nav__item">
+    <a href="../../recipients/overview/" title="Overview" class="md-nav__link">
       Overview
     </a>
-    
-      
-<nav class="md-nav md-nav--secondary">
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">Table of contents</label>
-    <ul class="md-nav__list" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#trigger-specific-subscription-v03" class="md-nav__link">
-    Trigger Specific Subscription (v0.3)
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#manage-subscriptions-using-bots" class="md-nav__link">
-    Manage subscriptions using bots
-  </a>
-  
-</li>
-      
-      
-      
-      
-      
-    </ul>
-  
-</nav>
-    
   </li>
 
         
@@ -457,7 +410,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../bot/" title="Bot (v0.5)" class="md-nav__link">
+    <a href="../../recipients/bot/" title="Bot (v0.5)" class="md-nav__link">
       Bot (v0.5)
     </a>
   </li>
@@ -469,7 +422,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../slack-bot/" title="Slack bot (v0.5)" class="md-nav__link">
+    <a href="../../recipients/slack-bot/" title="Slack bot (v0.5)" class="md-nav__link">
       Slack bot (v0.5)
     </a>
   </li>
@@ -481,7 +434,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../opsgenie-bot/" title="Opsgenie bot" class="md-nav__link">
+    <a href="../../recipients/opsgenie-bot/" title="Opsgenie bot" class="md-nav__link">
       Opsgenie bot
     </a>
   </li>
@@ -493,7 +446,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../telegram-bot/" title="Telegram bot" class="md-nav__link">
+    <a href="../../recipients/telegram-bot/" title="Telegram bot" class="md-nav__link">
       Telegram bot
     </a>
   </li>
@@ -533,29 +486,6 @@
     
   
   
-    <label class="md-nav__title" for="__toc">Table of contents</label>
-    <ul class="md-nav__list" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#trigger-specific-subscription-v03" class="md-nav__link">
-    Trigger Specific Subscription (v0.3)
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#manage-subscriptions-using-bots" class="md-nav__link">
-    Manage subscriptions using bots
-  </a>
-  
-</li>
-      
-      
-      
-      
-      
-    </ul>
-  
 </nav>
                   </div>
                 </div>
@@ -566,54 +496,29 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/argoproj-labs/argocd-notifications/edit/master/docs/recipients/overview.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
+                  <a href="https://github.com/argoproj-labs/argocd-notifications/edit/master/docs/services/grafana.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
                 
                 
-                <h1 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h1>
-<p>The list of recipients is not stored in a centralized configuration file. Instead, recipients might be configured using
-<code>Application</code> or <code>AppProject</code> CRD annotations. The example below demonstrates how to subscribe to the email 
-notifications triggered for a specific application:</p>
-<div class="codehilite"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">argoproj.io/v1alpha1</span>
-<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Application</span>
+                <h1 id="grafana">Grafana<a class="headerlink" href="#grafana" title="Permanent link">&para;</a></h1>
+<p>To be able to create Grafana annotation with argocd-notifications you have to create an <a href="https://grafana.com/docs/grafana/latest/http_api/auth/#create-api-key">API Key</a> inside your <a href="https://grafana.com">Grafana</a>.</p>
+<ol>
+<li>Login to your Grafana instance as <code>admin</code></li>
+<li>On the left menu, go to Configuration / API Keys</li>
+<li>Click "Add API Key" </li>
+<li>Fill the Key with name <code>ArgoCD Notification</code>, role <code>Editor</code> and Time to Live <code>10y</code> (for example)</li>
+<li>Click on Add button</li>
+<li>Copy your API Key and define it in <code>notifiers.yaml</code></li>
+</ol>
+<div class="codehilite"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Secret</span>
 <span class="nt">metadata</span><span class="p">:</span>
-  <span class="nt">annotations</span><span class="p">:</span>
-    <span class="nt">recipients.argocd-notifications.argoproj.io</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">email:&lt;sample-email&gt;</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">argocd-notifications-secret</span>
+<span class="nt">stringData</span><span class="p">:</span>
+  <span class="nt">notifiers.yaml</span><span class="p">:</span> <span class="p p-Indicator">|</span>
+    <span class="no">grafana:</span>
+      <span class="no">apiUrl: https://grafana.example.com/api</span>
+      <span class="no">apiKey: &lt;grafana-api-key&gt; </span>
 </code></pre></div>
-
-
-<p>The example below demonstrates how to get to the Slack message on a notification of the any project application:</p>
-<div class="codehilite"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">argoproj.io/v1alpha1</span>
-<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">AppProject</span>
-<span class="nt">metadata</span><span class="p">:</span>
-  <span class="nt">annotations</span><span class="p">:</span>
-    <span class="nt">recipients.argocd-notifications.argoproj.io</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">slack:&lt;sample-channel-name&gt;</span>
-</code></pre></div>
-
-
-<p>The example below demonstrates how to create a Grafana annotation for a specific application:</p>
-<div class="codehilite"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">argoproj.io/v1alpha1</span>
-<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Application</span>
-<span class="nt">metadata</span><span class="p">:</span>
-  <span class="nt">annotations</span><span class="p">:</span>
-    <span class="nt">recipients.argocd-notifications.argoproj.io</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">grafana:tag1|tag2</span>
-</code></pre></div>
-
-
-<p>Each recipient is prefixed with the <a href="../../services/overview/">notification service type</a> such as <code>slack</code> or <code>email</code>.</p>
-<h2 id="trigger-specific-subscription-v03">Trigger Specific Subscription (v0.3)<a class="headerlink" href="#trigger-specific-subscription-v03" title="Permanent link">&para;</a></h2>
-<p>It is possible to subscribe recipient to a specific trigger instead of all triggers. The annotation key should be
-prefixed with <code>&lt;trigger-name&gt;.</code>. The example below demonstrates how to receive only <code>on-sync-failed</code> trigger
-notifications:</p>
-<div class="codehilite"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">argoproj.io/v1alpha1</span>
-<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Application</span>
-<span class="nt">metadata</span><span class="p">:</span>
-  <span class="nt">annotations</span><span class="p">:</span>
-    <span class="nt">on-sync-failed.recipients.argocd-notifications.argoproj.io</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">email:&lt;sample-email&gt;</span>
-</code></pre></div>
-
-
-<h2 id="manage-subscriptions-using-bots">Manage subscriptions using bots<a class="headerlink" href="#manage-subscriptions-using-bots" title="Permanent link">&para;</a></h2>
-<p>The <a href="../bot/">bot</a> component simplifies managing subscriptions.</p>
                 
                   
                 
@@ -631,41 +536,6 @@ notifications:</p>
       
         
 <footer class="md-footer">
-  
-    <div class="md-footer-nav">
-      <nav class="md-footer-nav__inner md-grid">
-        
-          <a href="../../services/telegram/" title="Telegram" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
-            <div class="md-flex__cell md-flex__cell--shrink">
-              <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
-            </div>
-            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
-              <span class="md-flex__ellipsis">
-                <span class="md-footer-nav__direction">
-                  Previous
-                </span>
-                Telegram
-              </span>
-            </div>
-          </a>
-        
-        
-          <a href="../bot/" title="Bot (v0.5)" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
-            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
-              <span class="md-flex__ellipsis">
-                <span class="md-footer-nav__direction">
-                  Next
-                </span>
-                Bot (v0.5)
-              </span>
-            </div>
-            <div class="md-flex__cell md-flex__cell--shrink">
-              <i class="md-icon md-icon--arrow-forward md-footer-nav__button"></i>
-            </div>
-          </a>
-        
-      </nav>
-    </div>
   
   <div class="md-footer-meta md-typeset">
     <div class="md-footer-meta__inner md-grid">
