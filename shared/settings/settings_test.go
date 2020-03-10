@@ -25,7 +25,10 @@ slack:
 opsgenie:
   apiUrl: api.opsgenie.com
   apiKeys:
-    <team-id>: <my-api-key>`)
+    <team-id>: <my-api-key>
+grafana:
+  apiUrl: grafana.com/api
+  apiKey: <my-api-key>`)
 
 	expectNotifiersCfg := notifiers.Config{
 		Email: &notifiers.EmailOptions{
@@ -45,6 +48,10 @@ opsgenie:
 		Opsgenie: &notifiers.OpsgenieOptions{
 			ApiUrl:  "api.opsgenie.com",
 			ApiKeys: map[string]string{"<team-id>": "<my-api-key>"},
+		},
+		Grafana: &notifiers.GrafanaOptions{
+			ApiUrl: "grafana.com/api",
+			ApiKey: "<my-api-key>",
 		},
 	}
 	actualNotifiersCfg, err := ParseSecret(&v1.Secret{Data: map[string][]byte{"notifiers.yaml": notifiersData}})
