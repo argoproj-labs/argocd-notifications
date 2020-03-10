@@ -4,6 +4,7 @@ type Config struct {
 	Email    *EmailOptions    `json:"email"`
 	Slack    *SlackOptions    `json:"slack"`
 	Opsgenie *OpsgenieOptions `json:"opsgenie"`
+	Grafana  *GrafanaOptions  `json:"grafana"`
 }
 
 type SlackSpecific struct {
@@ -33,6 +34,9 @@ func GetAll(config Config) map[string]Notifier {
 	}
 	if config.Opsgenie != nil {
 		res["opsgenie"] = NewOpsgenieNotifier(*config.Opsgenie)
+	}
+	if config.Grafana != nil {
+		res["grafana"] = NewGrafanaNotifier(*config.Grafana)
 	}
 	return res
 }
