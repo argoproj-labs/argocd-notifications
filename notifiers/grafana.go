@@ -10,6 +10,8 @@ import (
 	"path"
 	"strings"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type GrafanaOptions struct {
