@@ -1,9 +1,16 @@
 package expr
 
-var helpers map[string]interface{}
+import (
+	"github.com/argoproj-labs/argocd-notifications/triggers/expr/repo"
+	"github.com/argoproj-labs/argocd-notifications/triggers/expr/time"
+)
+
+var helpers = map[string]interface{}{}
 
 func init() {
 	helpers = make(map[string]interface{})
+	register("time", time.NewExprs())
+	register("repo", repo.NewExprs())
 }
 
 func register(namespace string, entry map[string]interface{}) {

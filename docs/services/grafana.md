@@ -1,5 +1,7 @@
 # Grafana
 
+!!! note "Requires version v0.6+"
+
 To be able to create Grafana annotation with argocd-notifications you have to create an [API Key](https://grafana.com/docs/grafana/latest/http_api/auth/#create-api-key) inside your [Grafana](https://grafana.com).
 
 1. Login to your Grafana instance as `admin`

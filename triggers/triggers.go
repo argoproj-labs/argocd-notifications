@@ -34,11 +34,78 @@ type Trigger interface {
 	FormatNotification(app *unstructured.Unstructured, context map[string]string) (*notifiers.Notification, error)
 }
 
+type webhookTemplate struct {
+	body   *texttemplate.Template
+	path   *texttemplate.Template
+	method string
+}
+
 type template struct {
 	title            *texttemplate.Template
 	body             *texttemplate.Template
 	slackAttachments *texttemplate.Template
 	slackBlocks      *texttemplate.Template
+	webhooks         map[string]webhookTemplate
+}
+
+func (tmpl template) formatNotification(app *unstructured.Unstructured, context map[string]string) (*notifiers.Notification, error) {
+	vars := map[string]interface{}{
+		"app":     app.Object,
+		"context": context,
+	}
+	for k, v := range exprHelpers.Spawn() {
+		vars[k] = v
+	}
+	var title bytes.Buffer
+
+	err := tmpl.title.Execute(&title, vars)
+	if err != nil {
+		return nil, err
+	}
+	var body bytes.Buffer
+	err = tmpl.body.Execute(&body, vars)
+	if err != nil {
+		return nil, err
+	}
+	notification := &notifiers.Notification{Title: title.String(), Body: body.String()}
+	if tmpl.slackAttachments != nil || tmpl.slackBlocks != nil {
+		notification.Slack = &notifiers.SlackNotification{}
+	}
+	if tmpl.slackAttachments != nil {
+		var slackAttachments bytes.Buffer
+		err = tmpl.slackAttachments.Execute(&slackAttachments, vars)
+		if err != nil {
+			return nil, err
+		}
+		notification.Slack.Attachments = slackAttachments.String()
+	}
+	if tmpl.slackBlocks != nil {
+		var slackBlocks bytes.Buffer
+		err = tmpl.slackBlocks.Execute(&slackBlocks, vars)
+		if err != nil {
+			return nil, err
+		}
+		notification.Slack.Blocks = slackBlocks.String()
+	}
+	notification.Webhook = map[string]notifiers.WebhookNotification{}
+	for k, v := range tmpl.webhooks {
+		var body bytes.Buffer
+		err = tmpl.webhooks[k].body.Execute(&body, vars)
+		if err != nil {
+			return nil, err
+		}
+		var path bytes.Buffer
+		err = tmpl.webhooks[k].path.Execute(&path, vars)
+		if err != nil {
+			return nil, err
+		}
+		notification.Webhook[k] = notifiers.WebhookNotification{
+			Method: v.method,
+			Body:   body.String(),
+			Path:   path.String(),
+		}
+	}
+	return notification, nil
 }
 
 type trigger struct {
@@ -74,41 +141,7 @@ func (t *trigger) Triggered(app *unstructured.Unstructured) (bool, error) {
 }
 
 func (t *trigger) FormatNotification(app *unstructured.Unstructured, context map[string]string) (*notifiers.Notification, error) {
-	vars := map[string]interface{}{
-		"app":     app.Object,
-		"context": context,
-	}
-	var title bytes.Buffer
-	err := t.template.title.Execute(&title, vars)
-	if err != nil {
-		return nil, err
-	}
-	var body bytes.Buffer
-	err = t.template.body.Execute(&body, vars)
-	if err != nil {
-		return nil, err
-	}
-	notification := &notifiers.Notification{Title: title.String(), Body: body.String()}
-	if t.template.slackAttachments != nil || t.template.slackBlocks != nil {
-		notification.Slack = &notifiers.SlackSpecific{}
-	}
-	if t.template.slackAttachments != nil {
-		var slackAttachments bytes.Buffer
-		err = t.template.slackAttachments.Execute(&slackAttachments, vars)
-		if err != nil {
-			return nil, err
-		}
-		notification.Slack.Attachments = slackAttachments.String()
-	}
-	if t.template.slackBlocks != nil {
-		var slackBlocks bytes.Buffer
-		err = t.template.slackBlocks.Execute(&slackBlocks, vars)
-		if err != nil {
-			return nil, err
-		}
-		notification.Slack.Blocks = slackBlocks.String()
-	}
-	return notification, nil
+	return t.template.formatNotification(app, context)
 }
 
 func parseTemplates(templates []NotificationTemplate) (map[string]template, error) {
@@ -139,6 +172,20 @@ func parseTemplates(templates []NotificationTemplate) (map[string]template, erro
 			}
 			t.slackBlocks = slackBlocks
 		}
+
+		t.webhooks = map[string]webhookTemplate{}
+		for k, v := range nt.Webhook {
+			body, err := texttemplate.New(k).Funcs(f).Parse(v.Body)
+			if err != nil {
+				return nil, err
+			}
+			path, err := texttemplate.New(k).Funcs(f).Parse(v.Path)
+			if err != nil {
+				return nil, err
+			}
+			t.webhooks[k] = webhookTemplate{body: body, method: v.Method, path: path}
+		}
+
 		res[nt.Name] = t
 	}
 	return res, nil

@@ -1,14 +1,10 @@
-package expr
+package time
 
 import (
 	"time"
 )
 
-func init() {
-	register("time", newTimeExprs())
-}
-
-func newTimeExprs() map[string]interface{} {
+func NewExprs() map[string]interface{} {
 	return map[string]interface{}{
 		"Parse": parse,
 		"Now":   now,

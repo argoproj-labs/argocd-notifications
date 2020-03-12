@@ -5,6 +5,7 @@ type Config struct {
 	Slack    *SlackOptions    `json:"slack"`
 	Opsgenie *OpsgenieOptions `json:"opsgenie"`
 	Grafana  *GrafanaOptions  `json:"grafana"`
+	Webhook  *WebhookOptions  `json:"webhook"`
 }
 
 type SlackSpecific struct {
@@ -13,9 +14,10 @@ type SlackSpecific struct {
 }
 
 type Notification struct {
-	Title string `json:"title,omitempty"`
-	Body  string `json:"body,omitempty"`
-	Slack *SlackSpecific
+	Title   string `json:"title,omitempty"`
+	Body    string `json:"body,omitempty"`
+	Slack   *SlackNotification
+	Webhook map[string]WebhookNotification `json:"webhook,omitempty"`
 }
 
 //go:generate mockgen -destination=./mocks/notifiers.go -package=mocks github.com/argoproj-labs/argocd-notifications/notifiers Notifier
@@ -35,8 +37,13 @@ func GetAll(config Config) map[string]Notifier {
 	if config.Opsgenie != nil {
 		res["opsgenie"] = NewOpsgenieNotifier(*config.Opsgenie)
 	}
+
 	if config.Grafana != nil {
 		res["grafana"] = NewGrafanaNotifier(*config.Grafana)
+	}
+
+	if config.Webhook != nil {
+		res["webhook"] = NewWebhookNotifier(*config.Webhook)
 	}
 	return res
 }

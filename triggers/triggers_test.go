@@ -88,7 +88,7 @@ func TestGetTriggers_UsingSlack(t *testing.T) {
 		Notification: notifiers.Notification{
 			Title: "the title: {{.app.metadata.name}}",
 			Body:  "the body: {{.app.metadata.name}}",
-			Slack: &notifiers.SlackSpecific{
+			Slack: &notifiers.SlackNotification{
 				Attachments: "Application {{.app.metadata.name}} Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.",
 				Blocks:      "Application {{.app.metadata.name}} Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.",
 			},
@@ -158,4 +158,35 @@ func TestGetTriggers_UsingExprVm(t *testing.T) {
 		testingutil.WithSyncOperationStartAt(before5Minute)))
 	assert.NoError(t, err)
 	assert.True(t, ok)
+}
+
+func TestTrigger_FormatWebhookNotification(t *testing.T) {
+	templates, err := parseTemplates([]NotificationTemplate{{
+		Name: "myTemplate",
+		Notification: notifiers.Notification{
+			Webhook: map[string]notifiers.WebhookNotification{
+				"test": {
+					Method: "get",
+					Body:   "hello {{.app.metadata.name}}",
+				},
+			},
+		},
+	}})
+	assert.NoError(t, err)
+
+	testTemplate, ok := templates["myTemplate"]
+	if !assert.True(t, ok) {
+		return
+	}
+
+	nt, err := testTemplate.formatNotification(testingutil.NewApp("world"), map[string]string{})
+	if !assert.NoError(t, err) {
+		return
+	}
+
+	hook, ok := nt.Webhook["test"]
+	if !assert.True(t, ok) {
+		return
+	}
+	assert.Equal(t, hook.Body, "hello world")
 }
