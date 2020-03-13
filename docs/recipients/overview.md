@@ -1,8 +1,14 @@
 # Overview
 
-The list of recipients is not stored in a centralized configuration file. Instead, recipients might be configured using
-`Application` or `AppProject` CRD annotations. The example below demonstrates how to subscribe to the email 
-notifications triggered for a specific application:
+The list of recipients is not stored in a centralized configuration file. Instead, recipients might be configured using `Application` or `AppProject` CRD annotations. 
+
+Each recipient is prefixed with the [notification service type](../services/overview.md) such as `slack` or `email`. Multiple recipients are separated with a comma, e.g.
+
+```yaml
+recipients.argocd-notifications.argoproj.io: email:<sample-email>, slack:<sample-channel-name>
+```
+
+The example below demonstrates how to subscribe to the email notifications triggered for a specific application:
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -31,8 +37,6 @@ metadata:
   annotations:
     recipients.argocd-notifications.argoproj.io: grafana:tag1|tag2
 ```
-
-Each recipient is prefixed with the [notification service type](../services/overview.md) such as `slack` or `email`.
 
 ## Trigger Specific Subscription (v0.3)
 
