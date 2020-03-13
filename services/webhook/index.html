@@ -699,15 +699,29 @@ Using Webhook you might trigger a Jenkins job, update Github commit status.</p>
   <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">argocd-notifications-cm</span>
 <span class="nt">data</span><span class="p">:</span>
   <span class="nt">config.yaml</span><span class="p">:</span> <span class="p p-Indicator">|</span>
+    <span class="no">triggers:</span>
+      <span class="no">- name: sync-operation-failed</span>
+        <span class="no">condition: app.status.operationState.phase in [&#39;Error&#39;, &#39;Failed&#39;]</span>
+        <span class="no">template: sync-operation-status-change</span>
+      <span class="no">- name: sync-operation-succeeded</span>
+        <span class="no">condition: app.status.operationState.phase in [&#39;Succeeded&#39;]</span>
+        <span class="no">template: sync-operation-status-change</span>
+      <span class="no">- name: sync-operation-running</span>
+        <span class="no">condition: app.status.operationState.phase in [&#39;Running&#39;]</span>
+        <span class="no">template: sync-operation-status-change</span>
+
     <span class="no">templates:</span>
-      <span class="no">- name: on-sync-failed</span>
+      <span class="no">- name: sync-operation-status-change</span>
         <span class="no">webhook:</span>
           <span class="no">github:</span>
             <span class="no">method: POST</span>
             <span class="no">path: /repos/{{call .repo.FullNameByRepoURL .app.spec.source.repoURL}}/statuses/{{.app.status.operationState.operation.sync.revision}}</span>
             <span class="no">body: |</span>
               <span class="no">{</span>
-                <span class="no">&quot;state&quot;: &quot;error&quot;,</span>
+                <span class="no">{{if eq .app.status.operationState.phase &quot;Running&quot;}} &quot;state&quot;: &quot;pending&quot;{{end}}</span>
+                <span class="no">{{if eq .app.status.operationState.phase &quot;Succeeded&quot;}} &quot;state&quot;: &quot;success&quot;{{end}}</span>
+                <span class="no">{{if eq .app.status.operationState.phase &quot;Error&quot;}} &quot;state&quot;: &quot;error&quot;{{end}}</span>
+                <span class="no">{{if eq .app.status.operationState.phase &quot;Failed&quot;}} &quot;state&quot;: &quot;error&quot;{{end}},</span>
                 <span class="no">&quot;description&quot;: &quot;ArgoCD&quot;,</span>
                 <span class="no">&quot;target_url&quot;: &quot;{{.context.argocdUrl}}/applications/{{.app.metadata.name}}&quot;,</span>
                 <span class="no">&quot;context&quot;: &quot;continuous-delivery/{{.app.metadata.name}}&quot;</span>
