@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.6.0 (2020-03-13)
+
+### Features
+
+* feat: support sending the generic webhook request
+* feat: Grafana annotation notifier ( thanks to [nhuray](https://github.com/nhuray) )
+
+###  Bug Fixes
+
+* fix: wait for next reconciliation after sync ( thanks to [sboschman](https://github.com/sboschman) )
+
 ## v0.5.0 (2020-03-01)
 
 ### Features
