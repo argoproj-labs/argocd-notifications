@@ -23,6 +23,20 @@ func WithProject(project string) func(app *unstructured.Unstructured) {
 	}
 }
 
+func WithObservedAt(t time.Time) func(app *unstructured.Unstructured) {
+	return func(app *unstructured.Unstructured) {
+		ts := t.Format(time.RFC3339)
+		_ = unstructured.SetNestedField(app.Object, ts, "status", "observedAt")
+	}
+}
+
+func WithReconciledAt(t time.Time) func(app *unstructured.Unstructured) {
+	return func(app *unstructured.Unstructured) {
+		ts := t.Format(time.RFC3339)
+		_ = unstructured.SetNestedField(app.Object, ts, "status", "reconciledAt")
+	}
+}
+
 func WithSyncStatus(status string) func(app *unstructured.Unstructured) {
 	return func(app *unstructured.Unstructured) {
 		_ = unstructured.SetNestedField(app.Object, status, "status", "sync", "status")
@@ -39,6 +53,13 @@ func WithSyncOperationStartAt(t time.Time) func(app *unstructured.Unstructured) 
 	return func(app *unstructured.Unstructured) {
 		ts := t.Format(time.RFC3339)
 		_ = unstructured.SetNestedField(app.Object, ts, "status", "operationState", "startedAt")
+	}
+}
+
+func WithSyncOperationFinishedAt(t time.Time) func(app *unstructured.Unstructured) {
+	return func(app *unstructured.Unstructured) {
+		ts := t.Format(time.RFC3339)
+		_ = unstructured.SetNestedField(app.Object, ts, "status", "operationState", "finishedAt")
 	}
 }
 
