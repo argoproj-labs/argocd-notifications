@@ -3,6 +3,7 @@ package notifiers
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"strings"
 
@@ -84,7 +85,11 @@ func (w webhookNotifier) Send(notification Notification, recipient string) error
 		return err
 	}
 	if !(resp.StatusCode >= 200 && resp.StatusCode <= 299) {
-		return fmt.Errorf("request to %s has faild with error code %d", webhookSettings.URL, resp.StatusCode)
+		data, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			data = []byte(fmt.Sprintf("unable to read response data: %v", err))
+		}
+		return fmt.Errorf("request to %s has failed with error code %d : %s", url, resp.StatusCode, string(data))
 	}
 	return nil
 }
