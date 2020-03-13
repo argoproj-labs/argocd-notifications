@@ -86,15 +86,29 @@ metadata:
   name: argocd-notifications-cm
 data:
   config.yaml: |
+    triggers:
+      - name: sync-operation-failed
+        condition: app.status.operationState.phase in ['Error', 'Failed']
+        template: sync-operation-status-change
+      - name: sync-operation-succeeded
+        condition: app.status.operationState.phase in ['Succeeded']
+        template: sync-operation-status-change
+      - name: sync-operation-running
+        condition: app.status.operationState.phase in ['Running']
+        template: sync-operation-status-change
+
     templates:
-      - name: on-sync-failed
+      - name: sync-operation-status-change
         webhook:
           github:
             method: POST
             path: /repos/{{call .repo.FullNameByRepoURL .app.spec.source.repoURL}}/statuses/{{.app.status.operationState.operation.sync.revision}}
             body: |
               {
-                "state": "error",
+                {{if eq .app.status.operationState.phase "Running"}} "state": "pending"{{end}}
+                {{if eq .app.status.operationState.phase "Succeeded"}} "state": "success"{{end}}
+                {{if eq .app.status.operationState.phase "Error"}} "state": "error"{{end}}
+                {{if eq .app.status.operationState.phase "Failed"}} "state": "error"{{end}},
                 "description": "ArgoCD",
                 "target_url": "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
                 "context": "continuous-delivery/{{.app.metadata.name}}"
