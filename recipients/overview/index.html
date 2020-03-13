@@ -594,9 +594,13 @@
                 
                 
                 <h1 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h1>
-<p>The list of recipients is not stored in a centralized configuration file. Instead, recipients might be configured using
-<code>Application</code> or <code>AppProject</code> CRD annotations. The example below demonstrates how to subscribe to the email 
-notifications triggered for a specific application:</p>
+<p>The list of recipients is not stored in a centralized configuration file. Instead, recipients might be configured using <code>Application</code> or <code>AppProject</code> CRD annotations. </p>
+<p>Each recipient is prefixed with the <a href="../../services/overview/">notification service type</a> such as <code>slack</code> or <code>email</code>. Multiple recipients are separated with a comma, e.g.</p>
+<div class="codehilite"><pre><span></span><code><span class="nt">recipients.argocd-notifications.argoproj.io</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">email:&lt;sample-email&gt;, slack:&lt;sample-channel-name&gt;</span>
+</code></pre></div>
+
+
+<p>The example below demonstrates how to subscribe to the email notifications triggered for a specific application:</p>
 <div class="codehilite"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">argoproj.io/v1alpha1</span>
 <span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Application</span>
 <span class="nt">metadata</span><span class="p">:</span>
@@ -623,7 +627,6 @@ notifications triggered for a specific application:</p>
 </code></pre></div>
 
 
-<p>Each recipient is prefixed with the <a href="../../services/overview/">notification service type</a> such as <code>slack</code> or <code>email</code>.</p>
 <h2 id="trigger-specific-subscription-v03">Trigger Specific Subscription (v0.3)<a class="headerlink" href="#trigger-specific-subscription-v03" title="Permanent link">&para;</a></h2>
 <p>It is possible to subscribe recipient to a specific trigger instead of all triggers. The annotation key should be
 prefixed with <code>&lt;trigger-name&gt;.</code>. The example below demonstrates how to receive only <code>on-sync-failed</code> trigger
