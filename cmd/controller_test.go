@@ -47,7 +47,7 @@ templates:
 	triggersMap := make(map[string]triggers.Trigger)
 	notifiersMap := make(map[string]notifiers.Notifier)
 	clientset := fake.NewSimpleClientset(configMap, secret)
-	watchConfig(ctx, clientset, "default", func(t map[string]triggers.Trigger, n map[string]notifiers.Notifier, ctx map[string]string) error {
+	watchConfig(ctx, clientset, "default", func(t map[string]triggers.Trigger, n map[string]notifiers.Notifier, cfg *settings.Config) error {
 		triggersMap = t
 		notifiersMap = n
 		return nil

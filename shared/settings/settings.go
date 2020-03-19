@@ -1,18 +1,68 @@
 package settings
 
 import (
+	"encoding/json"
+
 	"github.com/argoproj-labs/argocd-notifications/notifiers"
+	"github.com/argoproj-labs/argocd-notifications/shared/recipients"
 	"github.com/argoproj-labs/argocd-notifications/shared/text"
 	"github.com/argoproj-labs/argocd-notifications/triggers"
 
 	"github.com/ghodss/yaml"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/fields"
+	"k8s.io/apimachinery/pkg/labels"
 )
 
+type rawSubscription struct {
+	Recipients string
+	Trigger    string
+	Selector   string
+}
+
+// DefaultSubscription holds recipients that receives notification by default.
+type Subscription struct {
+	// Recipients comma separated list of recipients
+	Recipients []string
+	// Optional trigger name
+	Trigger string
+	// Options label selector that limits applied applications
+	Selector labels.Selector
+}
+
+func (s *Subscription) UnmarshalJSON(data []byte) error {
+	raw := rawSubscription{}
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+	s.Trigger = raw.Trigger
+	s.Recipients = recipients.ParseRecipients(raw.Recipients)
+	selector, err := labels.Parse(raw.Selector)
+	if err != nil {
+		return err
+	}
+	s.Selector = selector
+	return nil
+}
+
+type DefaultSubscriptions []Subscription
+
+// Returns list of recipients for the specified trigger
+func (subscriptions DefaultSubscriptions) GetRecipients(trigger string, labels map[string]string) []string {
+	var result []string
+	for _, s := range subscriptions {
+		if (s.Trigger == "" || s.Trigger == trigger) && s.Selector.Matches(fields.Set(labels)) {
+			result = append(result, s.Recipients...)
+		}
+	}
+	return result
+}
+
 type Config struct {
-	Triggers  []triggers.NotificationTrigger  `json:"triggers"`
-	Templates []triggers.NotificationTemplate `json:"templates"`
-	Context   map[string]string               `json:"context"`
+	Triggers      []triggers.NotificationTrigger  `json:"triggers"`
+	Templates     []triggers.NotificationTemplate `json:"templates"`
+	Context       map[string]string               `json:"context"`
+	Subscriptions DefaultSubscriptions            `json:"subscriptions"`
 }
 
 // ParseSecret retrieves configured notification services from the provided secret

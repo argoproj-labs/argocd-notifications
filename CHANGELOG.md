@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.7.0 (Unreleased)
+
+* feat: support default subscriptions
+
 ## v0.6.0 (2020-03-13)
 
 ### Features

@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/utils/pointer"
 
 	"github.com/argoproj-labs/argocd-notifications/notifiers"
@@ -62,6 +63,9 @@ grafana:
 func TestParseConfigMap(t *testing.T) {
 	configData := map[string]string{
 		"config.yaml": `
+subscriptions:
+- recipients: slack:test
+  trigger: on-sync-status-custom
 triggers:
   - name: on-sync-status-custom
     condition: app.status.operationState.phase in ['Custom']
@@ -94,6 +98,7 @@ context:
     argocdUrl: testUrl`}
 
 	expectCfg := &Config{
+		Subscriptions: []Subscription{{Recipients: []string{"slack:test"}, Trigger: "on-sync-status-custom", Selector: labels.NewSelector()}},
 		Triggers: []triggers.NotificationTrigger{
 			{
 				Name:        "on-sync-status-custom",
@@ -227,4 +232,25 @@ func TestMergeConfigTriggers(t *testing.T) {
 		Template:  "the template",
 		Enabled:   pointer.BoolPtr(true),
 	}})
+}
+
+func TestDefaultSubscriptions_GetRecipients(t *testing.T) {
+	selector, err := labels.Parse("test=true")
+	assert.NoError(t, err)
+
+	subscriptions := DefaultSubscriptions([]Subscription{{
+		Recipients: []string{"slack:test1", "slack:test2"},
+		Selector:   labels.NewSelector(),
+	}, {
+		Recipients: []string{"slack:test3"},
+		Trigger:    "trigger2",
+		Selector:   labels.NewSelector(),
+	}, {
+		Recipients: []string{"slack:test4"},
+		Selector:   selector,
+	}})
+
+	assert.ElementsMatch(t, []string{"slack:test1", "slack:test2"}, subscriptions.GetRecipients("trigger1", map[string]string{}))
+	assert.ElementsMatch(t, []string{"slack:test1", "slack:test2", "slack:test3"}, subscriptions.GetRecipients("trigger2", map[string]string{}))
+	assert.ElementsMatch(t, []string{"slack:test1", "slack:test2", "slack:test4"}, subscriptions.GetRecipients("trigger3", map[string]string{"test": "true"}))
 }

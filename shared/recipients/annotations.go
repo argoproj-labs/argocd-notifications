@@ -2,6 +2,8 @@ package recipients
 
 import (
 	"strings"
+
+	"github.com/argoproj-labs/argocd-notifications/shared/text"
 )
 
 const (
@@ -38,7 +40,7 @@ func GetAnnotationKeys(annotations map[string]string, trigger string) []string {
 
 func ParseRecipients(annotation string) []string {
 	recipients := make([]string, 0)
-	for _, recipient := range strings.Split(annotation, ",") {
+	for _, recipient := range text.SplitRemoveEmpty(annotation, ",") {
 		if recipient = strings.TrimSpace(recipient); recipient != "" {
 			recipients = append(recipients, recipient)
 		}

@@ -11,6 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/dynamic/fake"
@@ -19,6 +20,7 @@ import (
 	"github.com/argoproj-labs/argocd-notifications/notifiers"
 	notifiermocks "github.com/argoproj-labs/argocd-notifications/notifiers/mocks"
 	"github.com/argoproj-labs/argocd-notifications/shared/recipients"
+	"github.com/argoproj-labs/argocd-notifications/shared/settings"
 	. "github.com/argoproj-labs/argocd-notifications/testing"
 	"github.com/argoproj-labs/argocd-notifications/triggers"
 	triggermocks "github.com/argoproj-labs/argocd-notifications/triggers/mocks"
@@ -28,7 +30,7 @@ var (
 	logEntry = logrus.NewEntry(logrus.New())
 )
 
-func newController(t *testing.T, ctx context.Context, client dynamic.Interface) (*notificationController, *triggermocks.MockTrigger, *notifiermocks.MockNotifier, error) {
+func newController(t *testing.T, ctx context.Context, client dynamic.Interface, subscriptions ...settings.Subscription) (*notificationController, *triggermocks.MockTrigger, *notifiermocks.MockNotifier, error) {
 	mockCtrl := gomock.NewController(t)
 	go func() {
 		<-ctx.Done()
@@ -40,7 +42,9 @@ func newController(t *testing.T, ctx context.Context, client dynamic.Interface) 
 		client,
 		TestNamespace,
 		map[string]triggers.Trigger{"mock": trigger},
-		map[string]notifiers.Notifier{"mock": notifier}, map[string]string{},
+		map[string]notifiers.Notifier{"mock": notifier},
+		map[string]string{},
+		subscriptions,
 		"")
 	if err != nil {
 		return nil, nil, nil, err
@@ -118,6 +122,20 @@ func TestGetRecipients(t *testing.T) {
 		fmt.Sprintf("on-app-sync-unknown.%s", recipients.RecipientsAnnotation): "slack:test3",
 	}))
 	ctrl, _, _, err := newController(t, ctx, fake.NewSimpleDynamicClient(runtime.NewScheme(), app, appProj))
+	assert.NoError(t, err)
+
+	recipients := ctrl.getRecipients(app, "on-app-health-degraded")
+	assert.Equal(t, map[string]bool{"slack:test1": true, "slack:test2": true}, recipients)
+}
+
+func TestGetRecipients_HasDefaultSubscriptions(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.TODO())
+	defer cancel()
+	app := NewApp("test", WithAnnotations(map[string]string{
+		recipients.RecipientsAnnotation: "slack:test1",
+	}))
+	ctrl, _, _, err := newController(t, ctx, fake.NewSimpleDynamicClient(runtime.NewScheme(), app), settings.Subscription{
+		Recipients: []string{"slack:test2"}, Selector: labels.NewSelector()})
 	assert.NoError(t, err)
 
 	recipients := ctrl.getRecipients(app, "on-app-health-degraded")
