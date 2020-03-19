@@ -458,6 +458,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#default-subscriptions-v061" class="md-nav__link">
+    Default Subscriptions (v0.6.1)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#manage-subscriptions-using-bots" class="md-nav__link">
     Manage subscriptions using bots
   </a>
@@ -568,6 +575,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#default-subscriptions-v061" class="md-nav__link">
+    Default Subscriptions (v0.6.1)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#manage-subscriptions-using-bots" class="md-nav__link">
     Manage subscriptions using bots
   </a>
@@ -594,7 +608,7 @@
                 
                 
                 <h1 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h1>
-<p>The list of recipients is not stored in a centralized configuration file. Instead, recipients might be configured using <code>Application</code> or <code>AppProject</code> CRD annotations. </p>
+<p>The recipients are configured using <code>Application</code> or <code>AppProject</code> CRD annotations. </p>
 <p>Each recipient is prefixed with the <a href="../../services/overview/">notification service type</a> such as <code>slack</code> or <code>email</code>. Multiple recipients are separated with a comma, e.g.</p>
 <div class="codehilite"><pre><span></span><code><span class="nt">recipients.argocd-notifications.argoproj.io</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">email:&lt;sample-email&gt;, slack:&lt;sample-channel-name&gt;</span>
 </code></pre></div>
@@ -636,6 +650,28 @@ notifications:</p>
 <span class="nt">metadata</span><span class="p">:</span>
   <span class="nt">annotations</span><span class="p">:</span>
     <span class="nt">on-sync-failed.recipients.argocd-notifications.argoproj.io</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">email:&lt;sample-email&gt;</span>
+</code></pre></div>
+
+
+<h2 id="default-subscriptions-v061">Default Subscriptions (v0.6.1)<a class="headerlink" href="#default-subscriptions-v061" title="Permanent link">&para;</a></h2>
+<p>The recipients might be configured globally in the <code>argocd-notifications-cm</code> ConfigMap. The default subscriptions
+are applied to all applications and triggers by default. The trigger and applications might be configured using the
+<code>trigger</code> and <code>selector</code> fields:</p>
+<div class="codehilite"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ConfigMap</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">argocd-notifications-cm</span>
+<span class="nt">data</span><span class="p">:</span>
+  <span class="nt">config.yaml</span><span class="p">:</span> <span class="p p-Indicator">|</span>
+    <span class="no">subscriptions:</span>
+    <span class="no"># global subscription for all type of notifications</span>
+    <span class="no">- recipients: slack:test1, webhook:github</span>
+    <span class="no"># subscription for on-sync-status-unknown trigger notifications</span>
+    <span class="no">- recipients: slack:test2, email:test@gmail.com</span>
+      <span class="no">trigger: on-sync-status-unknown</span>
+    <span class="no"># global subscription restricted to applications with matching labels only</span>
+    <span class="no">- recipients: slack:test3</span>
+      <span class="no">selector: test=true</span>
 </code></pre></div>
 
 

@@ -627,6 +627,15 @@
   <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">argocd-notifications-cm</span>
 <span class="nt">data</span><span class="p">:</span>
   <span class="nt">config.yaml</span><span class="p">:</span> <span class="p p-Indicator">|</span>
+    <span class="no">subscriptions:</span>
+    <span class="no"># global subscription for all type of notifications</span>
+    <span class="no">- recipients: slack:test1, webhook:github</span>
+    <span class="no"># subscription for on-sync-status-unknown trigger notifications</span>
+    <span class="no">- recipients: slack:test2, email:test@gmail.com</span>
+      <span class="no">trigger: on-sync-status-unknown</span>
+    <span class="no"># global subscription restricted to applications with matching labels only</span>
+    <span class="no">- recipients: slack:test3</span>
+      <span class="no">selector: test=true</span>
     <span class="no">triggers:</span>
       <span class="no"># Enable existing built-in trigger</span>
       <span class="no">- name: on-sync-status-unknown</span>
