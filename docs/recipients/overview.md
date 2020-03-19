@@ -1,6 +1,6 @@
 # Overview
 
-The list of recipients is not stored in a centralized configuration file. Instead, recipients might be configured using `Application` or `AppProject` CRD annotations. 
+The recipients are configured using `Application` or `AppProject` CRD annotations. 
 
 Each recipient is prefixed with the [notification service type](../services/overview.md) such as `slack` or `email`. Multiple recipients are separated with a comma, e.g.
 
@@ -52,6 +52,30 @@ metadata:
     on-sync-failed.recipients.argocd-notifications.argoproj.io: email:<sample-email>
 ```
 
+## Default Subscriptions (v0.6.1)
+
+The recipients might be configured globally in the `argocd-notifications-cm` ConfigMap. The default subscriptions
+are applied to all applications and triggers by default. The trigger and applications might be configured using the
+`trigger` and `selector` fields:
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-notifications-cm
+data:
+  config.yaml: |
+    subscriptions:
+    # global subscription for all type of notifications
+    - recipients: slack:test1, webhook:github
+    # subscription for on-sync-status-unknown trigger notifications
+    - recipients: slack:test2, email:test@gmail.com
+      trigger: on-sync-status-unknown
+    # global subscription restricted to applications with matching labels only
+    - recipients: slack:test3
+      selector: test=true
+```
+ 
 ## Manage subscriptions using bots
 
 The [bot](./bot.md) component simplifies managing subscriptions.
