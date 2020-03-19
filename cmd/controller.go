@@ -75,13 +75,13 @@ func newControllerCommand() *cobra.Command {
 			log.SetLevel(level)
 
 			var cancelPrev context.CancelFunc
-			watchConfig(context.Background(), k8sClient, namespace, func(triggers map[string]triggers.Trigger, notifiers map[string]notifiers.Notifier, contextVals map[string]string) error {
+			watchConfig(context.Background(), k8sClient, namespace, func(triggers map[string]triggers.Trigger, notifiers map[string]notifiers.Notifier, cfg *settings.Config) error {
 				if cancelPrev != nil {
 					log.Info("Settings had been updated. Restarting controller...")
 					cancelPrev()
 					cancelPrev = nil
 				}
-				ctrl, err := controller.NewController(dynamicClient, namespace, triggers, notifiers, contextVals, appLabelSelector)
+				ctrl, err := controller.NewController(dynamicClient, namespace, triggers, notifiers, cfg.Context, cfg.Subscriptions, appLabelSelector)
 				if err != nil {
 					return err
 				}
@@ -108,7 +108,7 @@ func newControllerCommand() *cobra.Command {
 	return &command
 }
 
-func parseConfig(configMap *v1.ConfigMap, secret *v1.Secret) (map[string]triggers.Trigger, map[string]notifiers.Notifier, map[string]string, error) {
+func parseConfig(configMap *v1.ConfigMap, secret *v1.Secret) (map[string]triggers.Trigger, map[string]notifiers.Notifier, *settings.Config, error) {
 	cfg, err := settings.ParseConfigMap(configMap)
 	if err != nil {
 		return nil, nil, nil, err
@@ -122,10 +122,10 @@ func parseConfig(configMap *v1.ConfigMap, secret *v1.Secret) (map[string]trigger
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	return t, notifiers.GetAll(notifiersConfig), cfg.Context, nil
+	return t, notifiers.GetAll(notifiersConfig), cfg, nil
 }
 
-func watchConfig(ctx context.Context, clientset kubernetes.Interface, namespace string, callback func(map[string]triggers.Trigger, map[string]notifiers.Notifier, map[string]string) error) {
+func watchConfig(ctx context.Context, clientset kubernetes.Interface, namespace string, callback func(map[string]triggers.Trigger, map[string]notifiers.Notifier, *settings.Config) error) {
 	var secret *v1.Secret
 	var configMap *v1.ConfigMap
 	lock := &sync.Mutex{}

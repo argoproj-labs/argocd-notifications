@@ -13,6 +13,7 @@ import (
 	"github.com/argoproj-labs/argocd-notifications/notifiers"
 	"github.com/argoproj-labs/argocd-notifications/shared/clients"
 	sharedrecipients "github.com/argoproj-labs/argocd-notifications/shared/recipients"
+	"github.com/argoproj-labs/argocd-notifications/shared/settings"
 	"github.com/argoproj-labs/argocd-notifications/triggers"
 
 	log "github.com/sirupsen/logrus"
@@ -43,6 +44,7 @@ func NewController(client dynamic.Interface,
 	triggers map[string]triggers.Trigger,
 	notifiers map[string]notifiers.Notifier,
 	context map[string]string,
+	subscriptions settings.DefaultSubscriptions,
 	appLabelSelector string,
 ) (NotificationController, error) {
 	appClient := clients.NewAppClient(client, namespace)
@@ -69,6 +71,7 @@ func NewController(client dynamic.Interface,
 	appProjInformer := newInformer(clients.NewAppProjClient(client, namespace), "")
 
 	return &notificationController{
+		subscriptions:   subscriptions,
 		appClient:       appClient,
 		appInformer:     appInformer,
 		appProjInformer: appProjInformer,
@@ -106,6 +109,7 @@ type notificationController struct {
 	triggers        map[string]triggers.Trigger
 	notifiers       map[string]notifiers.Notifier
 	context         map[string]string
+	subscriptions   settings.DefaultSubscriptions
 }
 
 func (c *notificationController) Init(ctx context.Context) error {
@@ -135,6 +139,9 @@ func (c *notificationController) Run(ctx context.Context, processors int) {
 
 func (c *notificationController) getRecipients(app *unstructured.Unstructured, trigger string) map[string]bool {
 	recipients := make(map[string]bool)
+	for _, r := range c.subscriptions.GetRecipients(trigger, app.GetLabels()) {
+		recipients[r] = true
+	}
 	if annotations := app.GetAnnotations(); annotations != nil {
 		for _, recipient := range sharedrecipients.GetRecipientsFromAnnotations(annotations, trigger) {
 			recipients[recipient] = true

@@ -4,6 +4,15 @@ metadata:
   name: argocd-notifications-cm
 data:
   config.yaml: |
+    subscriptions:
+    # global subscription for all type of notifications
+    - recipients: slack:test1, webhook:github
+    # subscription for on-sync-status-unknown trigger notifications
+    - recipients: slack:test2, email:test@gmail.com
+      trigger: on-sync-status-unknown
+    # global subscription restricted to applications with matching labels only
+    - recipients: slack:test3
+      selector: test=true
     triggers:
       # Enable existing built-in trigger
       - name: on-sync-status-unknown
