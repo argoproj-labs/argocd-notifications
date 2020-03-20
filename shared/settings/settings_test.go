@@ -240,6 +240,27 @@ func TestMergeConfigTriggers(t *testing.T) {
 	}})
 }
 
+func TestMergeSubscriptions(t *testing.T) {
+	cfg := Config{
+		Subscriptions: []Subscription{{
+			Recipients: []string{"foo"},
+			Triggers:   []string{"far"},
+		}},
+	}
+
+	merged := cfg.Merge(&Config{
+		Subscriptions: []Subscription{{
+			Recipients: []string{"replacedFoo"},
+			Triggers:   []string{"replacedFoo"},
+		}},
+	})
+
+	assert.ElementsMatch(t, merged.Subscriptions, []Subscription{{
+		Recipients: []string{"replacedFoo"},
+		Triggers:   []string{"replacedFoo"},
+	}})
+}
+
 func TestDefaultSubscriptions_GetRecipients(t *testing.T) {
 	selector, err := labels.Parse("test=true")
 	assert.NoError(t, err)
