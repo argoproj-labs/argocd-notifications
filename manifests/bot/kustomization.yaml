@@ -11,4 +11,4 @@ resources:
 
 images:
   - name: argoprojlabs/argocd-notifications
-    newTag: v0.6.0
+    newTag: v0.6.1
