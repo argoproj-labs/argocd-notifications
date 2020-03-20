@@ -64,8 +64,10 @@ func TestParseConfigMap(t *testing.T) {
 	configData := map[string]string{
 		"config.yaml": `
 subscriptions:
-- recipients: slack:test
-  trigger: on-sync-status-custom
+- recipients:
+    - slack:test
+  triggers:
+    - on-sync-status-custom
 triggers:
   - name: on-sync-status-custom
     condition: app.status.operationState.phase in ['Custom']
@@ -98,7 +100,11 @@ context:
     argocdUrl: testUrl`}
 
 	expectCfg := &Config{
-		Subscriptions: []Subscription{{Recipients: []string{"slack:test"}, Trigger: "on-sync-status-custom", Selector: labels.NewSelector()}},
+		Subscriptions: []Subscription{{
+			Recipients: []string{"slack:test"},
+			Triggers:   []string{"on-sync-status-custom"},
+			Selector:   labels.NewSelector(),
+		}},
 		Triggers: []triggers.NotificationTrigger{
 			{
 				Name:        "on-sync-status-custom",
@@ -243,7 +249,7 @@ func TestDefaultSubscriptions_GetRecipients(t *testing.T) {
 		Selector:   labels.NewSelector(),
 	}, {
 		Recipients: []string{"slack:test3"},
-		Trigger:    "trigger2",
+		Triggers:   []string{"trigger2"},
 		Selector:   labels.NewSelector(),
 	}, {
 		Recipients: []string{"slack:test4"},

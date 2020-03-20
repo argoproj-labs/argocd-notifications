@@ -67,10 +67,15 @@ data:
   config.yaml: |
     subscriptions:
     # global subscription for all type of notifications
-    - recipients: slack:test1, webhook:github
+    - recipients:
+      - slack:test1
+      - webhook:github
     # subscription for on-sync-status-unknown trigger notifications
-    - recipients: slack:test2, email:test@gmail.com
-      trigger: on-sync-status-unknown
+    - recipients:
+      - slack:test2
+      - email:test@gmail.com
+      triggers:
+      - on-sync-status-unknown
     # global subscription restricted to applications with matching labels only
     - recipients: slack:test3
       selector: test=true

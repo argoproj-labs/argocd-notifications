@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 
 	"github.com/argoproj-labs/argocd-notifications/notifiers"
-	"github.com/argoproj-labs/argocd-notifications/shared/recipients"
 	"github.com/argoproj-labs/argocd-notifications/shared/text"
 	"github.com/argoproj-labs/argocd-notifications/triggers"
 
@@ -15,8 +14,8 @@ import (
 )
 
 type rawSubscription struct {
-	Recipients string
-	Trigger    string
+	Recipients []string
+	Triggers   []string
 	Selector   string
 }
 
@@ -25,9 +24,21 @@ type Subscription struct {
 	// Recipients comma separated list of recipients
 	Recipients []string
 	// Optional trigger name
-	Trigger string
+	Triggers []string
 	// Options label selector that limits applied applications
 	Selector labels.Selector
+}
+
+func (s *Subscription) MatchesTrigger(trigger string) bool {
+	if len(s.Triggers) == 0 {
+		return true
+	}
+	for i := range s.Triggers {
+		if s.Triggers[i] == trigger {
+			return true
+		}
+	}
+	return false
 }
 
 func (s *Subscription) UnmarshalJSON(data []byte) error {
@@ -35,8 +46,8 @@ func (s *Subscription) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return err
 	}
-	s.Trigger = raw.Trigger
-	s.Recipients = recipients.ParseRecipients(raw.Recipients)
+	s.Triggers = raw.Triggers
+	s.Recipients = raw.Recipients
 	selector, err := labels.Parse(raw.Selector)
 	if err != nil {
 		return err
@@ -51,7 +62,7 @@ type DefaultSubscriptions []Subscription
 func (subscriptions DefaultSubscriptions) GetRecipients(trigger string, labels map[string]string) []string {
 	var result []string
 	for _, s := range subscriptions {
-		if (s.Trigger == "" || s.Trigger == trigger) && s.Selector.Matches(fields.Set(labels)) {
+		if s.MatchesTrigger(trigger) && s.Selector.Matches(fields.Set(labels)) {
 			result = append(result, s.Recipients...)
 		}
 	}
