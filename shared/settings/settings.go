@@ -153,5 +153,8 @@ func (cfg *Config) Merge(other *Config) *Config {
 		res.Templates = append(res.Templates, templatesMap[k])
 	}
 	res.Context = contextValues
+	if other.Subscriptions != nil {
+		res.Subscriptions = other.Subscriptions
+	}
 	return res
 }
