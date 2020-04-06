@@ -629,12 +629,17 @@
   <span class="nt">config.yaml</span><span class="p">:</span> <span class="p p-Indicator">|</span>
     <span class="no">subscriptions:</span>
     <span class="no"># global subscription for all type of notifications</span>
-    <span class="no">- recipients: slack:test1, webhook:github</span>
+    <span class="no">- recipients:</span>
+      <span class="no">- slack:test1</span>
+      <span class="no">- webhook:github</span>
     <span class="no"># subscription for on-sync-status-unknown trigger notifications</span>
-    <span class="no">- recipients: slack:test2, email:test@gmail.com</span>
+    <span class="no">- recipients:</span>
+      <span class="no">- slack:test2</span>
+      <span class="no">- email:test@gmail.com</span>
       <span class="no">trigger: on-sync-status-unknown</span>
     <span class="no"># global subscription restricted to applications with matching labels only</span>
-    <span class="no">- recipients: slack:test3</span>
+    <span class="no">- recipients:</span>
+      <span class="no">- slack:test3</span>
       <span class="no">selector: test=true</span>
     <span class="no">triggers:</span>
       <span class="no"># Enable existing built-in trigger</span>
@@ -652,7 +657,7 @@
           <span class="no">Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.</span>
       <span class="no"># Override one field in built-in template</span>
       <span class="no">- name: app-sync-status</span>
-        <span class="no">title: Application {{.app.metadata.name}} sync status is {{.app.status.sync.status}</span>
+        <span class="no">title: Application {{.app.metadata.name}} sync status is {{.app.status.sync.status}}</span>
 </code></pre></div>
 
 
