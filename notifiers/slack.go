@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -63,14 +64,14 @@ func (n *slackNotifier) Send(notification Notification, recipient string) error 
 		attachments := make([]slack.Attachment, 0)
 		if notification.Slack.Attachments != "" {
 			if err := json.Unmarshal([]byte(notification.Slack.Attachments), &attachments); err != nil {
-				return err
+				return fmt.Errorf("failed to unmarshal attachments '%s' : %v", notification.Slack.Attachments, err)
 			}
 		}
 
 		blocks := slack.Blocks{}
 		if notification.Slack.Blocks != "" {
 			if err := json.Unmarshal([]byte(notification.Slack.Blocks), &blocks); err != nil {
-				return err
+				return fmt.Errorf("failed to unmarshal blocks '%s' : %v", notification.Slack.Blocks, err)
 			}
 		}
 		msgOptions = append(msgOptions, slack.MsgOptionAttachments(attachments...), slack.MsgOptionBlocks(blocks.BlockSet...))

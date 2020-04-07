@@ -23,6 +23,21 @@ func WithProject(project string) func(app *unstructured.Unstructured) {
 	}
 }
 
+func WithConditions(pairs ...string) func(app *unstructured.Unstructured) {
+	return func(app *unstructured.Unstructured) {
+		var conditions []map[string]string
+		for i := 0; i < len(pairs)-1; i += 2 {
+			conditions = append(conditions, map[string]string{
+				"type":    pairs[i],
+				"message": pairs[i+1],
+			})
+		}
+		app.Object["status"] = map[string]interface{}{
+			"conditions": conditions,
+		}
+	}
+}
+
 func WithObservedAt(t time.Time) func(app *unstructured.Unstructured) {
 	return func(app *unstructured.Unstructured) {
 		ts := t.Format(time.RFC3339)

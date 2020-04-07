@@ -2,7 +2,19 @@
 
 ## v0.7.0 (Unreleased)
 
+### Features
+
 * feat: support default subscriptions
+
+###  Bug Fixes
+
+
+## v0.6.1 (2020-03-20)
+
+### Features
+
+* feat: support default subscriptions
+* fix: ensure slack attachment properly formatted json object
 
 ## v0.6.0 (2020-03-13)
 
