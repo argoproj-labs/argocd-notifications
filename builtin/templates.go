@@ -9,25 +9,25 @@ import (
 
 const (
 	slackAttachmentTemplate = `[{
-	"title": "{{.app.metadata.name}}",
-	"title_link": "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+	"title": {{toJson .app.metadata.name}},
+	"title_link": {{toJson ( printf "%%s/applications/%%s" .context.argocdUrl .app.metadata.name )}},
 	"color": "%s",
 	"fields": [
 	{
 		"title": "Sync Status",
-		"value": "{{.app.status.sync.status}}",
+		"value": {{toJson .app.status.sync.status}},
 		"short": true
 	},
 	{
 		"title": "Repository",
-		"value": "{{.app.spec.source.repoURL}}",
+		"value": {{toJson .app.spec.source.repoURL}},
 		"short": true
 	}
 	{{range $index, $c := .app.status.conditions}}
 	{{if not $index}},{{end}}
 	{
-		"title": "{{$c.type}}",
-		"value": "{{$c.message}}",
+		"title": {{toJson $c.type}},
+		"value": {{toJson $c.message}},
 		"short": true
 	}
 	{{end}}
