@@ -168,7 +168,7 @@ func TestMergeConfigTemplate(t *testing.T) {
 			},
 		}},
 	}
-	merged := cfg.Merge(&Config{
+	merged, err := cfg.Merge(&Config{
 		Templates: []triggers.NotificationTemplate{{
 			Name: "foo",
 			Notification: notifiers.Notification{
@@ -185,6 +185,11 @@ func TestMergeConfigTemplate(t *testing.T) {
 			},
 		}},
 	})
+
+	if !assert.NoError(t, err) {
+		return
+	}
+
 	assert.ElementsMatch(t, merged.Templates, []triggers.NotificationTemplate{{
 		Name: "foo",
 		Notification: notifiers.Notification{
@@ -214,7 +219,7 @@ func TestMergeConfigTriggers(t *testing.T) {
 		}},
 	}
 
-	merged := cfg.Merge(&Config{
+	merged, err := cfg.Merge(&Config{
 		Triggers: []triggers.NotificationTrigger{{
 			Name:      "foo",
 			Condition: "new condition",
@@ -226,6 +231,9 @@ func TestMergeConfigTriggers(t *testing.T) {
 			Enabled:   pointer.BoolPtr(true),
 		}},
 	})
+	if !assert.NoError(t, err) {
+		return
+	}
 
 	assert.ElementsMatch(t, merged.Triggers, []triggers.NotificationTrigger{{
 		Name:      "foo",
@@ -248,17 +256,61 @@ func TestMergeSubscriptions(t *testing.T) {
 		}},
 	}
 
-	merged := cfg.Merge(&Config{
+	selector, err := labels.Parse("foo=true")
+	if !assert.NoError(t, err) {
+		return
+	}
+
+	merged, err := cfg.Merge(&Config{
 		Subscriptions: []Subscription{{
 			Recipients: []string{"replacedFoo"},
 			Triggers:   []string{"replacedFoo"},
+			Selector:   selector,
 		}},
 	})
+
+	if !assert.NoError(t, err) {
+		return
+	}
 
 	assert.ElementsMatch(t, merged.Subscriptions, []Subscription{{
 		Recipients: []string{"replacedFoo"},
 		Triggers:   []string{"replacedFoo"},
+		Selector:   selector,
 	}})
+}
+
+func TestMergeWebhooks(t *testing.T) {
+	cfg := Config{
+		Templates: []triggers.NotificationTemplate{{
+			Name: "foo",
+			Notification: notifiers.Notification{
+				Body: "hello world",
+			},
+		}},
+	}
+
+	merged, err := cfg.Merge(&Config{
+		Templates: []triggers.NotificationTemplate{{
+			Name: "foo",
+			Notification: notifiers.Notification{
+				Webhook: map[string]notifiers.WebhookNotification{
+					"slack": {
+						Method: "slack method",
+						Body:   "slack body",
+					},
+				},
+			},
+		}},
+	})
+
+	if !assert.NoError(t, err) {
+		return
+	}
+
+	assert.Equal(t, "hello world", merged.Templates[0].Body)
+	assert.Equal(t, "slack body", merged.Templates[0].Webhook["slack"].Body)
+	assert.Equal(t, "slack method", merged.Templates[0].Webhook["slack"].Method)
 }
 
 func TestDefaultSubscriptions_GetRecipients(t *testing.T) {
