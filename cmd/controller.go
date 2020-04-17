@@ -113,7 +113,10 @@ func parseConfig(configMap *v1.ConfigMap, secret *v1.Secret) (map[string]trigger
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	cfg = defaultCfg.Merge(cfg)
+	cfg, err = defaultCfg.Merge(cfg)
+	if err != nil {
+		return nil, nil, nil, err
+	}
 	t, err := triggers.GetTriggers(cfg.Templates, cfg.Triggers)
 	if err != nil {
 		return nil, nil, nil, err
