@@ -36,4 +36,6 @@ nav:
     - recipients/slack-bot.md
     - recipients/opsgenie-bot.md
     - recipients/telegram-bot.md
+  - Tools:
+      - tools/tools.md
   - built-in.md

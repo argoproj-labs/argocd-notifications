@@ -7,6 +7,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/argoproj-labs/argocd-notifications/shared/cmd"
+
 	"github.com/argoproj-labs/argocd-notifications/builtin"
 	"github.com/argoproj-labs/argocd-notifications/controller"
 	"github.com/argoproj-labs/argocd-notifications/notifiers"
@@ -100,32 +102,12 @@ func newControllerCommand() *cobra.Command {
 			return nil
 		},
 	}
-	clientConfig = addKubectlFlagsToCmd(&command)
+	clientConfig = cmd.AddK8SFlagsToCmd(&command)
 	command.Flags().IntVar(&processorsCount, "processors-count", 1, "Processors count.")
 	command.Flags().StringVar(&appLabelSelector, "app-label-selector", "", "App label selector.")
 	command.Flags().StringVar(&namespace, "namespace", "", "Namespace which controller handles. Current namespace if empty.")
 	command.Flags().StringVar(&logLevel, "loglevel", "info", "Set the logging level. One of: debug|info|warn|error")
 	return &command
-}
-
-func parseConfig(configMap *v1.ConfigMap, secret *v1.Secret) (map[string]triggers.Trigger, map[string]notifiers.Notifier, *settings.Config, error) {
-	cfg, err := settings.ParseConfigMap(configMap)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	cfg, err = defaultCfg.Merge(cfg)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	t, err := triggers.GetTriggers(cfg.Templates, cfg.Triggers)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	notifiersConfig, err := settings.ParseSecret(secret)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	return t, notifiers.GetAll(notifiersConfig), cfg, nil
 }
 
 func watchConfig(ctx context.Context, clientset kubernetes.Interface, namespace string, callback func(map[string]triggers.Trigger, map[string]notifiers.Notifier, *settings.Config) error) {
@@ -142,7 +124,7 @@ func watchConfig(ctx context.Context, clientset kubernetes.Interface, namespace 
 			configMap = newConfigMap
 		}
 		if secret != nil && configMap != nil {
-			if t, n, c, err := parseConfig(configMap, secret); err == nil {
+			if t, n, c, err := settings.ParseConfig(configMap, secret, defaultCfg); err == nil {
 				if err = callback(t, n, c); err != nil {
 					log.Fatalf("Failed to start controller: %v", err)
 				}

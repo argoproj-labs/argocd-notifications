@@ -131,3 +131,23 @@ func (cfg *Config) Merge(other *Config) (*Config, error) {
 	}
 	return res, nil
 }
+
+func ParseConfig(configMap *v1.ConfigMap, secret *v1.Secret, defaultCfg Config) (map[string]triggers.Trigger, map[string]notifiers.Notifier, *Config, error) {
+	cfg, err := ParseConfigMap(configMap)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	cfg, err = defaultCfg.Merge(cfg)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	t, err := triggers.GetTriggers(cfg.Templates, cfg.Triggers)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	notifiersConfig, err := ParseSecret(secret)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	return t, notifiers.GetAll(notifiersConfig), cfg, nil
+}

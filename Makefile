@@ -21,6 +21,10 @@ generate: manifests
 	go generate ./...
 	./hack/docs.sh
 
+.PHONY: build
+build:
+	CGO_ENABLED=0 go build -ldflags="-w -s" -o ./dist/argocd-notifications ./cmd
+
 .PHONY: image
 image:
 	docker build -t $(IMAGE_PREFIX)/argocd-notifications:$(IMAGE_TAG) .

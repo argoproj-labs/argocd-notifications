@@ -1,18 +1,20 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io"
-	"os"
+	"io/ioutil"
+	"log"
 
 	"github.com/argoproj-labs/argocd-notifications/builtin"
 
 	"github.com/olekukonko/tablewriter"
 )
 
-func generate(out io.Writer) {
-	fmt.Println("# Built-in Triggers and Templates")
-	fmt.Println("## Triggers")
+func builtInDocs(out io.Writer) {
+	_, _ = fmt.Fprintln(out, "# Built-in Triggers and Templates")
+	_, _ = fmt.Fprintln(out, "## Triggers")
 
 	triggers := tablewriter.NewWriter(out)
 	triggers.SetHeader([]string{"NAME", "DESCRIPTION", "TEMPLATE"})
@@ -24,13 +26,17 @@ func generate(out io.Writer) {
 	}
 	triggers.Render()
 
-	fmt.Println("")
-	fmt.Println("## Templates")
+	_, _ = fmt.Fprintln(out, "")
+	_, _ = fmt.Fprintln(out, "## Templates")
 	for _, t := range builtin.Templates {
-		fmt.Fprintf(out, "### %s\n**title**: `%s`\n\n**body**:\n```\n%s\n```\n", t.Name, t.Title, t.Body)
+		_, _ = fmt.Fprintf(out, "### %s\n**title**: `%s`\n\n**body**:\n```\n%s\n```\n", t.Name, t.Title, t.Body)
 	}
 }
 
 func main() {
-	generate(os.Stdout)
+	var builtItDocsData bytes.Buffer
+	builtInDocs(&builtItDocsData)
+	if err := ioutil.WriteFile("./docs/built-in.md", builtItDocsData.Bytes(), 0644); err != nil {
+		log.Fatal(err)
+	}
 }
