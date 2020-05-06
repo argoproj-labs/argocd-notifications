@@ -71,7 +71,10 @@ func (w webhookNotifier) Send(notification Notification, recipient string) error
 			urlPath = webhookNotification.Path
 		}
 	}
-	url := strings.TrimRight(webhookSettings.URL, "/") + "/" + strings.TrimLeft(urlPath, "/")
+	url := webhookSettings.URL
+	if urlPath != "" {
+		url = strings.TrimRight(webhookSettings.URL, "/") + "/" + strings.TrimLeft(urlPath, "/")
+	}
 	req, err := http.NewRequest(method, url, bytes.NewBufferString(body))
 	if err != nil {
 		return err
