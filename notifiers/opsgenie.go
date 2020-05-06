@@ -3,9 +3,13 @@ package notifiers
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/opsgenie/opsgenie-go-sdk-v2/alert"
 	"github.com/opsgenie/opsgenie-go-sdk-v2/client"
+	log "github.com/sirupsen/logrus"
+
+	httputil "github.com/argoproj-labs/argocd-notifications/shared/http"
 )
 
 type OpsgenieOptions struct {
@@ -29,6 +33,9 @@ func (n *opsgenieNotifier) Send(notification Notification, recipient string) err
 	alertClient, _ := alert.NewClient(&client.Config{
 		ApiKey:         apiKey,
 		OpsGenieAPIURL: client.ApiUrl(n.opts.ApiUrl),
+		HttpClient: &http.Client{
+			Transport: httputil.NewLoggingRoundTripper(http.DefaultTransport, log.WithField("notifier", "opsgenie")),
+		},
 	})
 	_, err := alertClient.Create(context.TODO(), &alert.CreateAlertRequest{
 		Message:     notification.Title,

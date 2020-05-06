@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	httputil "github.com/argoproj-labs/argocd-notifications/shared/http"
+
 	log "github.com/sirupsen/logrus"
 )
 
@@ -44,11 +46,11 @@ func (n *grafanaNotifier) Send(notification Notification, tags string) error {
 	}
 
 	client := &http.Client{
-		Transport: &http.Transport{
+		Transport: httputil.NewLoggingRoundTripper(&http.Transport{
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: n.opts.InsecureSkipVerify,
 			},
-		},
+		}, log.WithField("notifier", "grafana")),
 	}
 
 	jsonValue, _ := json.Marshal(ga)
