@@ -12,6 +12,7 @@ import (
 
 	"github.com/argoproj-labs/argocd-notifications/bot"
 	"github.com/argoproj-labs/argocd-notifications/bot/slack"
+	"github.com/argoproj-labs/argocd-notifications/shared/cmd"
 	"github.com/argoproj-labs/argocd-notifications/shared/settings"
 )
 
@@ -52,7 +53,7 @@ func newBotCommand() *cobra.Command {
 			return server.Serve(port)
 		},
 	}
-	clientConfig = addKubectlFlagsToCmd(&command)
+	clientConfig = cmd.AddK8SFlagsToCmd(&command)
 	command.Flags().IntVar(&port, "port", 8080, "Port number.")
 	command.Flags().StringVar(&namespace, "namespace", "", "Namespace which bot handles. Current namespace if empty.")
 	return &command

@@ -14,9 +14,9 @@ type SlackSpecific struct {
 }
 
 type Notification struct {
-	Title   string `json:"title,omitempty"`
-	Body    string `json:"body,omitempty"`
-	Slack   *SlackNotification
+	Title   string                         `json:"title,omitempty"`
+	Body    string                         `json:"body,omitempty"`
+	Slack   *SlackNotification             `json:"slack,omitempty"`
 	Webhook map[string]WebhookNotification `json:"webhook,omitempty" patchStrategy:"replace"`
 }
 

@@ -3,3 +3,4 @@ notifiers-secret.yaml
 site
 coverage.out
 .vscode
+dist
