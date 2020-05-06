@@ -1,0 +1,1281 @@
+
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      <link rel="shortcut icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.1, mkdocs-material-5.1.5">
+    
+    
+      
+        <title>Troubleshooting - Argo CD Notifications</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.df84b5fe.min.css">
+      
+        <link rel="stylesheet" href="../assets/stylesheets/palette.8435c73a.min.css">
+      
+      
+        
+        
+        <meta name="theme-color" content="#009688">
+      
+    
+    
+    
+      
+        <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Work+Sans:300,400,400i,700%7C&display=fallback">
+        <style>body,input{font-family:"Work Sans",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"",SFMono-Regular,Consolas,Menlo,monospace}</style>
+      
+    
+    
+    
+    
+      
+        
+<link rel="preconnect dns-prefetch" href="https://www.google-analytics.com">
+<script>window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)},ga.l=+new Date,ga("create","UA-105170809-5","auto"),ga("set","anonymizeIp",!0),ga("send","pageview"),document.addEventListener("DOMContentLoaded",function(){document.forms.search&&document.forms.search.query.addEventListener("blur",function(){if(this.value){var e=document.location.pathname;ga("send","pageview",e+"?q="+this.value)}})}),document.addEventListener("DOMContentSwitch",function(){ga("send","pageview")})</script>
+<script async src="https://www.google-analytics.com/analytics.js"></script>
+      
+    
+    
+  </head>
+  
+  
+    
+    
+    <body dir="ltr" data-md-color-primary="teal" data-md-color-accent="">
+  
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#troubleshooting" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid" aria-label="Header">
+    <a href=".." title="Argo CD Notifications" class="md-header-nav__button md-logo" aria-label="Argo CD Notifications">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 003-3 3 3 0 00-3-3 3 3 0 00-3 3 3 3 0 003 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header-nav__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header-nav__title" data-md-component="header-title">
+      
+        <div class="md-header-nav__ellipsis">
+          <span class="md-header-nav__topic md-ellipsis">
+            Argo CD Notifications
+          </span>
+          <span class="md-header-nav__topic md-ellipsis">
+            
+              Troubleshooting
+            
+          </span>
+        </div>
+      
+    </div>
+    
+      <label class="md-header-nav__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active">
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" data-md-component="search-reset" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header-nav__source">
+        
+<a href="https://github.com/argoproj-labs/argocd-notifications/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 00-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 01-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 000 40.81l195.61 195.6a28.86 28.86 0 0040.8 0l194.69-194.69a28.86 28.86 0 000-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+        
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Argo CD Notifications" class="md-nav__button md-logo" aria-label="Argo CD Notifications">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 003-3 3 3 0 00-3-3 3 3 0 00-3 3 3 3 0 003 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    Argo CD Notifications
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/argoproj-labs/argocd-notifications/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 00-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 01-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 000 40.81l195.61 195.6a28.86 28.86 0 0040.8 0l194.69-194.69a28.86 28.86 0 000-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href=".." title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2">
+    
+    <label class="md-nav__link" for="nav-2">
+      Triggers and Templates
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Triggers and Templates" data-md-level="1">
+      <label class="md-nav__title" for="nav-2">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Triggers and Templates
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../triggers_and_templates/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../triggers_and_templates/slack/" title="Slack (v0.4.0+)" class="md-nav__link">
+      Slack (v0.4.0+)
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3">
+    
+    <label class="md-nav__link" for="nav-3">
+      Notification Services
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Notification Services" data-md-level="1">
+      <label class="md-nav__title" for="nav-3">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Notification Services
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../services/overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../services/slack/" title="Slack" class="md-nav__link">
+      Slack
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../services/opsgenie/" title="Opsgenie" class="md-nav__link">
+      Opsgenie
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../services/grafana/" title="Grafana" class="md-nav__link">
+      Grafana
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../services/telegram/" title="Telegram" class="md-nav__link">
+      Telegram
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../services/webhook/" title="Webhook" class="md-nav__link">
+      Webhook
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-4" type="checkbox" id="nav-4">
+    
+    <label class="md-nav__link" for="nav-4">
+      Recipients
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Recipients" data-md-level="1">
+      <label class="md-nav__title" for="nav-4">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Recipients
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../recipients/overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../recipients/bot/" title="Bot (v0.5)" class="md-nav__link">
+      Bot (v0.5)
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../recipients/slack-bot/" title="Slack bot (v0.5)" class="md-nav__link">
+      Slack bot (v0.5)
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../recipients/opsgenie-bot/" title="Opsgenie bot" class="md-nav__link">
+      Opsgenie bot
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../recipients/telegram-bot/" title="Telegram bot" class="md-nav__link">
+      Telegram bot
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Troubleshooting
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 9h14V7H3v2m0 4h14v-2H3v2m0 4h14v-2H3v2m16 0h2v-2h-2v2m0-10v2h2V7h-2m0 6h2v-2h-2v2z"/></svg>
+        </span>
+      </label>
+    
+    <a href="./" title="Troubleshooting" class="md-nav__link md-nav__link--active">
+      Troubleshooting
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    Troubleshooting
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#global-flags" class="md-nav__link">
+    Global flags
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-use-it" class="md-nav__link">
+    How to use it
+  </a>
+  
+    <nav class="md-nav" aria-label="How to use it">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#on-your-laptop" class="md-nav__link">
+    On your laptop
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#in-your-cluster" class="md-nav__link">
+    In your cluster
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#commands" class="md-nav__link">
+    Commands
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tools-template-get" class="md-nav__link">
+    tools template get
+  </a>
+  
+    <nav class="md-nav" aria-label="tools template get">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#synopsis" class="md-nav__link">
+    Synopsis
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    Examples
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#options" class="md-nav__link">
+    Options
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#options-inherited-from-parent-commands" class="md-nav__link">
+    Options inherited from parent commands
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tools-template-notify" class="md-nav__link">
+    tools template notify
+  </a>
+  
+    <nav class="md-nav" aria-label="tools template notify">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#synopsis_1" class="md-nav__link">
+    Synopsis
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_1" class="md-nav__link">
+    Examples
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#options_1" class="md-nav__link">
+    Options
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#options-inherited-from-parent-commands_1" class="md-nav__link">
+    Options inherited from parent commands
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tools-trigger-get" class="md-nav__link">
+    tools trigger get
+  </a>
+  
+    <nav class="md-nav" aria-label="tools trigger get">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#synopsis_2" class="md-nav__link">
+    Synopsis
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_2" class="md-nav__link">
+    Examples
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#options_2" class="md-nav__link">
+    Options
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#options-inherited-from-parent-commands_2" class="md-nav__link">
+    Options inherited from parent commands
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tools-trigger-run" class="md-nav__link">
+    tools trigger run
+  </a>
+  
+    <nav class="md-nav" aria-label="tools trigger run">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#synopsis_3" class="md-nav__link">
+    Synopsis
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_3" class="md-nav__link">
+    Examples
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#options_3" class="md-nav__link">
+    Options
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#options-inherited-from-parent-commands_3" class="md-nav__link">
+    Options inherited from parent commands
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../built-in/" title="Built-in Triggers and Templates" class="md-nav__link">
+      Built-in Triggers and Templates
+    </a>
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    Troubleshooting
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#global-flags" class="md-nav__link">
+    Global flags
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-use-it" class="md-nav__link">
+    How to use it
+  </a>
+  
+    <nav class="md-nav" aria-label="How to use it">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#on-your-laptop" class="md-nav__link">
+    On your laptop
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#in-your-cluster" class="md-nav__link">
+    In your cluster
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#commands" class="md-nav__link">
+    Commands
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tools-template-get" class="md-nav__link">
+    tools template get
+  </a>
+  
+    <nav class="md-nav" aria-label="tools template get">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#synopsis" class="md-nav__link">
+    Synopsis
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    Examples
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#options" class="md-nav__link">
+    Options
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#options-inherited-from-parent-commands" class="md-nav__link">
+    Options inherited from parent commands
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tools-template-notify" class="md-nav__link">
+    tools template notify
+  </a>
+  
+    <nav class="md-nav" aria-label="tools template notify">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#synopsis_1" class="md-nav__link">
+    Synopsis
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_1" class="md-nav__link">
+    Examples
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#options_1" class="md-nav__link">
+    Options
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#options-inherited-from-parent-commands_1" class="md-nav__link">
+    Options inherited from parent commands
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tools-trigger-get" class="md-nav__link">
+    tools trigger get
+  </a>
+  
+    <nav class="md-nav" aria-label="tools trigger get">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#synopsis_2" class="md-nav__link">
+    Synopsis
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_2" class="md-nav__link">
+    Examples
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#options_2" class="md-nav__link">
+    Options
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#options-inherited-from-parent-commands_2" class="md-nav__link">
+    Options inherited from parent commands
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tools-trigger-run" class="md-nav__link">
+    tools trigger run
+  </a>
+  
+    <nav class="md-nav" aria-label="tools trigger run">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#synopsis_3" class="md-nav__link">
+    Synopsis
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_3" class="md-nav__link">
+    Examples
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#options_3" class="md-nav__link">
+    Options
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#options-inherited-from-parent-commands_3" class="md-nav__link">
+    Options inherited from parent commands
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/argoproj-labs/argocd-notifications/edit/master/docs/troubleshooting.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                  
+                
+                
+                  <h1>Troubleshooting</h1>
+                
+                <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<p>(v0.7.0)</p>
+<p>The <code>argocd-notifications</code> binary includes a set of CLI commands that helps to configure the controller
+settings and troubleshooting issues. All CLI commands are available as <code>argocd-notifications tools</code> sub-commands: </p>
+<div class="codehilite"><pre><span></span><code>argocd-notifications tools &lt;sub-command-name&gt;
+</code></pre></div>
+
+
+<h2 id="global-flags">Global flags<a class="headerlink" href="#global-flags" title="Permanent link">&para;</a></h2>
+<p>Following global flags are available for all sub-commands:
+* <code>config-map</code> - path to the file containing <code>argocd-notifications-cm</code> ConfigMap. If not specified
+then the command loads <code>argocd-notification-cm</code> ConfigMap using the local Kubernetes config file.
+* <code>secret</code> - path to the file containing <code>argocd-notifications-secret</code> ConfigMap. If not
+specified then the command loads <code>argocd-notification-secret</code> Secret using the local Kubernetes config file.
+Additionally, you can specify <code>:empty</code> value to use empty secret with no notification service settings. </p>
+<p><strong>Examples:</strong></p>
+<ul>
+<li>Get list of triggers configured in the local config map:</li>
+</ul>
+<div class="codehilite"><pre><span></span><code><span class="err">argocd-notifications tools trigger get \</span>
+<span class="err">  --config-map ./argocd-notifications-cm.yaml --secret :empty</span>
+</code></pre></div>
+
+
+<ul>
+<li>Trigger notification using in-cluster config map and secret:</li>
+</ul>
+<div class="codehilite"><pre><span></span><code><span class="err">argocd-notifications tools template notify \</span>
+<span class="err">  app-sync-succeeded guestbook --recipient slack:argocd-notifications</span>
+</code></pre></div>
+
+
+<h2 id="how-to-use-it">How to use it<a class="headerlink" href="#how-to-use-it" title="Permanent link">&para;</a></h2>
+<h3 id="on-your-laptop">On your laptop<a class="headerlink" href="#on-your-laptop" title="Permanent link">&para;</a></h3>
+<p>The binary is available in <code>argoprojlabs/argocd-notifications</code> image. Use the <code>docker run</code> and volume mount
+to execute binary on any platform. </p>
+<p><strong>Example:</strong></p>
+<div class="codehilite"><pre><span></span><code>docker run --rm -it -w /src -v <span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>:/src <span class="se">\</span>
+  argoprojlabs/argocd-notifications:&lt;version&gt; <span class="se">\</span>
+  /app/argocd-notifications tools trigger get <span class="se">\</span>
+  --config-map ./argocd-notifications-cm.yaml --secret :empty
+</code></pre></div>
+
+
+<h3 id="in-your-cluster">In your cluster<a class="headerlink" href="#in-your-cluster" title="Permanent link">&para;</a></h3>
+<p>SSH into the running <code>argocd-notifications-controller</code> pod and use <code>kubectl exec</code> command to validate in-cluster
+configuration.</p>
+<p><strong>Example</strong></p>
+<div class="codehilite"><pre><span></span><code>kubectl <span class="nb">exec</span> -it argocd-notifications-controller-&lt;pod-hash&gt; <span class="se">\</span>
+  /app/argocd-notifications tools trigger get
+</code></pre></div>
+
+
+<h2 id="commands">Commands<a class="headerlink" href="#commands" title="Permanent link">&para;</a></h2>
+<h2 id="tools-template-get">tools template get<a class="headerlink" href="#tools-template-get" title="Permanent link">&para;</a></h2>
+<p>Prints information about configured templates</p>
+<h3 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h3>
+<p>Prints information about configured templates</p>
+<div class="codehilite"><pre><span></span><code><span class="n">tools</span><span class="w"> </span><span class="n">template</span><span class="w"> </span><span class="k">get</span><span class="w"> </span><span class="o">[</span><span class="n">flags</span><span class="o">]</span><span class="w"></span>
+</code></pre></div>
+
+
+<h3 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="o">#</span> <span class="n">prints</span> <span class="k">all</span> <span class="n">templates</span>
+<span class="n">argocd</span><span class="o">-</span><span class="n">notifications</span> <span class="n">tools</span> <span class="k">template</span> <span class="k">get</span>
+
+<span class="o">#</span> <span class="n">print</span> <span class="n">YAML</span> <span class="n">formatted</span> <span class="n">app</span><span class="o">-</span><span class="n">sync</span><span class="o">-</span><span class="n">succeeded</span> <span class="k">template</span> <span class="n">definition</span>
+<span class="n">argocd</span><span class="o">-</span><span class="n">notifications</span> <span class="n">tools</span> <span class="k">template</span> <span class="k">get</span> <span class="n">app</span><span class="o">-</span><span class="n">sync</span><span class="o">-</span><span class="n">succeeded</span> <span class="o">-</span><span class="n">o</span><span class="o">=</span><span class="n">yaml</span>
+</code></pre></div>
+
+
+<h3 id="options">Options<a class="headerlink" href="#options" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="err">  -h, --help            help for get</span>
+<span class="err">  -o, --output string   Output format. One of:json|yaml|wide|name (default &quot;wide&quot;)</span>
+</code></pre></div>
+
+
+<h3 id="options-inherited-from-parent-commands">Options inherited from parent commands<a class="headerlink" href="#options-inherited-from-parent-commands" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="err">      --as string                      Username to impersonate for the operation</span>
+<span class="err">      --as-group stringArray           Group to impersonate for the operation, this flag can be repeated to specify multiple groups.</span>
+<span class="err">      --certificate-authority string   Path to a cert file for the certificate authority</span>
+<span class="err">      --client-certificate string      Path to a client certificate file for TLS</span>
+<span class="err">      --client-key string              Path to a client key file for TLS</span>
+<span class="err">      --cluster string                 The name of the kubeconfig cluster to use</span>
+<span class="err">      --config-map string              argocd-notifications-cm.yaml file path</span>
+<span class="err">      --context string                 The name of the kubeconfig context to use</span>
+<span class="err">      --insecure-skip-tls-verify       If true, the server&#39;s certificate will not be checked for validity. This will make your HTTPS connections insecure</span>
+<span class="err">      --kubeconfig string              Path to a kube config. Only required if out-of-cluster</span>
+<span class="err">  -n, --namespace string               If present, the namespace scope for this CLI request</span>
+<span class="err">      --password string                Password for basic authentication to the API server</span>
+<span class="err">      --request-timeout string         The length of time to wait before giving up on a single server request. Non-zero values should contain a corresponding time unit (e.g. 1s, 2m, 3h). A value of zero means don&#39;t timeout requests. (default &quot;0&quot;)</span>
+<span class="err">      --secret string                  argocd-notifications-secret.yaml file path. Use empty secret if provided value is &#39;:empty&#39;</span>
+<span class="err">      --server string                  The address and port of the Kubernetes API server</span>
+<span class="err">      --token string                   Bearer token for authentication to the API server</span>
+<span class="err">      --user string                    The name of the kubeconfig user to use</span>
+<span class="err">      --username string                Username for basic authentication to the API server</span>
+</code></pre></div>
+
+
+<h2 id="tools-template-notify">tools template notify<a class="headerlink" href="#tools-template-notify" title="Permanent link">&para;</a></h2>
+<p>Generates notification using the specified template and send it to specified recipients</p>
+<h3 id="synopsis_1">Synopsis<a class="headerlink" href="#synopsis_1" title="Permanent link">&para;</a></h3>
+<p>Generates notification using the specified template and send it to specified recipients</p>
+<div class="codehilite"><pre><span></span><code><span class="n">tools</span><span class="w"> </span><span class="n">template</span><span class="w"> </span><span class="n">notify</span><span class="w"> </span><span class="n">NAME</span><span class="w"> </span><span class="n">APPLICATION</span><span class="w"> </span><span class="o">[</span><span class="n">flags</span><span class="o">]</span><span class="w"></span>
+</code></pre></div>
+
+
+<h3 id="examples_1">Examples<a class="headerlink" href="#examples_1" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="o">#</span> <span class="k">Trigger</span> <span class="n">notification</span> <span class="k">using</span> <span class="k">in</span><span class="o">-</span><span class="k">cluster</span> <span class="n">config</span> <span class="k">map</span> <span class="k">and</span> <span class="n">secret</span>
+<span class="n">argocd</span><span class="o">-</span><span class="n">notifications</span> <span class="n">tools</span> <span class="k">template</span> <span class="k">notify</span> <span class="n">app</span><span class="o">-</span><span class="n">sync</span><span class="o">-</span><span class="n">succeeded</span> <span class="n">guestbook</span> <span class="c1">--recipient slack:argocd-notifications</span>
+
+<span class="o">#</span> <span class="n">Render</span> <span class="n">notification</span> <span class="n">render</span> <span class="k">generated</span> <span class="n">notification</span> <span class="k">in</span> <span class="n">console</span>
+<span class="n">argocd</span><span class="o">-</span><span class="n">notifications</span> <span class="n">tools</span> <span class="k">template</span> <span class="k">notify</span> <span class="n">app</span><span class="o">-</span><span class="n">sync</span><span class="o">-</span><span class="n">succeeded</span> <span class="n">guestbook</span>
+</code></pre></div>
+
+
+<h3 id="options_1">Options<a class="headerlink" href="#options_1" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="err">  -h, --help                    help for notify</span>
+<span class="err">      --recipient stringArray   List of recipients (default [console:stdout])</span>
+</code></pre></div>
+
+
+<h3 id="options-inherited-from-parent-commands_1">Options inherited from parent commands<a class="headerlink" href="#options-inherited-from-parent-commands_1" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="err">      --as string                      Username to impersonate for the operation</span>
+<span class="err">      --as-group stringArray           Group to impersonate for the operation, this flag can be repeated to specify multiple groups.</span>
+<span class="err">      --certificate-authority string   Path to a cert file for the certificate authority</span>
+<span class="err">      --client-certificate string      Path to a client certificate file for TLS</span>
+<span class="err">      --client-key string              Path to a client key file for TLS</span>
+<span class="err">      --cluster string                 The name of the kubeconfig cluster to use</span>
+<span class="err">      --config-map string              argocd-notifications-cm.yaml file path</span>
+<span class="err">      --context string                 The name of the kubeconfig context to use</span>
+<span class="err">      --insecure-skip-tls-verify       If true, the server&#39;s certificate will not be checked for validity. This will make your HTTPS connections insecure</span>
+<span class="err">      --kubeconfig string              Path to a kube config. Only required if out-of-cluster</span>
+<span class="err">  -n, --namespace string               If present, the namespace scope for this CLI request</span>
+<span class="err">      --password string                Password for basic authentication to the API server</span>
+<span class="err">      --request-timeout string         The length of time to wait before giving up on a single server request. Non-zero values should contain a corresponding time unit (e.g. 1s, 2m, 3h). A value of zero means don&#39;t timeout requests. (default &quot;0&quot;)</span>
+<span class="err">      --secret string                  argocd-notifications-secret.yaml file path. Use empty secret if provided value is &#39;:empty&#39;</span>
+<span class="err">      --server string                  The address and port of the Kubernetes API server</span>
+<span class="err">      --token string                   Bearer token for authentication to the API server</span>
+<span class="err">      --user string                    The name of the kubeconfig user to use</span>
+<span class="err">      --username string                Username for basic authentication to the API server</span>
+</code></pre></div>
+
+
+<h2 id="tools-trigger-get">tools trigger get<a class="headerlink" href="#tools-trigger-get" title="Permanent link">&para;</a></h2>
+<p>Prints information about configured triggers</p>
+<h3 id="synopsis_2">Synopsis<a class="headerlink" href="#synopsis_2" title="Permanent link">&para;</a></h3>
+<p>Prints information about configured triggers</p>
+<div class="codehilite"><pre><span></span><code><span class="n">tools</span><span class="w"> </span><span class="k">trigger</span><span class="w"> </span><span class="k">get</span><span class="w"> </span><span class="o">[</span><span class="n">flags</span><span class="o">]</span><span class="w"></span>
+</code></pre></div>
+
+
+<h3 id="examples_2">Examples<a class="headerlink" href="#examples_2" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="o">#</span> <span class="n">prints</span> <span class="k">all</span> <span class="n">triggers</span>
+<span class="n">argocd</span><span class="o">-</span><span class="n">notifications</span> <span class="n">tools</span> <span class="k">trigger</span> <span class="k">get</span>
+
+<span class="o">#</span> <span class="n">print</span> <span class="n">YAML</span> <span class="n">formatted</span> <span class="k">on</span><span class="o">-</span><span class="n">sync</span><span class="o">-</span><span class="n">failed</span> <span class="k">trigger</span> <span class="n">definition</span>
+<span class="n">argocd</span><span class="o">-</span><span class="n">notifications</span> <span class="n">tools</span> <span class="k">trigger</span> <span class="k">get</span> <span class="k">on</span><span class="o">-</span><span class="n">sync</span><span class="o">-</span><span class="n">failed</span> <span class="o">-</span><span class="n">o</span><span class="o">=</span><span class="n">yaml</span>
+</code></pre></div>
+
+
+<h3 id="options_2">Options<a class="headerlink" href="#options_2" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="err">  -h, --help            help for get</span>
+<span class="err">  -o, --output string   Output format. One of:json|yaml|wide|name (default &quot;wide&quot;)</span>
+</code></pre></div>
+
+
+<h3 id="options-inherited-from-parent-commands_2">Options inherited from parent commands<a class="headerlink" href="#options-inherited-from-parent-commands_2" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="err">      --as string                      Username to impersonate for the operation</span>
+<span class="err">      --as-group stringArray           Group to impersonate for the operation, this flag can be repeated to specify multiple groups.</span>
+<span class="err">      --certificate-authority string   Path to a cert file for the certificate authority</span>
+<span class="err">      --client-certificate string      Path to a client certificate file for TLS</span>
+<span class="err">      --client-key string              Path to a client key file for TLS</span>
+<span class="err">      --cluster string                 The name of the kubeconfig cluster to use</span>
+<span class="err">      --config-map string              argocd-notifications-cm.yaml file path</span>
+<span class="err">      --context string                 The name of the kubeconfig context to use</span>
+<span class="err">      --insecure-skip-tls-verify       If true, the server&#39;s certificate will not be checked for validity. This will make your HTTPS connections insecure</span>
+<span class="err">      --kubeconfig string              Path to a kube config. Only required if out-of-cluster</span>
+<span class="err">  -n, --namespace string               If present, the namespace scope for this CLI request</span>
+<span class="err">      --password string                Password for basic authentication to the API server</span>
+<span class="err">      --request-timeout string         The length of time to wait before giving up on a single server request. Non-zero values should contain a corresponding time unit (e.g. 1s, 2m, 3h). A value of zero means don&#39;t timeout requests. (default &quot;0&quot;)</span>
+<span class="err">      --secret string                  argocd-notifications-secret.yaml file path. Use empty secret if provided value is &#39;:empty&#39;</span>
+<span class="err">      --server string                  The address and port of the Kubernetes API server</span>
+<span class="err">      --token string                   Bearer token for authentication to the API server</span>
+<span class="err">      --user string                    The name of the kubeconfig user to use</span>
+<span class="err">      --username string                Username for basic authentication to the API server</span>
+</code></pre></div>
+
+
+<h2 id="tools-trigger-run">tools trigger run<a class="headerlink" href="#tools-trigger-run" title="Permanent link">&para;</a></h2>
+<p>Evaluates specified trigger condition and prints the result</p>
+<h3 id="synopsis_3">Synopsis<a class="headerlink" href="#synopsis_3" title="Permanent link">&para;</a></h3>
+<p>Evaluates specified trigger condition and prints the result</p>
+<div class="codehilite"><pre><span></span><code><span class="n">tools</span><span class="w"> </span><span class="k">trigger</span><span class="w"> </span><span class="n">run</span><span class="w"> </span><span class="n">NAME</span><span class="w"> </span><span class="n">APPLICATION</span><span class="w"> </span><span class="o">[</span><span class="n">flags</span><span class="o">]</span><span class="w"></span>
+</code></pre></div>
+
+
+<h3 id="examples_3">Examples<a class="headerlink" href="#examples_3" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="o">#</span> <span class="k">Execute</span> <span class="k">trigger</span> <span class="n">configured</span> <span class="k">in</span> <span class="s1">&#39;argocd-notification-cm&#39;</span> <span class="n">ConfigMap</span>
+<span class="n">argocd</span><span class="o">-</span><span class="n">notifications</span> <span class="n">tools</span> <span class="k">trigger</span> <span class="n">run</span> <span class="k">on</span><span class="o">-</span><span class="n">sync</span><span class="o">-</span><span class="n">status</span><span class="o">-</span><span class="k">unknown</span> <span class="p">.</span><span class="o">/</span><span class="n">sample</span><span class="o">-</span><span class="n">app</span><span class="p">.</span><span class="n">yaml</span>
+
+<span class="o">#</span> <span class="k">Execute</span> <span class="k">trigger</span> <span class="k">using</span> <span class="n">argocd</span><span class="o">-</span><span class="n">notifications</span><span class="o">-</span><span class="n">cm</span><span class="p">.</span><span class="n">yaml</span> <span class="k">instead</span> <span class="k">of</span> <span class="s1">&#39;argocd-notification-cm&#39;</span> <span class="n">ConfigMap</span>
+<span class="n">argocd</span><span class="o">-</span><span class="n">notifications</span> <span class="n">tools</span> <span class="k">trigger</span> <span class="n">run</span> <span class="k">on</span><span class="o">-</span><span class="n">sync</span><span class="o">-</span><span class="n">status</span><span class="o">-</span><span class="k">unknown</span> <span class="p">.</span><span class="o">/</span><span class="n">sample</span><span class="o">-</span><span class="n">app</span><span class="p">.</span><span class="n">yaml</span> <span class="err">\</span>
+    <span class="c1">--config-map ./argocd-notifications-cm.yaml</span>
+</code></pre></div>
+
+
+<h3 id="options_3">Options<a class="headerlink" href="#options_3" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="err">  -h, --help   help for run</span>
+</code></pre></div>
+
+
+<h3 id="options-inherited-from-parent-commands_3">Options inherited from parent commands<a class="headerlink" href="#options-inherited-from-parent-commands_3" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="err">      --as string                      Username to impersonate for the operation</span>
+<span class="err">      --as-group stringArray           Group to impersonate for the operation, this flag can be repeated to specify multiple groups.</span>
+<span class="err">      --certificate-authority string   Path to a cert file for the certificate authority</span>
+<span class="err">      --client-certificate string      Path to a client certificate file for TLS</span>
+<span class="err">      --client-key string              Path to a client key file for TLS</span>
+<span class="err">      --cluster string                 The name of the kubeconfig cluster to use</span>
+<span class="err">      --config-map string              argocd-notifications-cm.yaml file path</span>
+<span class="err">      --context string                 The name of the kubeconfig context to use</span>
+<span class="err">      --insecure-skip-tls-verify       If true, the server&#39;s certificate will not be checked for validity. This will make your HTTPS connections insecure</span>
+<span class="err">      --kubeconfig string              Path to a kube config. Only required if out-of-cluster</span>
+<span class="err">  -n, --namespace string               If present, the namespace scope for this CLI request</span>
+<span class="err">      --password string                Password for basic authentication to the API server</span>
+<span class="err">      --request-timeout string         The length of time to wait before giving up on a single server request. Non-zero values should contain a corresponding time unit (e.g. 1s, 2m, 3h). A value of zero means don&#39;t timeout requests. (default &quot;0&quot;)</span>
+<span class="err">      --secret string                  argocd-notifications-secret.yaml file path. Use empty secret if provided value is &#39;:empty&#39;</span>
+<span class="err">      --server string                  The address and port of the Kubernetes API server</span>
+<span class="err">      --token string                   Bearer token for authentication to the API server</span>
+<span class="err">      --user string                    The name of the kubeconfig user to use</span>
+<span class="err">      --username string                Username for basic authentication to the API server</span>
+</code></pre></div>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
+        
+          <a href="../recipients/telegram-bot/" title="Telegram bot" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+            </div>
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                Telegram bot
+              </div>
+            </div>
+          </a>
+        
+        
+          <a href="../built-in/" title="Built-in Triggers and Templates" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                Built-in Triggers and Templates
+              </div>
+            </div>
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../assets/javascripts/vendor.83fe6e3c.min.js"></script>
+      <script src="../assets/javascripts/bundle.7e1cb91c.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
+      
+      <script>
+        app = initialize({
+          base: "..",
+          features: [],
+          search: Object.assign({
+            worker: "../assets/javascripts/worker/search.37585f48.min.js"
+          }, typeof search !== "undefined" && search)
+        })
+      </script>
+      
+    
+  </body>
+</html>
