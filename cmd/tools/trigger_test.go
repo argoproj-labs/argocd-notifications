@@ -54,7 +54,7 @@ func newTestContext(stdout io.Writer, stderr io.Writer, config settings.Config, 
 	ctx := &commandContext{
 		stdout:        stdout,
 		stderr:        stderr,
-		secretPath:    ":dummy",
+		secretPath:    ":empty",
 		configMapPath: tmpFile.Name(),
 		getK8SClients: func() (kubernetes.Interface, dynamic.Interface, string, error) {
 			dynamicClient := dynamicfake.NewSimpleDynamicClient(runtime.NewScheme(), apps...)

@@ -4,8 +4,6 @@ import (
 	"context"
 	"log"
 
-	"github.com/argoproj-labs/argocd-notifications/shared/cmd"
-
 	"github.com/spf13/cobra"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
@@ -14,6 +12,7 @@ import (
 
 	"github.com/argoproj-labs/argocd-notifications/bot"
 	"github.com/argoproj-labs/argocd-notifications/bot/slack"
+	"github.com/argoproj-labs/argocd-notifications/shared/cmd"
 	"github.com/argoproj-labs/argocd-notifications/shared/settings"
 )
 

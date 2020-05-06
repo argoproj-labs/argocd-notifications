@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/http/httputil"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/argoproj-labs/argocd-notifications/shared/text"
 )
@@ -78,6 +81,9 @@ func (w webhookNotifier) Send(notification Notification, recipient string) error
 	}
 	if webhookSettings.BasicAuth != nil {
 		req.SetBasicAuth(webhookSettings.BasicAuth.Username, webhookSettings.BasicAuth.Password)
+	}
+	if reqInfo, err := httputil.DumpRequest(req, true); err == nil {
+		log.Debugf("Sending webhook request: %s", string(reqInfo))
 	}
 
 	resp, err := http.DefaultClient.Do(req)

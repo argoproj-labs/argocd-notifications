@@ -132,6 +132,7 @@ func (cfg *Config) Merge(other *Config) (*Config, error) {
 	return res, nil
 }
 
+// ParseConfig parses notifications configuration from the provided config map and secret.
 func ParseConfig(configMap *v1.ConfigMap, secret *v1.Secret, defaultCfg Config) (map[string]triggers.Trigger, map[string]notifiers.Notifier, *Config, error) {
 	cfg, err := ParseConfigMap(configMap)
 	if err != nil {

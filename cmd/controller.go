@@ -7,11 +7,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/argoproj-labs/argocd-notifications/shared/cmd"
-
 	"github.com/argoproj-labs/argocd-notifications/builtin"
 	"github.com/argoproj-labs/argocd-notifications/controller"
 	"github.com/argoproj-labs/argocd-notifications/notifiers"
+	"github.com/argoproj-labs/argocd-notifications/shared/cmd"
 	"github.com/argoproj-labs/argocd-notifications/shared/settings"
 	"github.com/argoproj-labs/argocd-notifications/triggers"
 

@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/ghodss/yaml"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
@@ -14,6 +15,14 @@ import (
 	"github.com/argoproj-labs/argocd-notifications/shared/cmd"
 	"github.com/argoproj-labs/argocd-notifications/shared/settings"
 )
+
+func withDebugLogs() func() {
+	level := log.GetLevel()
+	log.SetLevel(log.DebugLevel)
+	return func() {
+		log.SetLevel(level)
+	}
+}
 
 func addOutputFlags(cmd *cobra.Command, output *string) {
 	cmd.Flags().StringVarP(output, "output", "o", "wide", "Output format. One of:json|yaml|wide|name")
@@ -49,7 +58,8 @@ func NewToolsCommand(defaultCfg settings.Config) *cobra.Command {
 		}
 	)
 	var command = cobra.Command{
-		Use: "tools",
+		Use:   "tools",
+		Short: "Set of CLI commands that helps to configure the controller",
 		Run: func(c *cobra.Command, args []string) {
 			c.HelpFunc()(c, args)
 		},
@@ -59,9 +69,9 @@ func NewToolsCommand(defaultCfg settings.Config) *cobra.Command {
 	command.AddCommand(newTemplateCommand(&cmdContext))
 
 	command.PersistentFlags().StringVar(&cmdContext.configMapPath,
-		"argocd-notification-cm-path", "", "argocd-notification-cm.yaml file path")
-	command.PersistentFlags().StringVar(&cmdContext.secretPath, "argocd-notification-secret-path", ":dummy",
-		"argocd-notification-secret.yaml file path. Use empty secret if provided value is ':dummy'")
+		"config-map", "", "argocd-notifications-cm.yaml file path")
+	command.PersistentFlags().StringVar(&cmdContext.secretPath,
+		"secret", "", "argocd-notifications-secret.yaml file path. Use empty secret if provided value is ':empty'")
 	clientConfig := cmd.AddK8SFlagsToCmd(&command)
 	cmdContext.getK8SClients = func() (kubernetes.Interface, dynamic.Interface, string, error) {
 		return getK8SClients(clientConfig)

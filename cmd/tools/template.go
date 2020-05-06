@@ -7,10 +7,9 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/argoproj-labs/argocd-notifications/notifiers"
-
 	"github.com/spf13/cobra"
 
+	"github.com/argoproj-labs/argocd-notifications/notifiers"
 	sharedrecipients "github.com/argoproj-labs/argocd-notifications/shared/recipients"
 	"github.com/argoproj-labs/argocd-notifications/triggers"
 )
@@ -25,7 +24,8 @@ func (c *consoleNotifier) Send(notification notifiers.Notification, _ string) er
 
 func newTemplateCommand(cmdContext *commandContext) *cobra.Command {
 	var command = cobra.Command{
-		Use: "template",
+		Use:   "template",
+		Short: "Notification templates related commands",
 		RunE: func(c *cobra.Command, args []string) error {
 			return errors.New("select child command")
 		},
@@ -41,7 +41,17 @@ func newTemplateNotifyCommand(cmdContext *commandContext) *cobra.Command {
 	)
 	var command = cobra.Command{
 		Use: "notify NAME APPLICATION",
+		Example: `
+# Trigger notification using in-cluster config map and secret
+argocd-notifications tools template notify app-sync-succeeded guestbook --recipient slack:argocd-notifications
+
+# Render notification render generated notification in console
+argocd-notifications tools template notify app-sync-succeeded guestbook
+`,
+		Short: "Generates notification using the specified template and send it to specified recipients",
 		RunE: func(c *cobra.Command, args []string) error {
+			cancel := withDebugLogs()
+			defer cancel()
 			if len(args) < 2 {
 				return fmt.Errorf("expected two arguments, got %d", len(args))
 			}
@@ -109,6 +119,14 @@ func newTemplateGetCommand(cmdContext *commandContext) *cobra.Command {
 	)
 	var command = cobra.Command{
 		Use: "get",
+		Example: `
+# prints all templates
+argocd-notifications tools template get
+
+# print YAML formatted app-sync-succeeded template definition
+argocd-notifications tools template get app-sync-succeeded -o=yaml
+`,
+		Short: "Prints information about configured templates",
 		RunE: func(c *cobra.Command, args []string) error {
 			var name string
 			if len(args) == 1 {

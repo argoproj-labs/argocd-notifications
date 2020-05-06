@@ -13,7 +13,8 @@ import (
 
 func newTriggerCommand(cmdContext *commandContext) *cobra.Command {
 	var command = cobra.Command{
-		Use: "trigger",
+		Use:   "trigger",
+		Short: "Notification triggers related commands",
 		RunE: func(c *cobra.Command, args []string) error {
 			return errors.New("select child command")
 		},
@@ -26,14 +27,15 @@ func newTriggerCommand(cmdContext *commandContext) *cobra.Command {
 
 func newTriggerRunCommand(cmdContext *commandContext) *cobra.Command {
 	var command = cobra.Command{
-		Use: "run NAME APPLICATION",
+		Use:   "run NAME APPLICATION",
+		Short: "Evaluates specified trigger condition and prints the result",
 		Example: `
 # Execute trigger configured in 'argocd-notification-cm' ConfigMap
 argocd-notifications tools trigger run on-sync-status-unknown ./sample-app.yaml
 
 # Execute trigger using argocd-notifications-cm.yaml instead of 'argocd-notification-cm' ConfigMap
 argocd-notifications tools trigger run on-sync-status-unknown ./sample-app.yaml \
-    --argocd-notification-cm-path ./argocd-notifications-cm.yaml`,
+    --config-map ./argocd-notifications-cm.yaml`,
 		RunE: func(c *cobra.Command, args []string) error {
 			if len(args) < 2 {
 				return fmt.Errorf("expected two arguments, got %d", len(args))
@@ -80,6 +82,14 @@ func newTriggerGetCommand(cmdContext *commandContext) *cobra.Command {
 	)
 	var command = cobra.Command{
 		Use: "get",
+		Example: `
+# prints all triggers
+argocd-notifications tools trigger get
+
+# print YAML formatted on-sync-failed trigger definition
+argocd-notifications tools trigger get on-sync-failed -o=yaml
+`,
+		Short: "Prints information about configured triggers",
 		RunE: func(c *cobra.Command, args []string) error {
 			var name string
 			if len(args) == 1 {

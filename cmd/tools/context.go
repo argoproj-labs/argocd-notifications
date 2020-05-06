@@ -71,7 +71,7 @@ func (c *commandContext) getConfig() (map[string]triggers.Trigger, map[string]no
 	}
 
 	var secret v1.Secret
-	if c.secretPath == ":dummy" {
+	if c.secretPath == ":empty" {
 		secret = v1.Secret{}
 	} else if c.secretPath == "" {
 		k8sClient, _, ns, err := c.getK8SClients()

@@ -4,14 +4,12 @@ import (
 	"fmt"
 	"os"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
 	"github.com/argoproj-labs/argocd-notifications/cmd/tools"
 )
 
 func main() {
-	log.SetLevel(log.DebugLevel)
 	var command = &cobra.Command{
 		Use:   "argocd-notifications",
 		Short: "argocd controls a Argo CD server",
