@@ -9,6 +9,8 @@ import (
 	"net/url"
 	"regexp"
 
+	httputil "github.com/argoproj-labs/argocd-notifications/shared/http"
+
 	"github.com/nlopes/slack"
 	log "github.com/sirupsen/logrus"
 )
@@ -38,12 +40,13 @@ func NewSlackNotifier(opts SlackOptions) Notifier {
 }
 
 func (n *slackNotifier) Send(notification Notification, recipient string) error {
-	client := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: n.opts.InsecureSkipVerify,
-			},
+	transport := &http.Transport{
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: n.opts.InsecureSkipVerify,
 		},
+	}
+	client := &http.Client{
+		Transport: httputil.NewLoggingRoundTripper(transport, log.WithField("notifier", "slack")),
 	}
 	s := slack.New(n.opts.Token, slack.OptionHTTPClient(client))
 	msgOptions := []slack.MsgOption{slack.MsgOptionText(notification.Body, false)}
