@@ -1,6 +1,7 @@
 package notifiers
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -44,4 +45,33 @@ func TestWebhook_FailedToSendNotConfigured(t *testing.T) {
 	err := notifier.Send(Notification{}, "test")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "not configured")
+}
+
+func TestWebhook_SubPath(t *testing.T) {
+	var receivedPath string
+	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		receivedPath = request.URL.Path
+	}))
+	defer server.Close()
+
+	notifier := NewWebhookNotifier(WebhookOptions{{
+		Name: "test",
+		URL:  fmt.Sprintf("%s/subpath1", server.URL),
+	}})
+
+	err := notifier.Send(Notification{
+		Webhook: map[string]WebhookNotification{
+			"test": {Body: "hello world", Method: http.MethodPost},
+		},
+	}, "test")
+	assert.NoError(t, err)
+	assert.Equal(t, "/subpath1", receivedPath)
+
+	err = notifier.Send(Notification{
+		Webhook: map[string]WebhookNotification{
+			"test": {Body: "hello world", Method: http.MethodPost, Path: "/subpath2"},
+		},
+	}, "test")
+	assert.NoError(t, err)
+	assert.Equal(t, "/subpath1/subpath2", receivedPath)
 }
