@@ -151,44 +151,52 @@ func parseTemplates(templates []NotificationTemplate) (map[string]template, erro
 	delete(f, "expandenv")
 
 	for _, nt := range templates {
-		title, err := texttemplate.New(nt.Name).Funcs(f).Parse(nt.Title)
+		t, err := parseTemplate(nt, f)
 		if err != nil {
-			return nil, err
-		}
-		body, err := texttemplate.New(nt.Name).Funcs(f).Parse(nt.Body)
-		if err != nil {
-			return nil, err
-		}
-		t := template{title: title, body: body}
-		if nt.Slack != nil {
-			slackAttachments, err := texttemplate.New(nt.Name).Funcs(f).Parse(nt.Slack.Attachments)
-			if err != nil {
-				return nil, err
-			}
-			t.slackAttachments = slackAttachments
-			slackBlocks, err := texttemplate.New(nt.Name).Funcs(f).Parse(nt.Slack.Blocks)
-			if err != nil {
-				return nil, err
-			}
-			t.slackBlocks = slackBlocks
+			return nil, fmt.Errorf("failed to parse template %s: %v", nt.Name, err)
 		}
 
-		t.webhooks = map[string]webhookTemplate{}
-		for k, v := range nt.Webhook {
-			body, err := texttemplate.New(k).Funcs(f).Parse(v.Body)
-			if err != nil {
-				return nil, err
-			}
-			path, err := texttemplate.New(k).Funcs(f).Parse(v.Path)
-			if err != nil {
-				return nil, err
-			}
-			t.webhooks[k] = webhookTemplate{body: body, method: v.Method, path: path}
-		}
-
-		res[nt.Name] = t
+		res[nt.Name] = *t
 	}
 	return res, nil
+}
+
+func parseTemplate(nt NotificationTemplate, f texttemplate.FuncMap) (*template, error) {
+	title, err := texttemplate.New(nt.Name).Funcs(f).Parse(nt.Title)
+	if err != nil {
+		return nil, err
+	}
+	body, err := texttemplate.New(nt.Name).Funcs(f).Parse(nt.Body)
+	if err != nil {
+		return nil, err
+	}
+	t := template{title: title, body: body}
+	if nt.Slack != nil {
+		slackAttachments, err := texttemplate.New(nt.Name).Funcs(f).Parse(nt.Slack.Attachments)
+		if err != nil {
+			return nil, err
+		}
+		t.slackAttachments = slackAttachments
+		slackBlocks, err := texttemplate.New(nt.Name).Funcs(f).Parse(nt.Slack.Blocks)
+		if err != nil {
+			return nil, err
+		}
+		t.slackBlocks = slackBlocks
+	}
+
+	t.webhooks = map[string]webhookTemplate{}
+	for k, v := range nt.Webhook {
+		body, err := texttemplate.New(k).Funcs(f).Parse(v.Body)
+		if err != nil {
+			return nil, err
+		}
+		path, err := texttemplate.New(k).Funcs(f).Parse(v.Path)
+		if err != nil {
+			return nil, err
+		}
+		t.webhooks[k] = webhookTemplate{body: body, method: v.Method, path: path}
+	}
+	return &t, nil
 }
 
 func parseTriggers(triggers []NotificationTrigger, templates map[string]template) (map[string]Trigger, error) {
@@ -197,9 +205,12 @@ func parseTriggers(triggers []NotificationTrigger, templates map[string]template
 		if t.Enabled != nil && !*t.Enabled {
 			continue
 		}
+		if t.Condition == "" {
+			return nil, fmt.Errorf("trigger '%s' condition is empty", t.Name)
+		}
 		condition, err := expr.Compile(t.Condition)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to parse trigger '%s' condition: %v", t.Name, err)
 		}
 		template, ok := templates[t.Template]
 		if !ok {
