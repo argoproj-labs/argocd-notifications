@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"strings"
 	"sync"
 
@@ -14,6 +15,8 @@ import (
 	"github.com/argoproj-labs/argocd-notifications/shared/settings"
 	"github.com/argoproj-labs/argocd-notifications/triggers"
 
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	v1 "k8s.io/api/core/v1"
@@ -26,6 +29,7 @@ import (
 
 const (
 	argocdURLContextVariable = "argocdUrl"
+	defaultMetricsPort       = 9001
 )
 
 var (
@@ -47,6 +51,7 @@ func newControllerCommand() *cobra.Command {
 		namespace        string
 		appLabelSelector string
 		logLevel         string
+		metricsPort      int
 	)
 	var command = cobra.Command{
 		Use: "controller",
@@ -75,6 +80,15 @@ func newControllerCommand() *cobra.Command {
 			}
 			log.SetLevel(level)
 
+			registry := controller.NewMetricsRegistry()
+			http.Handle("/metrics", promhttp.HandlerFor(prometheus.Gatherers{registry, prometheus.DefaultGatherer}, promhttp.HandlerOpts{}))
+
+			go func() {
+				log.Fatal(http.ListenAndServe(fmt.Sprintf("0.0.0.0:%d", metricsPort), http.DefaultServeMux))
+			}()
+			log.Infof("serving metrics on port %d", metricsPort)
+			log.Infof("loading configuration %d", metricsPort)
+
 			var cancelPrev context.CancelFunc
 			watchConfig(context.Background(), k8sClient, namespace, func(triggers map[string]triggers.Trigger, notifiers map[string]notifiers.Notifier, cfg *settings.Config) error {
 				if cancelPrev != nil {
@@ -82,7 +96,7 @@ func newControllerCommand() *cobra.Command {
 					cancelPrev()
 					cancelPrev = nil
 				}
-				ctrl, err := controller.NewController(dynamicClient, namespace, triggers, notifiers, cfg.Context, cfg.Subscriptions, appLabelSelector)
+				ctrl, err := controller.NewController(dynamicClient, namespace, triggers, notifiers, cfg.Context, cfg.Subscriptions, appLabelSelector, registry)
 				if err != nil {
 					return err
 				}
@@ -106,6 +120,7 @@ func newControllerCommand() *cobra.Command {
 	command.Flags().StringVar(&appLabelSelector, "app-label-selector", "", "App label selector.")
 	command.Flags().StringVar(&namespace, "namespace", "", "Namespace which controller handles. Current namespace if empty.")
 	command.Flags().StringVar(&logLevel, "loglevel", "info", "Set the logging level. One of: debug|info|warn|error")
+	command.Flags().IntVar(&metricsPort, "metrics-port", defaultMetricsPort, "Metrics port")
 	return &command
 }
 
@@ -144,7 +159,10 @@ func watchConfig(ctx context.Context, clientset kubernetes.Interface, namespace 
 		UpdateFunc: func(oldObj, newObj interface{}) {
 			onConfigMapChanged(newObj)
 		},
-		AddFunc: onConfigMapChanged,
+		AddFunc: func(obj interface{}) {
+			log.Info("config map found")
+			onConfigMapChanged(obj)
+		},
 	})
 
 	onSecretChanged := func(newObj interface{}) {
@@ -155,9 +173,12 @@ func watchConfig(ctx context.Context, clientset kubernetes.Interface, namespace 
 
 	secretInformer := settings.NewSecretInformer(clientset, namespace)
 	secretInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
-		AddFunc: onSecretChanged,
 		UpdateFunc: func(oldObj, newObj interface{}) {
 			onSecretChanged(newObj)
+		},
+		AddFunc: func(obj interface{}) {
+			log.Info("secret found")
+			onSecretChanged(obj)
 		},
 	})
 	go secretInformer.Run(ctx.Done())

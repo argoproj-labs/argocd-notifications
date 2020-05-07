@@ -46,6 +46,7 @@ func NewController(client dynamic.Interface,
 	context map[string]string,
 	subscriptions settings.DefaultSubscriptions,
 	appLabelSelector string,
+	metricsRegistry *controllerRegistry,
 ) (NotificationController, error) {
 	appClient := clients.NewAppClient(client, namespace)
 	queue := workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter())
@@ -79,6 +80,7 @@ func NewController(client dynamic.Interface,
 		triggers:        triggers,
 		notifiers:       notifiers,
 		context:         context,
+		metricsRegistry: metricsRegistry,
 	}, nil
 }
 
@@ -110,6 +112,7 @@ type notificationController struct {
 	notifiers       map[string]notifiers.Notifier
 	context         map[string]string
 	subscriptions   settings.DefaultSubscriptions
+	metricsRegistry *controllerRegistry
 }
 
 func (c *notificationController) Init(ctx context.Context) error {
@@ -181,6 +184,7 @@ func (c *notificationController) processApp(app *unstructured.Unstructured, logE
 		recipients := c.getRecipients(app, triggerKey)
 		triggerAnnotation := fmt.Sprintf("%s.%s", triggerKey, sharedrecipients.AnnotationPostfix)
 		logEntry.Infof("Trigger %s result: %v", triggerKey, triggered)
+		c.metricsRegistry.IncTriggerEvaluationsCounter(triggerKey, triggered)
 		if triggered {
 			_, alreadyNotified := annotations[triggerAnnotation]
 			// informer might have stale data, so we cannot trust it and should reload app state to avoid sending notification twice
@@ -223,6 +227,9 @@ func (c *notificationController) processApp(app *unstructured.Unstructured, logE
 						logEntry.Errorf("Failed to notify recipient %s defined in app %s/%s: %v",
 							recipient, app.GetNamespace(), app.GetName(), err)
 						successful = false
+						c.metricsRegistry.IncDeliveriesCounter(t.GetTemplateName(), notifierType, false)
+					} else {
+						c.metricsRegistry.IncDeliveriesCounter(t.GetTemplateName(), notifierType, true)
 					}
 				}
 				if successful {
