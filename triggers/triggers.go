@@ -32,6 +32,7 @@ type NotificationTemplate struct {
 type Trigger interface {
 	Triggered(app *unstructured.Unstructured) (bool, error)
 	FormatNotification(app *unstructured.Unstructured, context map[string]string) (*notifiers.Notification, error)
+	GetTemplateName() string
 }
 
 type webhookTemplate struct {
@@ -41,6 +42,7 @@ type webhookTemplate struct {
 }
 
 type template struct {
+	name             string
 	title            *texttemplate.Template
 	body             *texttemplate.Template
 	slackAttachments *texttemplate.Template
@@ -138,6 +140,10 @@ func (t *trigger) Triggered(app *unstructured.Unstructured) (bool, error) {
 		return boolRes, nil
 	}
 	return false, nil
+}
+
+func (t *trigger) GetTemplateName() string {
+	return t.template.name
 }
 
 func (t *trigger) FormatNotification(app *unstructured.Unstructured, context map[string]string) (*notifiers.Notification, error) {

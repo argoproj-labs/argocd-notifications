@@ -45,7 +45,8 @@ func newController(t *testing.T, ctx context.Context, client dynamic.Interface, 
 		map[string]notifiers.Notifier{"mock": notifier},
 		map[string]string{},
 		subscriptions,
-		"")
+		"",
+		NewMetricsRegistry())
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -65,6 +66,7 @@ func TestSendsNotificationIfTriggered(t *testing.T) {
 	ctrl, trigger, notifier, err := newController(t, ctx, fake.NewSimpleDynamicClient(runtime.NewScheme(), app))
 	assert.NoError(t, err)
 
+	trigger.EXPECT().GetTemplateName().Return("test")
 	trigger.EXPECT().Triggered(app).Return(true, nil)
 	trigger.EXPECT().FormatNotification(app, map[string]string{"notificationType": "mock"}).Return(
 		&notifiers.Notification{Title: "title", Body: "body"}, nil)

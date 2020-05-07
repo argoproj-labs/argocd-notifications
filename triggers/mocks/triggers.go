@@ -49,6 +49,20 @@ func (mr *MockTriggerMockRecorder) FormatNotification(arg0, arg1 interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FormatNotification", reflect.TypeOf((*MockTrigger)(nil).FormatNotification), arg0, arg1)
 }
 
+// GetTemplateName mocks base method
+func (m *MockTrigger) GetTemplateName() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTemplateName")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// GetTemplateName indicates an expected call of GetTemplateName
+func (mr *MockTriggerMockRecorder) GetTemplateName() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTemplateName", reflect.TypeOf((*MockTrigger)(nil).GetTemplateName))
+}
+
 // Triggered mocks base method
 func (m *MockTrigger) Triggered(arg0 *unstructured.Unstructured) (bool, error) {
 	m.ctrl.T.Helper()
