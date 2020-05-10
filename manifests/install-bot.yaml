@@ -100,6 +100,21 @@ spec:
     app.kubernetes.io/name: argocd-notifications-bot
   type: LoadBalancer
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/name: argocd-notifications-controller-metrics
+  name: argocd-notifications-controller-metrics
+spec:
+  ports:
+  - name: metrics
+    port: 9001
+    protocol: TCP
+    targetPort: 9001
+  selector:
+    app.kubernetes.io/name: argocd-notifications-controller
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
