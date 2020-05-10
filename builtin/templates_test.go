@@ -15,7 +15,7 @@ func triggerWithTemplate(name string) (triggers.Trigger, error) {
 		Name:      "test",
 		Template:  name,
 		Condition: "true",
-	}})
+	}}, nil)
 	if err != nil {
 		return nil, err
 	}

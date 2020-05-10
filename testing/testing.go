@@ -84,6 +84,12 @@ func WithHealthStatus(status string) func(app *unstructured.Unstructured) {
 	}
 }
 
+func WithRepoURL(repo string) func(app *unstructured.Unstructured) {
+	return func(app *unstructured.Unstructured) {
+		_ = unstructured.SetNestedField(app.Object, repo, "spec", "source", "repoURL")
+	}
+}
+
 func NewApp(name string, modifiers ...func(app *unstructured.Unstructured)) *unstructured.Unstructured {
 	app := unstructured.Unstructured{}
 	app.SetGroupVersionKind(schema.GroupVersionKind{Group: "argoproj.io", Kind: "application", Version: "v1alpha1"})

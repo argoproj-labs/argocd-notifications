@@ -4,17 +4,22 @@ import (
 	"context"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
 
 	"github.com/argoproj-labs/argocd-notifications/notifiers"
+	"github.com/argoproj-labs/argocd-notifications/shared/argocd/mocks"
 	"github.com/argoproj-labs/argocd-notifications/shared/settings"
 	"github.com/argoproj-labs/argocd-notifications/triggers"
 )
 
 func TestWatchConfig(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	configMap := &v1.ConfigMap{
@@ -46,8 +51,9 @@ templates:
 
 	triggersMap := make(map[string]triggers.Trigger)
 	notifiersMap := make(map[string]notifiers.Notifier)
+	argocdService := mocks.NewMockService(ctrl)
 	clientset := fake.NewSimpleClientset(configMap, secret)
-	watchConfig(ctx, clientset, "default", func(t map[string]triggers.Trigger, n map[string]notifiers.Notifier, cfg *settings.Config) error {
+	watchConfig(ctx, argocdService, clientset, "default", func(t map[string]triggers.Trigger, n map[string]notifiers.Notifier, cfg *settings.Config) error {
 		triggersMap = t
 		notifiersMap = n
 		return nil

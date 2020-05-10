@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/argoproj-labs/argocd-notifications/notifiers"
+	"github.com/argoproj-labs/argocd-notifications/shared/argocd"
 	"github.com/argoproj-labs/argocd-notifications/triggers"
 
 	"github.com/ghodss/yaml"
@@ -133,7 +134,7 @@ func (cfg *Config) Merge(other *Config) (*Config, error) {
 }
 
 // ParseConfig parses notifications configuration from the provided config map and secret.
-func ParseConfig(configMap *v1.ConfigMap, secret *v1.Secret, defaultCfg Config) (map[string]triggers.Trigger, map[string]notifiers.Notifier, *Config, error) {
+func ParseConfig(configMap *v1.ConfigMap, secret *v1.Secret, defaultCfg Config, argocdService argocd.Service) (map[string]triggers.Trigger, map[string]notifiers.Notifier, *Config, error) {
 	cfg, err := ParseConfigMap(configMap)
 	if err != nil {
 		return nil, nil, nil, err
@@ -142,7 +143,7 @@ func ParseConfig(configMap *v1.ConfigMap, secret *v1.Secret, defaultCfg Config) 
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	t, err := triggers.GetTriggers(cfg.Templates, cfg.Triggers)
+	t, err := triggers.GetTriggers(cfg.Templates, cfg.Triggers, argocdService)
 	if err != nil {
 		return nil, nil, nil, err
 	}

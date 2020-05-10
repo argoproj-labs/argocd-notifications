@@ -16,7 +16,7 @@ func TestGetTriggers_FailsIfReferencesNonExistingTemplate(t *testing.T) {
 		Name:      "test",
 		Template:  "bad",
 		Condition: "true",
-	}})
+	}}, nil)
 	assert.EqualError(t, err, "trigger test references unknown template bad")
 }
 
@@ -31,7 +31,7 @@ func TestGetTriggers(t *testing.T) {
 		Name:      "trigger",
 		Template:  "template",
 		Condition: "app.metadata.name == 'foo'",
-	}})
+	}}, nil)
 	assert.NoError(t, err)
 
 	trigger, ok := triggers["trigger"]
@@ -62,7 +62,7 @@ func TestGetTriggers_UsingContext(t *testing.T) {
 		Name:      "trigger",
 		Template:  "template",
 		Condition: "app.metadata.name == 'foo'",
-	}})
+	}}, nil)
 	assert.NoError(t, err)
 
 	trigger, ok := triggers["trigger"]
@@ -97,7 +97,7 @@ func TestGetTriggers_UsingSlack(t *testing.T) {
 		Name:      "trigger",
 		Template:  "template",
 		Condition: "app.metadata.name == 'foo'",
-	}})
+	}}, nil)
 	assert.NoError(t, err)
 
 	trigger, ok := triggers["trigger"]
@@ -121,7 +121,7 @@ func TestGetTriggers_UsingSlack(t *testing.T) {
 
 func TestSpawnExprEnvs(t *testing.T) {
 	opts := map[string]interface{}{"app": "dummy"}
-	envs, ok := spawnExprEnvs(opts).(map[string]interface{})
+	envs, ok := spawnExprEnvs(testingutil.NewApp("test"), opts, nil).(map[string]interface{})
 	assert.True(t, ok)
 
 	_, hasApp := envs["app"]
@@ -139,7 +139,7 @@ func TestGetTriggers_UsingExprVm(t *testing.T) {
 		Name:      "trigger",
 		Template:  "template",
 		Condition: "app.metadata.name == 'foo' && app.status.operationState.phase in ['Running'] && time.Now().Sub(time.Parse(app.status.operationState.startedAt)).Minutes() >= 5",
-	}})
+	}}, nil)
 	assert.NoError(t, err)
 
 	trigger, ok := triggers["trigger"]
@@ -179,7 +179,7 @@ func TestTrigger_FormatWebhookNotification(t *testing.T) {
 		return
 	}
 
-	nt, err := testTemplate.formatNotification(testingutil.NewApp("world"), map[string]string{})
+	nt, err := testTemplate.formatNotification(testingutil.NewApp("world"), map[string]string{}, nil)
 	if !assert.NoError(t, err) {
 		return
 	}

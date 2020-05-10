@@ -33,5 +33,6 @@ data:
         body: |
           Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
       # Override one field in built-in template
-      - name: app-sync-status
+      - name: on-sync-succeeded
         title: Application {{.app.metadata.name}} sync status is {{.app.status.sync.status}}
+        body: "{{call .git.GetCommitMetadata .app.status.sync.revision}}"

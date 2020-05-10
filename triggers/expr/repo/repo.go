@@ -1,17 +1,37 @@
 package repo
 
 import (
+	"context"
+	"errors"
 	"regexp"
 	"strings"
 
-	"github.com/argoproj-labs/argocd-notifications/shared/text"
-
 	giturls "github.com/whilp/git-urls"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+
+	"github.com/argoproj-labs/argocd-notifications/shared/argocd"
+	"github.com/argoproj-labs/argocd-notifications/shared/text"
+	"github.com/argoproj-labs/argocd-notifications/triggers/expr/shared"
 )
 
 var (
 	gitSuffix = regexp.MustCompile(`\.git$`)
 )
+
+func getCommitMetadata(commitSHA string, app *unstructured.Unstructured, argocdService argocd.Service) (*shared.CommitMetadata, error) {
+	repoURL, ok, err := unstructured.NestedString(app.Object, "spec", "source", "repoURL")
+	if err != nil {
+		return nil, err
+	}
+	if !ok {
+		panic(errors.New("failed to get application source repo URL"))
+	}
+	meta, err := argocdService.GetCommitMetadata(context.Background(), repoURL, commitSHA)
+	if err != nil {
+		return nil, err
+	}
+	return meta, nil
+}
 
 func fullNameByRepoURL(rawURL string) string {
 	parsed, err := giturls.Parse(rawURL)
@@ -37,9 +57,17 @@ func repoURLToHTTPS(rawURL string) string {
 	return parsed.String()
 }
 
-func NewExprs() map[string]interface{} {
+func NewExprs(argocdService argocd.Service, app *unstructured.Unstructured) map[string]interface{} {
 	return map[string]interface{}{
 		"RepoURLToHTTPS":    repoURLToHTTPS,
 		"FullNameByRepoURL": fullNameByRepoURL,
+		"GetCommitMetadata": func(commitSHA string) interface{} {
+			meta, err := getCommitMetadata(commitSHA, app, argocdService)
+			if err != nil {
+				panic(err)
+			}
+
+			return *meta
+		},
 	}
 }

@@ -7,12 +7,13 @@ import (
 	"fmt"
 	texttemplate "text/template"
 
+	"github.com/Masterminds/sprig"
 	"github.com/antonmedv/expr"
 	"github.com/antonmedv/expr/vm"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
-	"github.com/Masterminds/sprig"
 	"github.com/argoproj-labs/argocd-notifications/notifiers"
+	"github.com/argoproj-labs/argocd-notifications/shared/argocd"
 	exprHelpers "github.com/argoproj-labs/argocd-notifications/triggers/expr"
 )
 
@@ -50,12 +51,12 @@ type template struct {
 	webhooks         map[string]webhookTemplate
 }
 
-func (tmpl template) formatNotification(app *unstructured.Unstructured, context map[string]string) (*notifiers.Notification, error) {
+func (tmpl template) formatNotification(app *unstructured.Unstructured, context map[string]string, argocdService argocd.Service) (*notifiers.Notification, error) {
 	vars := map[string]interface{}{
 		"app":     app.Object,
 		"context": context,
 	}
-	for k, v := range exprHelpers.Spawn() {
+	for k, v := range exprHelpers.Spawn(app, argocdService) {
 		vars[k] = v
 	}
 	var title bytes.Buffer
@@ -111,20 +112,21 @@ func (tmpl template) formatNotification(app *unstructured.Unstructured, context 
 }
 
 type trigger struct {
-	condition *vm.Program
-	template  template
+	condition     *vm.Program
+	template      template
+	argocdService argocd.Service
 }
 
-func GetTriggers(templatesCfg []NotificationTemplate, triggersCfg []NotificationTrigger) (map[string]Trigger, error) {
+func GetTriggers(templatesCfg []NotificationTemplate, triggersCfg []NotificationTrigger, argocdService argocd.Service) (map[string]Trigger, error) {
 	templates, err := parseTemplates(templatesCfg)
 	if err != nil {
 		return nil, err
 	}
-	return parseTriggers(triggersCfg, templates)
+	return parseTriggers(triggersCfg, templates, argocdService)
 }
 
-func spawnExprEnvs(opts map[string]interface{}) interface{} {
-	envs := exprHelpers.Spawn()
+func spawnExprEnvs(app *unstructured.Unstructured, opts map[string]interface{}, argocdService argocd.Service) interface{} {
+	envs := exprHelpers.Spawn(app, argocdService)
 	for name, env := range opts {
 		envs[name] = env
 	}
@@ -134,7 +136,7 @@ func spawnExprEnvs(opts map[string]interface{}) interface{} {
 
 func (t *trigger) Triggered(app *unstructured.Unstructured) (bool, error) {
 	envs := map[string]interface{}{"app": app.Object}
-	if res, err := expr.Run(t.condition, spawnExprEnvs(envs)); err != nil {
+	if res, err := expr.Run(t.condition, spawnExprEnvs(app, envs, t.argocdService)); err != nil {
 		return false, err
 	} else if boolRes, ok := res.(bool); ok {
 		return boolRes, nil
@@ -147,7 +149,7 @@ func (t *trigger) GetTemplateName() string {
 }
 
 func (t *trigger) FormatNotification(app *unstructured.Unstructured, context map[string]string) (*notifiers.Notification, error) {
-	return t.template.formatNotification(app, context)
+	return t.template.formatNotification(app, context, t.argocdService)
 }
 
 func parseTemplates(templates []NotificationTemplate) (map[string]template, error) {
@@ -205,7 +207,7 @@ func parseTemplate(nt NotificationTemplate, f texttemplate.FuncMap) (*template, 
 	return &t, nil
 }
 
-func parseTriggers(triggers []NotificationTrigger, templates map[string]template) (map[string]Trigger, error) {
+func parseTriggers(triggers []NotificationTrigger, templates map[string]template, argocdService argocd.Service) (map[string]Trigger, error) {
 	res := make(map[string]Trigger)
 	for _, t := range triggers {
 		if t.Enabled != nil && !*t.Enabled {
@@ -222,7 +224,7 @@ func parseTriggers(triggers []NotificationTrigger, templates map[string]template
 		if !ok {
 			return nil, fmt.Errorf("trigger %s references unknown template %s", t.Name, t.Template)
 		}
-		res[t.Name] = &trigger{condition: condition, template: template}
+		res[t.Name] = &trigger{condition: condition, template: template, argocdService: argocdService}
 	}
 	return res, nil
 }

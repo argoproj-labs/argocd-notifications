@@ -27,20 +27,6 @@ evaluation is powered by [antonmedv/expr](https://github.com/antonmedv/expr). Th
 at [Language-Definition.md](https://github.com/antonmedv/expr/blob/master/docs/Language-Definition.md).
 * **enabled** - flag that indicates if trigger is enabled or not. By default trigger is enabled.
 
-### Functions
-
-Following functions can be used with-in the condition expression:
-
-**time** (v0.5+)
-
-* `time.Now` - executes function built-in Golang [time.Now](https://golang.org/pkg/time/#Now) function.
-* `time.Parse` - parses specified string using RFC3339 layout
-
-**repo** (v0.6+)
-
-* `repo.RepoURLToHTTPS` - transforms given GIT URL into HTTPs format
-* `repo.FullNameByRepoURL` - returns repository URL full name (<owner>/<repoName>). Currently supports only Github, Gitlab and Bitbucket.
-
 ## Templates
 
 The notification template is used to generate the notification content. The template is leveraging
@@ -61,3 +47,4 @@ Each template has access to the `app` and `context` fields:
 
 - `app` holds the application object.
 - `context` is user defined string map and might include any string keys and values.
+

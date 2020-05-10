@@ -51,10 +51,12 @@ func printFormatted(input interface{}, output string, out io.Writer) error {
 
 func NewToolsCommand(defaultCfg settings.Config) *cobra.Command {
 	var (
-		cmdContext = commandContext{
-			defaultCfg: defaultCfg,
-			stdout:     os.Stdout,
-			stderr:     os.Stderr,
+		argocdRepoServer string
+		cmdContext       = commandContext{
+			defaultCfg:    defaultCfg,
+			stdout:        os.Stdout,
+			stderr:        os.Stderr,
+			argocdService: &lazyArgocdServiceInitializer{argocdRepoServer: &argocdRepoServer},
 		}
 	)
 	var command = cobra.Command{
@@ -72,9 +74,12 @@ func NewToolsCommand(defaultCfg settings.Config) *cobra.Command {
 		"config-map", "", "argocd-notifications-cm.yaml file path")
 	command.PersistentFlags().StringVar(&cmdContext.secretPath,
 		"secret", "", "argocd-notifications-secret.yaml file path. Use empty secret if provided value is ':empty'")
+	command.PersistentFlags().StringVar(&argocdRepoServer,
+		"argocd-repo-server", "argocd-repo-server:8081", "Argo CD repo server address")
 	clientConfig := cmd.AddK8SFlagsToCmd(&command)
 	cmdContext.getK8SClients = func() (kubernetes.Interface, dynamic.Interface, string, error) {
 		return getK8SClients(clientConfig)
 	}
+	cmdContext.argocdService.getK8SClients = cmdContext.getK8SClients
 	return &command
 }
