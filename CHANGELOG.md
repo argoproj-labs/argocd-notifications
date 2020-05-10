@@ -5,9 +5,17 @@
 ### Features
 
 * feat: support default subscriptions
+* feat: support loading commit metadata (#87)
+* feat: add controller prometheus metrics (#86)
+* feat: log http request/response in every notifier (#83)
+* feat: add CLI debugging commands (#81)
 
 ###  Bug Fixes
 
+* fix: don't append slash to webhook url (#70) (#85)
+* fix: improve settings parsing errors (#84)
+* fix: use strategic merge patch to merge built-in and user provided config (#74)
+* fix: ensure slack attachment properly formatted json object (#73)
 
 ## v0.6.1 (2020-03-20)
 

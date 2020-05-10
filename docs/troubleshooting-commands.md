@@ -32,6 +32,7 @@ argocd-notifications tools template get app-sync-succeeded -o=yaml
 ### Options inherited from parent commands
 
 ```
+      --argocd-repo-server string      Argo CD repo server address (default "argocd-repo-server:8081")
       --as string                      Username to impersonate for the operation
       --as-group stringArray           Group to impersonate for the operation, this flag can be repeated to specify multiple groups.
       --certificate-authority string   Path to a cert file for the certificate authority
@@ -86,6 +87,7 @@ argocd-notifications tools template notify app-sync-succeeded guestbook
 ### Options inherited from parent commands
 
 ```
+      --argocd-repo-server string      Argo CD repo server address (default "argocd-repo-server:8081")
       --as string                      Username to impersonate for the operation
       --as-group stringArray           Group to impersonate for the operation, this flag can be repeated to specify multiple groups.
       --certificate-authority string   Path to a cert file for the certificate authority
@@ -140,6 +142,7 @@ argocd-notifications tools trigger get on-sync-failed -o=yaml
 ### Options inherited from parent commands
 
 ```
+      --argocd-repo-server string      Argo CD repo server address (default "argocd-repo-server:8081")
       --as string                      Username to impersonate for the operation
       --as-group stringArray           Group to impersonate for the operation, this flag can be repeated to specify multiple groups.
       --certificate-authority string   Path to a cert file for the certificate authority
@@ -193,6 +196,7 @@ argocd-notifications tools trigger run on-sync-status-unknown ./sample-app.yaml 
 ### Options inherited from parent commands
 
 ```
+      --argocd-repo-server string      Argo CD repo server address (default "argocd-repo-server:8081")
       --as string                      Username to impersonate for the operation
       --as-group stringArray           Group to impersonate for the operation, this flag can be repeated to specify multiple groups.
       --certificate-authority string   Path to a cert file for the certificate authority
