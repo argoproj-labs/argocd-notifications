@@ -22,6 +22,7 @@ nav:
   - Overview: index.md
   - Triggers and Templates:
     - triggers_and_templates/index.md
+    - triggers_and_templates/functions.md
     - triggers_and_templates/slack.md
   - Notification Services:
     - services/overview.md

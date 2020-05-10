@@ -51,7 +51,7 @@ func TestBuiltInTriggers(t *testing.T) {
 			if testCase, ok := testCases[trigger.Name]; !ok {
 				t.Fatalf("No tests for trigger %s", trigger.Name)
 			} else {
-				builtInTriggers, err := triggers.GetTriggers(Templates, []triggers.NotificationTrigger{trigger})
+				builtInTriggers, err := triggers.GetTriggers(Templates, []triggers.NotificationTrigger{trigger}, nil)
 				assert.NoError(t, err)
 				item := builtInTriggers[trigger.Name]
 				for i := range testCase.negativeInputs {

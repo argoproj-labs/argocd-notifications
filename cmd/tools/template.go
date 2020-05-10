@@ -68,7 +68,7 @@ argocd-notifications tools template notify app-sync-succeeded guestbook
 				Name:      "__test__",
 				Template:  name,
 				Condition: "true",
-			}})
+			}}, cmdContext.argocdService)
 			if err != nil {
 				_, _ = fmt.Fprintf(cmdContext.stderr, "failed to parse config: %v\n", err)
 				return nil
@@ -90,7 +90,7 @@ argocd-notifications tools template notify app-sync-succeeded guestbook
 				notifierType := parts[0]
 				notifier, ok := notifiersByName[notifierType]
 				if !ok {
-					_, _ = fmt.Fprintf(cmdContext.stderr, "%s is not valid recipient type.", notifierType)
+					_, _ = fmt.Fprintf(cmdContext.stderr, "%s is not valid recipient type.\n", notifierType)
 					return nil
 				}
 
@@ -98,10 +98,12 @@ argocd-notifications tools template notify app-sync-succeeded guestbook
 				ctx["notificationType"] = notifierType
 				notification, err := trigger.FormatNotification(app, ctx)
 				if err != nil {
-					_, _ = fmt.Fprintf(cmdContext.stderr, "failed to format notification: %v", err)
+					_, _ = fmt.Fprintf(cmdContext.stderr, "failed to format notification: %v\n", err)
+					return nil
 				}
 				if err = notifier.Send(*notification, parts[1]); err != nil {
-					_, _ = fmt.Fprintf(cmdContext.stderr, "failed to notify '%s': %v", recipient, err)
+					_, _ = fmt.Fprintf(cmdContext.stderr, "failed to notify '%s': %v\n", recipient, err)
+					return nil
 				}
 			}
 

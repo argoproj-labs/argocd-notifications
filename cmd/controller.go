@@ -11,6 +11,7 @@ import (
 	"github.com/argoproj-labs/argocd-notifications/builtin"
 	"github.com/argoproj-labs/argocd-notifications/controller"
 	"github.com/argoproj-labs/argocd-notifications/notifiers"
+	"github.com/argoproj-labs/argocd-notifications/shared/argocd"
 	"github.com/argoproj-labs/argocd-notifications/shared/cmd"
 	"github.com/argoproj-labs/argocd-notifications/shared/settings"
 	"github.com/argoproj-labs/argocd-notifications/triggers"
@@ -52,6 +53,7 @@ func newControllerCommand() *cobra.Command {
 		appLabelSelector string
 		logLevel         string
 		metricsPort      int
+		argocdRepoServer string
 	)
 	var command = cobra.Command{
 		Use: "controller",
@@ -80,6 +82,12 @@ func newControllerCommand() *cobra.Command {
 			}
 			log.SetLevel(level)
 
+			argocdService, err := argocd.NewArgoCDService(k8sClient, namespace, argocdRepoServer)
+			if err != nil {
+				return err
+			}
+			defer argocdService.Close()
+
 			registry := controller.NewMetricsRegistry()
 			http.Handle("/metrics", promhttp.HandlerFor(prometheus.Gatherers{registry, prometheus.DefaultGatherer}, promhttp.HandlerOpts{}))
 
@@ -90,7 +98,7 @@ func newControllerCommand() *cobra.Command {
 			log.Infof("loading configuration %d", metricsPort)
 
 			var cancelPrev context.CancelFunc
-			watchConfig(context.Background(), k8sClient, namespace, func(triggers map[string]triggers.Trigger, notifiers map[string]notifiers.Notifier, cfg *settings.Config) error {
+			watchConfig(context.Background(), argocdService, k8sClient, namespace, func(triggers map[string]triggers.Trigger, notifiers map[string]notifiers.Notifier, cfg *settings.Config) error {
 				if cancelPrev != nil {
 					log.Info("Settings had been updated. Restarting controller...")
 					cancelPrev()
@@ -121,10 +129,11 @@ func newControllerCommand() *cobra.Command {
 	command.Flags().StringVar(&namespace, "namespace", "", "Namespace which controller handles. Current namespace if empty.")
 	command.Flags().StringVar(&logLevel, "loglevel", "info", "Set the logging level. One of: debug|info|warn|error")
 	command.Flags().IntVar(&metricsPort, "metrics-port", defaultMetricsPort, "Metrics port")
+	command.Flags().StringVar(&argocdRepoServer, "argocd-repo-server", "argocd-repo-server:8081", "Argo CD repo server address")
 	return &command
 }
 
-func watchConfig(ctx context.Context, clientset kubernetes.Interface, namespace string, callback func(map[string]triggers.Trigger, map[string]notifiers.Notifier, *settings.Config) error) {
+func watchConfig(ctx context.Context, argocdService argocd.Service, clientset kubernetes.Interface, namespace string, callback func(map[string]triggers.Trigger, map[string]notifiers.Notifier, *settings.Config) error) {
 	var secret *v1.Secret
 	var configMap *v1.ConfigMap
 	lock := &sync.Mutex{}
@@ -138,7 +147,7 @@ func watchConfig(ctx context.Context, clientset kubernetes.Interface, namespace 
 			configMap = newConfigMap
 		}
 		if secret != nil && configMap != nil {
-			if t, n, c, err := settings.ParseConfig(configMap, secret, defaultCfg); err == nil {
+			if t, n, c, err := settings.ParseConfig(configMap, secret, defaultCfg, argocdService); err == nil {
 				if err = callback(t, n, c); err != nil {
 					log.Fatalf("Failed to start controller: %v", err)
 				}

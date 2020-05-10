@@ -1,9 +1,11 @@
 package tools
 
 import (
+	"context"
 	"io"
 	"io/ioutil"
 	"path/filepath"
+	"sync"
 
 	"github.com/ghodss/yaml"
 	v1 "k8s.io/api/core/v1"
@@ -14,10 +16,14 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/argoproj-labs/argocd-notifications/notifiers"
+	"github.com/argoproj-labs/argocd-notifications/shared/argocd"
 	"github.com/argoproj-labs/argocd-notifications/shared/clients"
 	"github.com/argoproj-labs/argocd-notifications/shared/settings"
 	"github.com/argoproj-labs/argocd-notifications/triggers"
+	"github.com/argoproj-labs/argocd-notifications/triggers/expr/shared"
 )
+
+type clientsSource = func() (kubernetes.Interface, dynamic.Interface, string, error)
 
 type commandContext struct {
 	configMapPath string
@@ -25,7 +31,39 @@ type commandContext struct {
 	defaultCfg    settings.Config
 	stdout        io.Writer
 	stderr        io.Writer
-	getK8SClients func() (kubernetes.Interface, dynamic.Interface, string, error)
+	getK8SClients clientsSource
+	argocdService *lazyArgocdServiceInitializer
+}
+
+type lazyArgocdServiceInitializer struct {
+	argocdRepoServer *string
+	argocdService    argocd.Service
+	init             sync.Once
+	getK8SClients    clientsSource
+}
+
+func (svc *lazyArgocdServiceInitializer) initArgoCDService() error {
+	k8sClient, _, ns, err := svc.getK8SClients()
+	if err != nil {
+		return err
+	}
+	argocdService, err := argocd.NewArgoCDService(k8sClient, ns, *svc.argocdRepoServer)
+	if err != nil {
+		return err
+	}
+	svc.argocdService = argocdService
+	return nil
+}
+
+func (svc *lazyArgocdServiceInitializer) GetCommitMetadata(ctx context.Context, repoURL string, commitSHA string) (*shared.CommitMetadata, error) {
+	var err error
+	svc.init.Do(func() {
+		err = svc.initArgoCDService()
+	})
+	if err != nil {
+		return nil, err
+	}
+	return svc.argocdService.GetCommitMetadata(ctx, repoURL, commitSHA)
 }
 
 func getK8SClients(clientConfig clientcmd.ClientConfig) (kubernetes.Interface, dynamic.Interface, string, error) {
@@ -93,7 +131,7 @@ func (c *commandContext) getConfig() (map[string]triggers.Trigger, map[string]no
 		}
 	}
 
-	return settings.ParseConfig(&configMap, &secret, c.defaultCfg)
+	return settings.ParseConfig(&configMap, &secret, c.defaultCfg, &lazyArgocdServiceInitializer{})
 }
 
 func (c *commandContext) loadApplication(application string) (*unstructured.Unstructured, error) {
