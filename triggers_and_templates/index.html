@@ -11,7 +11,7 @@
       
       
       <link rel="shortcut icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.1, mkdocs-material-5.1.5">
+      <meta name="generator" content="mkdocs-1.1, mkdocs-material-5.1.6">
     
     
       
@@ -19,9 +19,9 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.df84b5fe.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.4b9ffd7b.min.css">
       
-        <link rel="stylesheet" href="../assets/stylesheets/palette.8435c73a.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.b79bcd20.min.css">
       
       
         
@@ -267,19 +267,6 @@
     Triggers
   </a>
   
-    <nav class="md-nav" aria-label="Triggers">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#functions" class="md-nav__link">
-    Functions
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
@@ -293,6 +280,18 @@
   
 </nav>
     
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="functions/" title="Functions" class="md-nav__link">
+      Functions
+    </a>
   </li>
 
         
@@ -559,19 +558,6 @@
     Triggers
   </a>
   
-    <nav class="md-nav" aria-label="Triggers">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#functions" class="md-nav__link">
-    Functions
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
@@ -638,8 +624,9 @@
         <span class="no">body: |</span>
           <span class="no">Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.</span>
       <span class="no"># Override one field in built-in template</span>
-      <span class="no">- name: app-sync-status</span>
+      <span class="no">- name: on-sync-succeeded</span>
         <span class="no">title: Application {{.app.metadata.name}} sync status is {{.app.status.sync.status}}</span>
+        <span class="no">body: &quot;{{call .git.GetCommitMetadata .app.status.sync.revision}}&quot;</span>
 </code></pre></div>
 
 
@@ -661,18 +648,6 @@ and notification template reference.</p>
 evaluation is powered by <a href="https://github.com/antonmedv/expr">antonmedv/expr</a>. The condition language syntax is described
 at <a href="https://github.com/antonmedv/expr/blob/master/docs/Language-Definition.md">Language-Definition.md</a>.</li>
 <li><strong>enabled</strong> - flag that indicates if trigger is enabled or not. By default trigger is enabled.</li>
-</ul>
-<h3 id="functions">Functions<a class="headerlink" href="#functions" title="Permanent link">&para;</a></h3>
-<p>Following functions can be used with-in the condition expression:</p>
-<p><strong>time</strong> (v0.5+)</p>
-<ul>
-<li><code>time.Now</code> - executes function built-in Golang <a href="https://golang.org/pkg/time/#Now">time.Now</a> function.</li>
-<li><code>time.Parse</code> - parses specified string using RFC3339 layout</li>
-</ul>
-<p><strong>repo</strong> (v0.6+)</p>
-<ul>
-<li><code>repo.RepoURLToHTTPS</code> - transforms given GIT URL into HTTPs format</li>
-<li><code>repo.FullNameByRepoURL</code> - returns repository URL full name (<owner>/<repoName>). Currently supports only Github, Gitlab and Bitbucket.</li>
 </ul>
 <h2 id="templates">Templates<a class="headerlink" href="#templates" title="Permanent link">&para;</a></h2>
 <p>The notification template is used to generate the notification content. The template is leveraging
@@ -725,13 +700,13 @@ The template is meant to be reusable and can be referenced by multiple triggers.
           </a>
         
         
-          <a href="slack/" title="Slack (v0.4.0+)" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="functions/" title="Functions" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Slack (v0.4.0+)
+                Functions
               </div>
             </div>
             <div class="md-footer-nav__button md-icon">
@@ -758,8 +733,8 @@ The template is meant to be reusable and can be referenced by multiple triggers.
       
     </div>
     
-      <script src="../assets/javascripts/vendor.83fe6e3c.min.js"></script>
-      <script src="../assets/javascripts/bundle.7e1cb91c.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
+      <script src="../assets/javascripts/vendor.a0c4167b.min.js"></script>
+      <script src="../assets/javascripts/bundle.fb26dd1d.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
       
       <script>
         app = initialize({
