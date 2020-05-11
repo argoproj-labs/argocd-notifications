@@ -38,4 +38,5 @@ nav:
     - recipients/opsgenie-bot.md
     - recipients/telegram-bot.md
   - troubleshooting.md
+  - monitoring.md
   - built-in.md
