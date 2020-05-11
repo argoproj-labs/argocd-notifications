@@ -43,8 +43,10 @@ The following template is used to notify the user about application sync status.
       Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
 ```
 
-Each template has access to the `app` and `context` fields:
+Each template has access to the following fields:
 
 - `app` holds the application object.
 - `context` is user defined string map and might include any string keys and values.
+- `notificationType` holds the notification service type name. The field can be used to conditionally
+render service specific fields.
 
