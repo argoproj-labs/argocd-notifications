@@ -673,10 +673,12 @@ The template is meant to be reusable and can be referenced by multiple triggers.
 </code></pre></div>
 
 
-<p>Each template has access to the <code>app</code> and <code>context</code> fields:</p>
+<p>Each template has access to the following fields:</p>
 <ul>
 <li><code>app</code> holds the application object.</li>
 <li><code>context</code> is user defined string map and might include any string keys and values.</li>
+<li><code>notificationType</code> holds the notification service type name. The field can be used to conditionally
+render service specific fields.</li>
 </ul>
                 
               
