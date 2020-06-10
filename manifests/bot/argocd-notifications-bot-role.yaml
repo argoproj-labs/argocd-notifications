@@ -4,6 +4,16 @@ metadata:
   name: argocd-notifications-bot
 rules:
 - apiGroups:
+  - ''
+  resourceNames:
+  - argocd-notifications-secret
+  resources:
+  - secrets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
   - argoproj.io
   resources:
   - applications
