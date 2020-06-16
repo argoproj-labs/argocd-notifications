@@ -53,3 +53,19 @@ kubectl patch app <my-app> -n argocd -p '{"metadata": {"annotations": {"recipien
 ```
 
 Try syncing and application and get the notification once sync is completed.
+
+## Helm v3 Getting Started
+
+argocd-notifications is now on [Helm Hub](https://hub.helm.sh/charts/argo/argocd-notifications) as a Helm v3 chart, making it even easier to get started as
+installing and configuring happen together:
+
+```shell
+helm repo add argo https://argoproj.github.io/argo-helm
+helm install argo/argocd-notifications --generate-name \
+    --set triggers[0].name=on-sync-succeeded \
+    --set triggers[0].enabled=true \
+    --set secret.notifiers.slack.enabled=true \
+    --set secret.notifiers.slack.token=<my-token>
+```
+
+For more information or to contribute, check out the [argoproj/argo-helm repository](https://github.com/argoproj/argo-helm/tree/master/charts/argocd-notifications).
