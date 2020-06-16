@@ -11,7 +11,7 @@
       
       
       <link rel="shortcut icon" href="assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-5.2.3">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-5.3.0">
     
     
       
@@ -55,6 +55,7 @@
     
     <body dir="ltr" data-md-color-scheme="" data-md-color-primary="teal" data-md-color-accent="">
   
+    
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
     <label class="md-overlay" for="__drawer"></label>
@@ -226,6 +227,13 @@
         <li class="md-nav__item">
   <a href="#getting-started" class="md-nav__link">
     Getting Started
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#helm-v3-getting-started" class="md-nav__link">
+    Helm v3 Getting Started
   </a>
   
 </li>
@@ -563,6 +571,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#helm-v3-getting-started" class="md-nav__link">
+    Helm v3 Getting Started
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -640,6 +655,19 @@ application or project:</li>
 
 
 <p>Try syncing and application and get the notification once sync is completed.</p>
+<h2 id="helm-v3-getting-started">Helm v3 Getting Started<a class="headerlink" href="#helm-v3-getting-started" title="Permanent link">&para;</a></h2>
+<p>argocd-notifications is now on <a href="https://hub.helm.sh/charts/argo/argocd-notifications">Helm Hub</a> as a Helm v3 chart, making it even easier to get started as
+installing and configuring happen together:</p>
+<div class="codehilite"><pre><span></span><code>helm repo add argo https://argoproj.github.io/argo-helm
+helm install argo/argocd-notifications --generate-name <span class="se">\</span>
+    --set triggers<span class="o">[</span><span class="m">0</span><span class="o">]</span>.name<span class="o">=</span>on-sync-succeeded <span class="se">\</span>
+    --set triggers<span class="o">[</span><span class="m">0</span><span class="o">]</span>.enabled<span class="o">=</span><span class="nb">true</span> <span class="se">\</span>
+    --set secret.notifiers.slack.enabled<span class="o">=</span><span class="nb">true</span> <span class="se">\</span>
+    --set secret.notifiers.slack.token<span class="o">=</span>&lt;my-token&gt;
+</code></pre></div>
+
+
+<p>For more information or to contribute, check out the <a href="https://github.com/argoproj/argo-helm/tree/master/charts/argocd-notifications">argoproj/argo-helm repository</a>.</p>
                 
               
               
@@ -693,14 +721,14 @@ application or project:</li>
     </div>
     
       <script src="assets/javascripts/vendor.d710d30a.min.js"></script>
-      <script src="assets/javascripts/bundle.a45f732b.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
+      <script src="assets/javascripts/bundle.a14cc5fd.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
       
       <script>
         app = initialize({
           base: ".",
           features: [],
           search: Object.assign({
-            worker: "assets/javascripts/worker/search.c03f0417.min.js"
+            worker: "assets/javascripts/worker/search.7a2ea5ba.min.js"
           }, typeof search !== "undefined" && search)
         })
       </script>
