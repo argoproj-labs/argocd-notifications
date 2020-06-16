@@ -90,4 +90,6 @@ spec:
         imagePullPolicy: Always
         name: argocd-notifications-controller
         workingDir: /app
+      securityContext:
+        runAsNonRoot: true
       serviceAccountName: argocd-notifications-controller
