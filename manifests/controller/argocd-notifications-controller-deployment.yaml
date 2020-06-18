@@ -22,3 +22,5 @@ spec:
           imagePullPolicy: Always
           name: argocd-notifications-controller
       serviceAccountName: argocd-notifications-controller
+      securityContext:
+          runAsNonRoot: true
