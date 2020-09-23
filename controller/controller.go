@@ -186,7 +186,7 @@ func (c *notificationController) processApp(app *unstructured.Unstructured, logE
 		c.metricsRegistry.IncTriggerEvaluationsCounter(triggerKey, triggered)
 		if !triggered {
 			for recipient := range recipients {
-				triggerAnnotation := fmt.Sprintf("%s.%s.%s", triggerKey, strings.Replace(recipient, ":", ".", 1), sharedrecipients.AnnotationPostfix)
+				triggerAnnotation := sharedrecipients.FormatTriggerRecipientAnnotation(triggerKey, recipient)
 				delete(annotations, triggerAnnotation)
 			}
 			app.SetAnnotations(annotations)
@@ -194,7 +194,7 @@ func (c *notificationController) processApp(app *unstructured.Unstructured, logE
 		}
 
 		for recipient := range recipients {
-			triggerAnnotation := fmt.Sprintf("%s.%s.%s", triggerKey, strings.Replace(recipient, ":", ".", 1), sharedrecipients.AnnotationPostfix)
+			triggerAnnotation := sharedrecipients.FormatTriggerRecipientAnnotation(triggerKey, recipient)
 			_, alreadyNotified := annotations[triggerAnnotation]
 			// informer might have stale data, so we cannot trust it and should reload app state to avoid sending notification twice
 			if !alreadyNotified && !refreshed {
