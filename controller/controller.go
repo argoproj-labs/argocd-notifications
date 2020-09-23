@@ -182,10 +182,19 @@ func (c *notificationController) processApp(app *unstructured.Unstructured, logE
 			logEntry.Debugf("Failed to execute condition of trigger %s: %v", triggerKey, err)
 		}
 		recipients := c.getRecipients(app, triggerKey)
-		triggerAnnotation := fmt.Sprintf("%s.%s", triggerKey, sharedrecipients.AnnotationPostfix)
 		logEntry.Infof("Trigger %s result: %v", triggerKey, triggered)
 		c.metricsRegistry.IncTriggerEvaluationsCounter(triggerKey, triggered)
-		if triggered {
+		if !triggered {
+			for recipient := range recipients {
+				triggerAnnotation := sharedrecipients.FormatTriggerRecipientAnnotation(triggerKey, recipient)
+				delete(annotations, triggerAnnotation)
+			}
+			app.SetAnnotations(annotations)
+			continue
+		}
+
+		for recipient := range recipients {
+			triggerAnnotation := sharedrecipients.FormatTriggerRecipientAnnotation(triggerKey, recipient)
 			_, alreadyNotified := annotations[triggerAnnotation]
 			// informer might have stale data, so we cannot trust it and should reload app state to avoid sending notification twice
 			if !alreadyNotified && !refreshed {
@@ -202,45 +211,44 @@ func (c *notificationController) processApp(app *unstructured.Unstructured, logE
 
 				refreshed = true
 			}
-
-			if !alreadyNotified {
-				successful := true
-				for recipient := range recipients {
-					parts := strings.Split(recipient, ":")
-					if len(parts) < 2 {
-						return fmt.Errorf("%s is not valid recipient. Expected recipient format is <type>:<name>", recipient)
-					}
-					notifierType := parts[0]
-					notifier, ok := c.notifiers[notifierType]
-					if !ok {
-						return fmt.Errorf("%s is not valid recipient type.", notifierType)
-					}
-
-					logEntry.Infof("Sending %s notification", triggerKey)
-					ctx := sharedrecipients.CopyStringMap(c.context)
-					ctx[notificationType] = notifierType
-					notification, err := t.FormatNotification(app, ctx)
-					if err != nil {
-						return err
-					}
-					if err = notifier.Send(*notification, parts[1]); err != nil {
-						logEntry.Errorf("Failed to notify recipient %s defined in app %s/%s: %v",
-							recipient, app.GetNamespace(), app.GetName(), err)
-						successful = false
-						c.metricsRegistry.IncDeliveriesCounter(t.GetTemplateName(), notifierType, false)
-					} else {
-						c.metricsRegistry.IncDeliveriesCounter(t.GetTemplateName(), notifierType, true)
-					}
-				}
-				if successful {
-					annotations[triggerAnnotation] = time.Now().Format(time.RFC3339)
-				}
-			} else {
+			if alreadyNotified {
 				logEntry.Infof("%s notification already sent", triggerKey)
+				continue // move to the next recipient
 			}
-		} else {
-			delete(annotations, triggerAnnotation)
+			successful := true
+
+			parts := strings.Split(recipient, ":")
+			if len(parts) < 2 {
+				return fmt.Errorf("%s is not valid recipient. Expected recipient format is <type>:<name>", recipient)
+			}
+			notifierType := parts[0]
+			notifier, ok := c.notifiers[notifierType]
+			if !ok {
+				return fmt.Errorf("%s is not valid recipient type.", notifierType)
+			}
+
+			logEntry.Infof("Sending %s notification", triggerKey)
+			ctx := sharedrecipients.CopyStringMap(c.context)
+			ctx[notificationType] = notifierType
+			notification, err := t.FormatNotification(app, ctx)
+			if err != nil {
+				return err
+			}
+			if err = notifier.Send(*notification, parts[1]); err != nil {
+				logEntry.Errorf("Failed to notify recipient %s defined in app %s/%s: %v",
+					recipient, app.GetNamespace(), app.GetName(), err)
+				successful = false
+				c.metricsRegistry.IncDeliveriesCounter(t.GetTemplateName(), notifierType, false)
+			} else {
+				c.metricsRegistry.IncDeliveriesCounter(t.GetTemplateName(), notifierType, true)
+			}
+
+			if successful {
+				logEntry.Debugf("Notification %s was sent", recipient)
+				annotations[triggerAnnotation] = time.Now().Format(time.RFC3339)
+			}
 		}
+
 	}
 	app.SetAnnotations(annotations)
 	return nil

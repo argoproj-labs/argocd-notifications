@@ -75,15 +75,15 @@ func TestSendsNotificationIfTriggered(t *testing.T) {
 	err = ctrl.processApp(app, logEntry)
 
 	assert.NoError(t, err)
-	assert.NotEmpty(t, app.GetAnnotations()[fmt.Sprintf("mock.%s", recipients.AnnotationPostfix)])
+	assert.NotEmpty(t, app.GetAnnotations()[fmt.Sprintf("mock.mock.recipient.%s", recipients.AnnotationPostfix)])
 }
 
 func TestDoesNotSendNotificationIfAnnotationPresent(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 	app := NewApp("test", WithAnnotations(map[string]string{
-		recipients.RecipientsAnnotation:                      "mock:recipient",
-		fmt.Sprintf("mock.%s", recipients.AnnotationPostfix): time.Now().Format(time.RFC3339),
+		recipients.RecipientsAnnotation:                                     "mock:recipient",
+		fmt.Sprintf("mock.mock.recipient.%s", recipients.AnnotationPostfix): time.Now().Format(time.RFC3339),
 	}))
 	ctrl, trigger, _, err := newController(t, ctx, fake.NewSimpleDynamicClient(runtime.NewScheme(), app))
 	assert.NoError(t, err)
@@ -99,8 +99,8 @@ func TestRemovesAnnotationIfNoTrigger(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 	app := NewApp("test", WithAnnotations(map[string]string{
-		recipients.RecipientsAnnotation:                      "mock:recipient",
-		fmt.Sprintf("mock.%s", recipients.AnnotationPostfix): time.Now().Format(time.RFC3339),
+		recipients.RecipientsAnnotation:                                     "mock:recipient",
+		fmt.Sprintf("mock.mock.recipient.%s", recipients.AnnotationPostfix): time.Now().Format(time.RFC3339),
 	}))
 	ctrl, trigger, _, err := newController(t, ctx, fake.NewSimpleDynamicClient(runtime.NewScheme(), app))
 	assert.NoError(t, err)
@@ -110,7 +110,7 @@ func TestRemovesAnnotationIfNoTrigger(t *testing.T) {
 	err = ctrl.processApp(app, logEntry)
 
 	assert.NoError(t, err)
-	assert.Empty(t, app.GetAnnotations()[fmt.Sprintf("mock.%s", recipients.AnnotationPostfix)])
+	assert.Empty(t, app.GetAnnotations()[fmt.Sprintf("mock.mock.recipient.%s", recipients.AnnotationPostfix)])
 }
 
 func TestGetRecipients(t *testing.T) {
@@ -148,8 +148,8 @@ func TestUpdatedAnnotationsSavedAsPatch(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 	app := NewApp("test", WithAnnotations(map[string]string{
-		recipients.RecipientsAnnotation:                      "mock:recipient",
-		fmt.Sprintf("mock.%s", recipients.AnnotationPostfix): time.Now().Format(time.RFC3339),
+		recipients.RecipientsAnnotation:                                     "mock:recipient",
+		fmt.Sprintf("mock.mock.recipient.%s", recipients.AnnotationPostfix): time.Now().Format(time.RFC3339),
 	}))
 
 	patchCh := make(chan []byte)
@@ -167,13 +167,13 @@ func TestUpdatedAnnotationsSavedAsPatch(t *testing.T) {
 	go ctrl.Run(ctx, 1)
 
 	select {
-	case <-time.After(time.Second * 10000):
+	case <-time.After(time.Second * 60):
 		t.Error("application was not patched")
 	case patchData := <-patchCh:
 		patch := map[string]interface{}{}
 		err = json.Unmarshal(patchData, &patch)
 		assert.NoError(t, err)
-		val, ok, err := unstructured.NestedFieldNoCopy(patch, "metadata", "annotations", fmt.Sprintf("mock.%s", recipients.AnnotationPostfix))
+		val, ok, err := unstructured.NestedFieldNoCopy(patch, "metadata", "annotations", fmt.Sprintf("mock.mock.recipient.%s", recipients.AnnotationPostfix))
 		assert.NoError(t, err)
 		assert.True(t, ok)
 		assert.Nil(t, val)
