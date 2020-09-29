@@ -11,8 +11,8 @@ import (
 
 	httputil "github.com/argoproj-labs/argocd-notifications/shared/http"
 
-	"github.com/nlopes/slack"
 	log "github.com/sirupsen/logrus"
+	"github.com/slack-go/slack"
 )
 
 type SlackNotification struct {

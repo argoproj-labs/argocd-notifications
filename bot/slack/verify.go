@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	slackclient "github.com/nlopes/slack"
+	slackclient "github.com/slack-go/slack"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/cache"
 

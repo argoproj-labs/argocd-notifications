@@ -13,7 +13,7 @@ import (
 
 	"github.com/argoproj-labs/argocd-notifications/bot"
 
-	slackclient "github.com/nlopes/slack"
+	slackclient "github.com/slack-go/slack"
 )
 
 func NewSlackAdapter(verifier RequestVerifier) *slack {
