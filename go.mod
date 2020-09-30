@@ -24,12 +24,12 @@ require (
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/magiconair/properties v1.8.0
 	github.com/mitchellh/copystructure v1.0.0 // indirect
-	github.com/nlopes/slack v0.6.0
 	github.com/olekukonko/tablewriter v0.0.4
 	github.com/opsgenie/opsgenie-go-sdk-v2 v1.0.5
 	github.com/prometheus/client_golang v1.6.0
 	github.com/robfig/cron v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.4.2
+	github.com/slack-go/slack v0.6.6
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/testify v1.4.0
