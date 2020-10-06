@@ -6,17 +6,18 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"os"
+	"path"
 	"strings"
 
 	"github.com/olekukonko/tablewriter"
 
-	"github.com/argoproj-labs/argocd-notifications/builtin"
 	"github.com/argoproj-labs/argocd-notifications/cmd/tools"
 	"github.com/argoproj-labs/argocd-notifications/shared/settings"
 	"github.com/spf13/cobra/doc"
 )
 
-func generateBuiltInTriggersDocs(out io.Writer) {
+func generateBuiltInTriggersDocs(out io.Writer, builtin *settings.Config) {
 	_, _ = fmt.Fprintln(out, "# Built-in Triggers and Templates")
 	_, _ = fmt.Fprintln(out, "## Triggers")
 
@@ -38,7 +39,7 @@ func generateBuiltInTriggersDocs(out io.Writer) {
 }
 
 func generateCommandsDocs(out io.Writer) error {
-	toolsCmd := tools.NewToolsCommand(settings.Config{})
+	toolsCmd := tools.NewToolsCommand(nil) // TODO: add here
 	for _, subCommand := range toolsCmd.Commands() {
 		for _, cmd := range subCommand.Commands() {
 			var cmdDesc bytes.Buffer
@@ -58,7 +59,15 @@ func generateCommandsDocs(out io.Writer) error {
 
 func main() {
 	var builtItDocsData bytes.Buffer
-	generateBuiltInTriggersDocs(&builtItDocsData)
+	wd, err := os.Getwd()
+	dieOnError(err, "Failed to get current working directory")
+
+	templatesDir := path.Join(wd, "builtin/templates")
+	triggersDir := path.Join(wd, "builtin/triggers")
+
+	cnf, err := tools.BuildConfigFromFS(templatesDir, triggersDir)
+	dieOnError(err, "Failed to build builtin config")
+	generateBuiltInTriggersDocs(&builtItDocsData, cnf)
 	if err := ioutil.WriteFile("./docs/built-in.md", builtItDocsData.Bytes(), 0644); err != nil {
 		log.Fatal(err)
 	}
@@ -68,5 +77,12 @@ func main() {
 	}
 	if err := ioutil.WriteFile("./docs/troubleshooting-commands.md", commandDocs.Bytes(), 0644); err != nil {
 		log.Fatal(err)
+	}
+}
+
+func dieOnError(err error, msg string) {
+	if err != nil {
+		fmt.Printf("[ERROR] %s: %v", msg, err)
+		os.Exit(1)
 	}
 }

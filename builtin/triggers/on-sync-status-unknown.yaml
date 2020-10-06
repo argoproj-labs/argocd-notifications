@@ -1,0 +1,4 @@
+condition:   "app.status.sync.status == 'Unknown'"
+description: "Application status is 'Unknown'"
+template:    "app-sync-status-unknown"
+enabled:     false

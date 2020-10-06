@@ -23,16 +23,19 @@ import (
 	"github.com/argoproj-labs/argocd-notifications/triggers/expr/shared"
 )
 
-type clientsSource = func() (kubernetes.Interface, dynamic.Interface, string, error)
+type (
+	clientsSource     = func() (kubernetes.Interface, dynamic.Interface, string, error)
+	loadBuiltinConfig = func(ctx context.Context, cm *v1.ConfigMap) *settings.Config
+)
 
 type commandContext struct {
-	configMapPath string
-	secretPath    string
-	defaultCfg    settings.Config
-	stdout        io.Writer
-	stderr        io.Writer
-	getK8SClients clientsSource
-	argocdService *lazyArgocdServiceInitializer
+	configMapPath    string
+	secretPath       string
+	stdout           io.Writer
+	stderr           io.Writer
+	getK8SClients    clientsSource
+	getBuiltinConfig loadBuiltinConfig
+	argocdService    *lazyArgocdServiceInitializer
 }
 
 type lazyArgocdServiceInitializer struct {
@@ -87,18 +90,25 @@ func getK8SClients(clientConfig clientcmd.ClientConfig) (kubernetes.Interface, d
 }
 
 func (c *commandContext) getConfig() (map[string]triggers.Trigger, map[string]notifiers.Notifier, *settings.Config, error) {
+	var builtin *settings.Config
 	var configMap v1.ConfigMap
 	if c.configMapPath == "" {
 		k8sClient, _, ns, err := c.getK8SClients()
 		if err != nil {
 			return nil, nil, nil, err
 		}
+		builtinCm, err := k8sClient.CoreV1().ConfigMaps(ns).Get(settings.ConfigMapBuildInName, metav1.GetOptions{})
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		builtin = c.getBuiltinConfig(context.Background(), builtinCm)
 		cm, err := k8sClient.CoreV1().ConfigMaps(ns).Get(settings.ConfigMapName, metav1.GetOptions{})
 		if err != nil {
 			return nil, nil, nil, err
 		}
 		configMap = *cm
 	} else {
+		builtin = &settings.Config{}
 		data, err := ioutil.ReadFile(c.configMapPath)
 		if err != nil {
 			return nil, nil, nil, err
@@ -130,8 +140,7 @@ func (c *commandContext) getConfig() (map[string]triggers.Trigger, map[string]no
 			return nil, nil, nil, err
 		}
 	}
-
-	return settings.ParseConfig(&configMap, &secret, c.defaultCfg, &lazyArgocdServiceInitializer{})
+	return settings.ParseConfig(&configMap, &secret, *builtin, &lazyArgocdServiceInitializer{})
 }
 
 func (c *commandContext) loadApplication(application string) (*unstructured.Unstructured, error) {

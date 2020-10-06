@@ -2,6 +2,7 @@ package tools
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"io/ioutil"
 	"os"
@@ -59,6 +60,9 @@ func newTestContext(stdout io.Writer, stderr io.Writer, config settings.Config, 
 		getK8SClients: func() (kubernetes.Interface, dynamic.Interface, string, error) {
 			dynamicClient := dynamicfake.NewSimpleDynamicClient(runtime.NewScheme(), apps...)
 			return fake.NewSimpleClientset(), dynamicClient, "default", nil
+		},
+		getBuiltinConfig: func(ctx context.Context, cn *v1.ConfigMap) *settings.Config {
+			return &settings.Config{}
 		},
 	}
 	return ctx, func() {

@@ -11,8 +11,9 @@ import (
 )
 
 const (
-	ConfigMapName = "argocd-notifications-cm"
-	SecretName    = "argocd-notifications-secret"
+	ConfigMapName        = "argocd-notifications-cm"
+	ConfigMapBuildInName = "argocd-notifications-builtin-cm"
+	SecretName           = "argocd-notifications-secret"
 
 	settingsResyncDuration = 3 * time.Minute
 )
@@ -26,5 +27,10 @@ func NewSecretInformer(clientset kubernetes.Interface, namespace string) cache.S
 func NewConfigMapInformer(clientset kubernetes.Interface, namespace string) cache.SharedIndexInformer {
 	return corev1.NewFilteredConfigMapInformer(clientset, namespace, settingsResyncDuration, cache.Indexers{}, func(options *metav1.ListOptions) {
 		options.FieldSelector = fmt.Sprintf("metadata.name=%s", ConfigMapName)
+	})
+}
+func NewBuiltinConfigMapInformer(clientset kubernetes.Interface, namespace string) cache.SharedIndexInformer {
+	return corev1.NewFilteredConfigMapInformer(clientset, namespace, settingsResyncDuration, cache.Indexers{}, func(options *metav1.ListOptions) {
+		options.FieldSelector = fmt.Sprintf("metadata.name=%s", ConfigMapBuildInName)
 	})
 }

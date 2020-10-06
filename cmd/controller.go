@@ -8,7 +8,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/argoproj-labs/argocd-notifications/builtin"
 	"github.com/argoproj-labs/argocd-notifications/controller"
 	"github.com/argoproj-labs/argocd-notifications/notifiers"
 	"github.com/argoproj-labs/argocd-notifications/shared/argocd"
@@ -32,18 +31,6 @@ const (
 	argocdURLContextVariable = "argocdUrl"
 	defaultMetricsPort       = 9001
 )
-
-var (
-	defaultCfg settings.Config
-)
-
-func init() {
-	defaultCfg = settings.Config{
-		Templates: builtin.Templates,
-		Triggers:  builtin.Triggers,
-		Context:   map[string]string{argocdURLContextVariable: "https://localhost:4000"},
-	}
-}
 
 func newControllerCommand() *cobra.Command {
 	var (
@@ -136,18 +123,24 @@ func newControllerCommand() *cobra.Command {
 func watchConfig(ctx context.Context, argocdService argocd.Service, clientset kubernetes.Interface, namespace string, callback func(map[string]triggers.Trigger, map[string]notifiers.Notifier, *settings.Config) error) {
 	var secret *v1.Secret
 	var configMap *v1.ConfigMap
+	var defaultConfig *settings.Config
 	lock := &sync.Mutex{}
-	onNewConfigMapAndSecret := func(newSecret *v1.Secret, newConfigMap *v1.ConfigMap) {
+	onNewConfigMapAndSecret := func(newSecret *v1.Secret, newConfigMap *v1.ConfigMap, newBuiltitCm *v1.ConfigMap) {
 		lock.Lock()
 		defer lock.Unlock()
+		// load builtin once
+		if newBuiltitCm != nil {
+			defaultConfig = parseBuiltInConfigmap(ctx, newBuiltitCm)
+		}
 		if newSecret != nil {
 			secret = newSecret
 		}
 		if newConfigMap != nil {
 			configMap = newConfigMap
 		}
-		if secret != nil && configMap != nil {
-			if t, n, c, err := settings.ParseConfig(configMap, secret, defaultCfg, argocdService); err == nil {
+
+		if secret != nil && configMap != nil && defaultConfig != nil {
+			if t, n, c, err := settings.ParseConfig(configMap, secret, *defaultConfig, argocdService); err == nil {
 				if err = callback(t, n, c); err != nil {
 					log.Fatalf("Failed to start controller: %v", err)
 				}
@@ -159,7 +152,17 @@ func watchConfig(ctx context.Context, argocdService argocd.Service, clientset ku
 
 	onConfigMapChanged := func(newObj interface{}) {
 		if cm, ok := newObj.(*v1.ConfigMap); ok {
-			onNewConfigMapAndSecret(nil, cm)
+			if cm.Name == settings.ConfigMapBuildInName {
+				onNewConfigMapAndSecret(nil, nil, cm)
+				return
+			}
+			onNewConfigMapAndSecret(nil, cm, nil)
+		}
+	}
+
+	onSecretChanged := func(newObj interface{}) {
+		if s, ok := newObj.(*v1.Secret); ok {
+			onNewConfigMapAndSecret(s, nil, nil)
 		}
 	}
 
@@ -174,11 +177,16 @@ func watchConfig(ctx context.Context, argocdService argocd.Service, clientset ku
 		},
 	})
 
-	onSecretChanged := func(newObj interface{}) {
-		if s, ok := newObj.(*v1.Secret); ok {
-			onNewConfigMapAndSecret(s, nil)
-		}
-	}
+	cmBuiltinInformer := settings.NewBuiltinConfigMapInformer(clientset, namespace)
+	cmBuiltinInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		UpdateFunc: func(oldObj, newObj interface{}) {
+			onConfigMapChanged(newObj)
+		},
+		AddFunc: func(obj interface{}) {
+			log.Info("Builtin config map found")
+			onConfigMapChanged(obj)
+		},
+	})
 
 	secretInformer := settings.NewSecretInformer(clientset, namespace)
 	secretInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
@@ -192,6 +200,7 @@ func watchConfig(ctx context.Context, argocdService argocd.Service, clientset ku
 	})
 	go secretInformer.Run(ctx.Done())
 	go cmInformer.Run(ctx.Done())
+	go cmBuiltinInformer.Run(ctx.Done())
 
 	if !cache.WaitForCacheSync(ctx.Done(), cmInformer.HasSynced, secretInformer.HasSynced) {
 		log.Fatal(errors.New("timed out waiting for caches to sync"))
@@ -206,4 +215,22 @@ func watchConfig(ctx context.Context, argocdService argocd.Service, clientset ku
 	if len(missingWarn) > 0 {
 		log.Warnf("Cannot find %s. Waiting when both config map and secret are created.", strings.Join(missingWarn, " and "))
 	}
+}
+
+func parseBuiltInConfigmap(ctx context.Context, cm *v1.ConfigMap) *settings.Config {
+	root := &settings.Config{
+		Context: map[string]string{argocdURLContextVariable: "https://localhost:4000"},
+	}
+	cnf, err := settings.ParseConfigMap(cm)
+	if err != nil {
+		log.Errorf("Failed to parse buildin config map: %v", err)
+		return root
+	}
+	log.Debug("Builtin configmap parsed")
+	merged, err := root.Merge(cnf)
+	if err != nil {
+		log.Errorf("Failed to merge root config with buildin config map: %v", err)
+		return root
+	}
+	return merged
 }

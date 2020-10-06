@@ -57,7 +57,6 @@ argocd-notifications tools trigger run on-sync-status-unknown ./sample-app.yaml 
 					"trigger with name '%s' does not exist (found %s)\n", name, strings.Join(names, ", "))
 				return nil
 			}
-
 			app, err := cmdContext.loadApplication(application)
 			if err != nil {
 				_, _ = fmt.Fprintf(cmdContext.stderr, "failed to load application: %v\n", err)
