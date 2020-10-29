@@ -19,13 +19,13 @@ func main() {
 			APIVersion: "v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "argocd-notifications-builtin-cm",
+			Name: "argocd-notifications-cm",
 		},
 		Data: make(map[string]string),
 	}
 	wd, err := os.Getwd()
 	dieOnError(err, "Failed to get current working directory")
-	target := path.Join(wd, "manifests/controller/argocd-notifications-builtin-cm.yaml")
+	target := path.Join(wd, "manifests/controller/argocd-notifications-cm.yaml")
 
 	templatesDir := path.Join(wd, "builtin/templates")
 	triggersDir := path.Join(wd, "builtin/triggers")
@@ -33,10 +33,18 @@ func main() {
 	cnf, err := tools.BuildConfigFromFS(templatesDir, triggersDir)
 	dieOnError(err, "Failed to build builtin config")
 
-	configBytes, err := yaml.Marshal(cnf)
-	dieOnError(err, "Failed to marshal final builtin config")
+	for _, trigger := range cnf.Triggers {
+		t, err := yaml.Marshal(trigger)
+		dieOnError(err, "Failed to marshal trigger")
+		cm.Data[fmt.Sprintf("triggers.%s", trigger.Name)] = string(t)
+	}
 
-	cm.Data["config.yaml"] = string(configBytes)
+	for _, template := range cnf.Templates {
+		t, err := yaml.Marshal(template)
+		dieOnError(err, "Failed to marshal template")
+		cm.Data[fmt.Sprintf("templates.%s", template.Name)] = string(t)
+	}
+
 	d, err := yaml.Marshal(cm)
 	dieOnError(err, "Failed to marshal final configmap")
 
