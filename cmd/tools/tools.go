@@ -48,14 +48,13 @@ func printFormatted(input interface{}, output string, out io.Writer) error {
 	}
 }
 
-func NewToolsCommand(loadBuildinConfigFn loadBuiltinConfig) *cobra.Command {
+func NewToolsCommand() *cobra.Command {
 	var (
 		argocdRepoServer string
 		cmdContext       = commandContext{
-			stdout:           os.Stdout,
-			stderr:           os.Stderr,
-			getBuiltinConfig: loadBuildinConfigFn,
-			argocdService:    &lazyArgocdServiceInitializer{argocdRepoServer: &argocdRepoServer},
+			stdout:        os.Stdout,
+			stderr:        os.Stderr,
+			argocdService: &lazyArgocdServiceInitializer{argocdRepoServer: &argocdRepoServer},
 		}
 	)
 	var command = cobra.Command{

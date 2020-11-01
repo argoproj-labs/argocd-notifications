@@ -39,7 +39,7 @@ func generateBuiltInTriggersDocs(out io.Writer, builtin *settings.Config) {
 }
 
 func generateCommandsDocs(out io.Writer) error {
-	toolsCmd := tools.NewToolsCommand(nil) // TODO: add here
+	toolsCmd := tools.NewToolsCommand()
 	for _, subCommand := range toolsCmd.Commands() {
 		for _, cmd := range subCommand.Commands() {
 			var cmdDesc bytes.Buffer

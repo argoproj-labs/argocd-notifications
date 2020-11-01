@@ -87,7 +87,7 @@ subjects:
 ---
 apiVersion: v1
 data:
-  templates.app-health-degraded: |
+  template.app-health-degraded: |
     body: |
       {{if eq .context.notificationType "slack"}}:exclamation:{{end}} Application {{.app.metadata.name}} has degraded.
       Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
@@ -120,7 +120,7 @@ data:
           ]
         }]
     title: Application {{.app.metadata.name}} has degraded.
-  templates.app-sync-failed: |
+  template.app-sync-failed: |
     body: |
       {{if eq .context.notificationType "slack"}}:exclamation:{{end}}  The sync operation of application {{.app.metadata.name}} has failed at {{.app.status.operationState.finishedAt}} with the following error: {{.app.status.operationState.message}}
       Sync operation details are available at: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}?operation=true .
@@ -134,7 +134,7 @@ data:
         not $index}},{{end}}\n  {\n    \"title\": \"{{$c.type}}\",\n    \"value\": \"{{$c.message}}\",\n
         \   \"short\": true\n  }\n  {{end}}\n  ]\n}]    "
     title: Failed to sync application {{.app.metadata.name}}.
-  templates.app-sync-running: |
+  template.app-sync-running: |
     body: |
       The sync operation of application {{.app.metadata.name}} has started at {{.app.status.operationState.startedAt}}.
       Sync operation details are available at: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}?operation=true .
@@ -167,7 +167,7 @@ data:
           ]
         }]
     title: Start syncing application {{.app.metadata.name}}.
-  templates.app-sync-status-unknown: |
+  template.app-sync-status-unknown: |
     body: |
       {{if eq .context.notificationType "slack"}}:exclamation:{{end}} Application {{.app.metadata.name}} sync is 'Unknown'.
       Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
@@ -205,7 +205,7 @@ data:
           ]
         }]
     title: Application {{.app.metadata.name}} sync status is 'Unknown'
-  templates.app-sync-succeeded: |
+  template.app-sync-succeeded: |
     body: |
       {{if eq .context.notificationType "slack"}}:white_check_mark:{{end}} Application {{.app.metadata.name}} has been successfully synced at {{.app.status.operationState.finishedAt}}.
       Sync operation details are available at: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}?operation=true .
@@ -219,31 +219,31 @@ data:
         not $index}},{{end}}\n  {\n    \"title\": \"{{$c.type}}\",\n    \"value\": \"{{$c.message}}\",\n
         \   \"short\": true\n  }\n  {{end}}\n  ]\n}]    "
     title: Application {{.app.metadata.name}} has been successfully synced.
-  triggers.on-health-degraded: |
+  trigger.on-health-degraded: |
     condition: app.status.health.status == 'Degraded'
     description: Application has degraded
     enabled: false
     name: on-health-degraded
     template: app-health-degraded
-  triggers.on-sync-failed: |
+  trigger.on-sync-failed: |
     condition: app.status.operationState.phase in ['Error', 'Failed']
     description: Application syncing has failed
     enabled: false
     name: on-sync-failed
     template: app-sync-failed
-  triggers.on-sync-running: |
+  trigger.on-sync-running: |
     condition: app.status.operationState.phase in ['Running']
     description: Application is being synced
     enabled: false
     name: on-sync-running
     template: app-sync-running
-  triggers.on-sync-status-unknown: |
+  trigger.on-sync-status-unknown: |
     condition: app.status.sync.status == 'Unknown'
     description: Application status is 'Unknown'
     enabled: false
     name: on-sync-status-unknown
     template: app-sync-status-unknown
-  triggers.on-sync-succeeded: |
+  trigger.on-sync-succeeded: |
     condition: app.status.operationState.phase in ['Succeeded']
     description: Application syncing has succeeded
     enabled: false

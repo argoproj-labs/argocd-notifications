@@ -36,13 +36,13 @@ func main() {
 	for _, trigger := range cnf.Triggers {
 		t, err := yaml.Marshal(trigger)
 		dieOnError(err, "Failed to marshal trigger")
-		cm.Data[fmt.Sprintf("triggers.%s", trigger.Name)] = string(t)
+		cm.Data[fmt.Sprintf("trigger.%s", trigger.Name)] = string(t)
 	}
 
 	for _, template := range cnf.Templates {
 		t, err := yaml.Marshal(template)
 		dieOnError(err, "Failed to marshal template")
-		cm.Data[fmt.Sprintf("templates.%s", template.Name)] = string(t)
+		cm.Data[fmt.Sprintf("template.%s", template.Name)] = string(t)
 	}
 
 	d, err := yaml.Marshal(cm)

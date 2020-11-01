@@ -22,18 +22,6 @@ func TestWatchConfig(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	builtin := &v1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      settings.ConfigMapBuildInName,
-			Namespace: "default",
-		},
-		Data: map[string]string{
-			"config.yaml": `
-triggers: []
-templates: []
-`,
-		},
-	}
 	configMap := &v1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      settings.ConfigMapName,
@@ -65,7 +53,7 @@ templates:
 	triggersMap := make(map[string]triggers.Trigger)
 	notifiersMap := make(map[string]notifiers.Notifier)
 	argocdService := mocks.NewMockService(ctrl)
-	clientset := fake.NewSimpleClientset(builtin, configMap, secret)
+	clientset := fake.NewSimpleClientset(configMap, secret)
 	watchConfig(ctx, argocdService, clientset, "default", func(t map[string]triggers.Trigger, n map[string]notifiers.Notifier, cfg *settings.Config) error {
 		triggersMap = t
 		notifiersMap = n

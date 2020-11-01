@@ -24,18 +24,16 @@ import (
 )
 
 type (
-	clientsSource     = func() (kubernetes.Interface, dynamic.Interface, string, error)
-	loadBuiltinConfig = func(ctx context.Context, cm *v1.ConfigMap) *settings.Config
+	clientsSource = func() (kubernetes.Interface, dynamic.Interface, string, error)
 )
 
 type commandContext struct {
-	configMapPath    string
-	secretPath       string
-	stdout           io.Writer
-	stderr           io.Writer
-	getK8SClients    clientsSource
-	getBuiltinConfig loadBuiltinConfig
-	argocdService    *lazyArgocdServiceInitializer
+	configMapPath string
+	secretPath    string
+	stdout        io.Writer
+	stderr        io.Writer
+	getK8SClients clientsSource
+	argocdService *lazyArgocdServiceInitializer
 }
 
 type lazyArgocdServiceInitializer struct {
@@ -97,11 +95,6 @@ func (c *commandContext) getConfig() (map[string]triggers.Trigger, map[string]no
 		if err != nil {
 			return nil, nil, nil, err
 		}
-		builtinCm, err := k8sClient.CoreV1().ConfigMaps(ns).Get(settings.ConfigMapBuildInName, metav1.GetOptions{})
-		if err != nil {
-			return nil, nil, nil, err
-		}
-		builtin = c.getBuiltinConfig(context.Background(), builtinCm)
 		cm, err := k8sClient.CoreV1().ConfigMaps(ns).Get(settings.ConfigMapName, metav1.GetOptions{})
 		if err != nil {
 			return nil, nil, nil, err
