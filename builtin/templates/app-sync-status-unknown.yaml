@@ -1,0 +1,36 @@
+title: "Application {{.app.metadata.name}} sync status is 'Unknown'"
+body: |
+    {{if eq .context.notificationType "slack"}}:exclamation:{{end}} Application {{.app.metadata.name}} sync is 'Unknown'.
+    Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
+    {{if ne .context.notificationType "slack"}}
+    {{range $c := .app.status.conditions}}
+        * {{$c.message}}
+    {{end}}
+    {{end}}
+slack:
+    attachments: |
+        [{
+          "title": "{{ .app.metadata.name}}",
+          "title_link":"{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+          "color": "#E96D76",
+          "fields": [
+          {
+            "title": "Sync Status",
+            "value": "{{.app.status.sync.status}}",
+            "short": true
+          },
+          {
+            "title": "Repository",
+            "value": "{{.app.spec.source.repoURL}}",
+            "short": true
+          }
+          {{range $index, $c := .app.status.conditions}}
+          {{if not $index}},{{end}}
+          {
+            "title": "{{$c.type}}",
+            "value": "{{$c.message}}",
+            "short": true
+          }
+          {{end}}
+          ]
+        }]

@@ -16,8 +16,8 @@ import (
 )
 
 type SlackNotification struct {
-	Attachments string `json:"attachments,omitempty"`
-	Blocks      string `json:"blocks,omitempty"`
+	Attachments string `json:"attachments,omitempty" yaml:"attachments,omitempty"`
+	Blocks      string `json:"blocks,omitempty" yaml:"blocks,omitempty"`
 }
 
 type SlackOptions struct {

@@ -1,0 +1,4 @@
+condition:   "app.status.operationState.phase in ['Running']"
+description: "Application is being synced"
+template:    "app-sync-running"
+enabled:     false

@@ -31,6 +31,7 @@ func TestWatchConfig(t *testing.T) {
 			"config.yaml": `
 triggers:
   - name: on-sync-status-unknown
+    condition: "app.status.sync.status == 'Unknown'"
     template: app-sync-status
     enabled: true
 templates:
