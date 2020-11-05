@@ -19,7 +19,7 @@ func main() {
 	}
 	command.AddCommand(newControllerCommand())
 	command.AddCommand(newBotCommand())
-	command.AddCommand(tools.NewToolsCommand(defaultCfg))
+	command.AddCommand(tools.NewToolsCommand())
 	if err := command.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)

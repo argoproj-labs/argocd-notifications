@@ -13,7 +13,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 
 	"github.com/argoproj-labs/argocd-notifications/shared/cmd"
-	"github.com/argoproj-labs/argocd-notifications/shared/settings"
 )
 
 func withDebugLogs() func() {
@@ -49,11 +48,10 @@ func printFormatted(input interface{}, output string, out io.Writer) error {
 	}
 }
 
-func NewToolsCommand(defaultCfg settings.Config) *cobra.Command {
+func NewToolsCommand() *cobra.Command {
 	var (
 		argocdRepoServer string
 		cmdContext       = commandContext{
-			defaultCfg:    defaultCfg,
 			stdout:        os.Stdout,
 			stderr:        os.Stderr,
 			argocdService: &lazyArgocdServiceInitializer{argocdRepoServer: &argocdRepoServer},

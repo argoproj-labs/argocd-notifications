@@ -2,10 +2,13 @@ package settings
 
 import (
 	"encoding/json"
+	"fmt"
+	"strings"
 
 	"github.com/argoproj-labs/argocd-notifications/notifiers"
 	"github.com/argoproj-labs/argocd-notifications/shared/argocd"
 	"github.com/argoproj-labs/argocd-notifications/triggers"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/ghodss/yaml"
 	v1 "k8s.io/api/core/v1"
@@ -99,15 +102,51 @@ func ParseSecret(secret *v1.Secret) (notifiersConfig notifiers.Config, err error
 }
 
 // ParseSecret retrieves configured templates and triggers from the provided config map
-func ParseConfigMap(configMap *v1.ConfigMap) (cfg *Config, err error) {
-	cfg = &Config{}
+func ParseConfigMap(configMap *v1.ConfigMap) (*Config, error) {
+	root := &Config{}
+	cfg := &Config{}
+	// read all the keys in format of templates.%s and triggers.%s
+	// to create config
+	for k, v := range configMap.Data {
+		if k == "config.yaml" {
+			// config.yaml should be read at the end to create base templates and triggers
+			continue
+		}
+		parts := strings.Split(k, ".")
+		if strings.HasPrefix(k, "template") {
+			name := strings.Join(parts[1:], ".")
+			tmpl := triggers.NotificationTemplate{}
+			if err := yaml.Unmarshal([]byte(v), &tmpl); err != nil {
+				return root, fmt.Errorf("Failed to unmarshal template %s: %v", name, err)
+			}
+			tmpl.Name = name
+			root.Templates = append(root.Templates, tmpl)
+			continue
+		}
+
+		if strings.HasPrefix(k, "trigger") {
+			name := strings.Join(parts[1:], ".")
+			trigger := triggers.NotificationTrigger{}
+			if err := yaml.Unmarshal([]byte(v), &trigger); err != nil {
+				return root, fmt.Errorf("Failed to unmarshal trigger %s: %v", name, err)
+			}
+			trigger.Name = name
+			root.Triggers = append(root.Triggers, trigger)
+			continue
+
+		}
+
+		log.Infof("Key %s does not match to pattern, ignored", k)
+		continue
+
+	}
 	if data, ok := configMap.Data["config.yaml"]; ok {
-		err = yaml.Unmarshal([]byte(data), &cfg)
+		err := yaml.Unmarshal([]byte(data), &cfg)
 		if err != nil {
-			return cfg, err
+			return cfg, fmt.Errorf("Failed to read config.yaml key from configmap: %v", err)
 		}
 	}
-	return cfg, nil
+	return cfg.Merge(root)
 }
 
 func (cfg *Config) Merge(other *Config) (*Config, error) {

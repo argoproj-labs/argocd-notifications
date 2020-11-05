@@ -13,6 +13,7 @@ lint:
 
 .PHONY: manifests
 manifests:
+	./hack/builtin-cm.sh
 	kustomize build manifests/controller > manifests/install.yaml
 	kustomize build manifests/bot > manifests/install-bot.yaml
 

@@ -8,7 +8,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/argoproj-labs/argocd-notifications/builtin"
 	"github.com/argoproj-labs/argocd-notifications/controller"
 	"github.com/argoproj-labs/argocd-notifications/notifiers"
 	"github.com/argoproj-labs/argocd-notifications/shared/argocd"
@@ -32,18 +31,6 @@ const (
 	argocdURLContextVariable = "argocdUrl"
 	defaultMetricsPort       = 9001
 )
-
-var (
-	defaultCfg settings.Config
-)
-
-func init() {
-	defaultCfg = settings.Config{
-		Templates: builtin.Templates,
-		Triggers:  builtin.Triggers,
-		Context:   map[string]string{argocdURLContextVariable: "https://localhost:4000"},
-	}
-}
 
 func newControllerCommand() *cobra.Command {
 	var (
@@ -136,6 +123,9 @@ func newControllerCommand() *cobra.Command {
 func watchConfig(ctx context.Context, argocdService argocd.Service, clientset kubernetes.Interface, namespace string, callback func(map[string]triggers.Trigger, map[string]notifiers.Notifier, *settings.Config) error) {
 	var secret *v1.Secret
 	var configMap *v1.ConfigMap
+	defaultConfig := settings.Config{
+		Context: map[string]string{argocdURLContextVariable: "https://localhost:4000"},
+	}
 	lock := &sync.Mutex{}
 	onNewConfigMapAndSecret := func(newSecret *v1.Secret, newConfigMap *v1.ConfigMap) {
 		lock.Lock()
@@ -146,8 +136,9 @@ func watchConfig(ctx context.Context, argocdService argocd.Service, clientset ku
 		if newConfigMap != nil {
 			configMap = newConfigMap
 		}
+
 		if secret != nil && configMap != nil {
-			if t, n, c, err := settings.ParseConfig(configMap, secret, defaultCfg, argocdService); err == nil {
+			if t, n, c, err := settings.ParseConfig(configMap, secret, defaultConfig, argocdService); err == nil {
 				if err = callback(t, n, c); err != nil {
 					log.Fatalf("Failed to start controller: %v", err)
 				}
@@ -163,6 +154,12 @@ func watchConfig(ctx context.Context, argocdService argocd.Service, clientset ku
 		}
 	}
 
+	onSecretChanged := func(newObj interface{}) {
+		if s, ok := newObj.(*v1.Secret); ok {
+			onNewConfigMapAndSecret(s, nil)
+		}
+	}
+
 	cmInformer := settings.NewConfigMapInformer(clientset, namespace)
 	cmInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		UpdateFunc: func(oldObj, newObj interface{}) {
@@ -173,12 +170,6 @@ func watchConfig(ctx context.Context, argocdService argocd.Service, clientset ku
 			onConfigMapChanged(obj)
 		},
 	})
-
-	onSecretChanged := func(newObj interface{}) {
-		if s, ok := newObj.(*v1.Secret); ok {
-			onNewConfigMapAndSecret(s, nil)
-		}
-	}
 
 	secretInformer := settings.NewSecretInformer(clientset, namespace)
 	secretInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{

@@ -1,0 +1,4 @@
+condition:   "app.status.health.status == 'Degraded'"
+description: "Application has degraded"
+template:    "app-health-degraded"
+enabled:      false
