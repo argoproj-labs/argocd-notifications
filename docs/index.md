@@ -45,11 +45,13 @@ data:
 EOF
 ```
 
-* Subscribe to notifications by adding the `recipients.argocd-notifications.argoproj.io` annotation to the Argo CD
-application or project:
+* Subscribe to notifications by adding the `recipients.argocd-notifications.argoproj.io` annotation to the Argo CD application or project :
 
 ```bash
 kubectl patch app <my-app> -n argocd -p '{"metadata": {"annotations": {"recipients.argocd-notifications.argoproj.io":"slack:<my-channel>"}}}' --type merge
+```
+```bash
+kubectl patch appproject <project-name> -n argocd -p '{"metadata": {"annotations": {"recipients.argocd-notifications.argoproj.io":"slack:<my-channel>"}}}' --type merge
 ```
 
 Try syncing and application and get the notification once sync is completed.
