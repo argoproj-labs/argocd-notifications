@@ -288,10 +288,7 @@ func getMapByTrackTrigger(annotations map[string]string, trackTriggerKey string)
 func checkAlreadyNotified(annotations map[string]string, trackTriggerKey string, recipient string) bool {
 	recipientTimestampMap := getMapByTrackTrigger(annotations, trackTriggerKey)
 	_, ok := recipientTimestampMap[recipient]
-	if !ok {
-		return false
-	}
-	return true
+	return ok
 }
 
 func insertNotifiedTracking(annotations map[string]string, trackTriggerKey string, recipient string, recipientTimestamp string) {
