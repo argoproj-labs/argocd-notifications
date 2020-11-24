@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -184,18 +185,17 @@ func (c *notificationController) processApp(app *unstructured.Unstructured, logE
 		recipients := c.getRecipients(app, triggerKey)
 		logEntry.Infof("Trigger %s result: %v", triggerKey, triggered)
 		c.metricsRegistry.IncTriggerEvaluationsCounter(triggerKey, triggered)
+		trackTriggerKey := fmt.Sprintf("%s.%s", triggerKey, sharedrecipients.AnnotationPostfix)
 		if !triggered {
 			for recipient := range recipients {
-				triggerAnnotation := sharedrecipients.FormatTriggerRecipientAnnotation(triggerKey, recipient)
-				delete(annotations, triggerAnnotation)
+				deleteNotifiedTracking(annotations, trackTriggerKey, recipient)
 			}
 			app.SetAnnotations(annotations)
 			continue
 		}
 
 		for recipient := range recipients {
-			triggerAnnotation := sharedrecipients.FormatTriggerRecipientAnnotation(triggerKey, recipient)
-			_, alreadyNotified := annotations[triggerAnnotation]
+			alreadyNotified := checkAlreadyNotified(annotations, trackTriggerKey, recipient)
 			// informer might have stale data, so we cannot trust it and should reload app state to avoid sending notification twice
 			if !alreadyNotified && !refreshed {
 				refreshedApp, err := c.appClient.Get(app.GetName(), v1.GetOptions{})
@@ -207,7 +207,7 @@ func (c *notificationController) processApp(app *unstructured.Unstructured, logE
 						annotations[k] = v
 					}
 				}
-				_, alreadyNotified = annotations[triggerAnnotation]
+				alreadyNotified = checkAlreadyNotified(annotations, trackTriggerKey, recipient)
 
 				refreshed = true
 			}
@@ -245,13 +245,73 @@ func (c *notificationController) processApp(app *unstructured.Unstructured, logE
 
 			if successful {
 				logEntry.Debugf("Notification %s was sent", recipient)
-				annotations[triggerAnnotation] = time.Now().Format(time.RFC3339)
+				insertNotifiedTracking(annotations, trackTriggerKey, recipient, time.Now().Format(time.RFC3339))
 			}
 		}
 
 	}
 	app.SetAnnotations(annotations)
 	return nil
+}
+
+func mapToString(m map[string]string) string {
+	b := new(bytes.Buffer)
+	for key, value := range m {
+		fmt.Fprintf(b, "%s=%s\n", key, value)
+	}
+	return b.String()
+}
+
+//From annotations get recipientTimestampMap by trackTriggerKey. E.g. on-sync-succeeded.argocd-notifications.argoproj.io
+/*
+metadata:
+  annotations:
+    on-sync-succeeded.argocd-notifications.argoproj.io: |
+      slack:family=2020-11-23T14:29:19-08:00
+*/
+func getMapByTrackTrigger(annotations map[string]string, trackTriggerKey string) map[string]string {
+	recipientTimestampMap := map[string]string{}
+	recipientTimestampString, ok := annotations[trackTriggerKey]
+	if !ok {
+		return recipientTimestampMap
+	}
+
+	for _, value := range strings.Split(recipientTimestampString, "\n") {
+		parts := strings.Split(value, "=")
+		if len(parts) == 2 {
+			recipientTimestampMap[parts[0]] = parts[1]
+		}
+	}
+	return recipientTimestampMap
+}
+
+func checkAlreadyNotified(annotations map[string]string, trackTriggerKey string, recipient string) bool {
+	recipientTimestampMap := getMapByTrackTrigger(annotations, trackTriggerKey)
+	_, ok := recipientTimestampMap[recipient]
+	if !ok {
+		return false
+	}
+	return true
+}
+
+func insertNotifiedTracking(annotations map[string]string, trackTriggerKey string, recipient string, recipientTimestamp string) {
+	recipientTimestampMap := getMapByTrackTrigger(annotations, trackTriggerKey)
+	recipientTimestampMap[recipient] = recipientTimestamp
+	annotations[trackTriggerKey] = mapToString(recipientTimestampMap)
+}
+
+func deleteNotifiedTracking(annotations map[string]string, trackTriggerKey string, recipient string) {
+	recipientTimestampMap := getMapByTrackTrigger(annotations, trackTriggerKey)
+	_, ok := recipientTimestampMap[recipient]
+	if ok {
+		delete(recipientTimestampMap, recipient)
+		recipientTimestampString := mapToString(recipientTimestampMap)
+		if recipientTimestampString == "" {
+			delete(annotations, trackTriggerKey)
+		} else {
+			annotations[trackTriggerKey] = recipientTimestampString
+		}
+	}
 }
 
 // Checks if the application SyncStatus has been refreshed by Argo CD after an operation has completed
