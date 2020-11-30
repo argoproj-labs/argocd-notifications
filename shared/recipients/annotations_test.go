@@ -40,26 +40,3 @@ func TestAnnotationsPatch(t *testing.T) {
 		"key4": pointer.StringPtr("val4"),
 	}, patch)
 }
-
-func TestFormatTriggerRecipientAnnotation(t *testing.T) {
-	tests := []struct {
-		trigger   string
-		recipient string
-		want      string
-	}{
-		{
-			recipient: "slack:channel",
-			trigger:   "on-sync",
-			want:      "on-sync.slack.channel.argocd-notifications.argoproj.io",
-		},
-		{
-			recipient: "email:my@email.com",
-			trigger:   "on-sync",
-			want:      "on-sync.email.my.email.com.argocd-notifications.argoproj.io",
-		},
-	}
-	for _, tt := range tests {
-		got := FormatTriggerRecipientAnnotation(tt.trigger, tt.recipient)
-		assert.Equal(t, tt.want, got)
-	}
-}
