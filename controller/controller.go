@@ -194,24 +194,21 @@ func (c *notificationController) processApp(app *unstructured.Unstructured, logE
 			continue
 		}
 
-		for recipient := range recipients {
-			alreadyNotified := checkAlreadyNotified(annotations, trackTriggerKey, recipient)
-			// informer might have stale data, so we cannot trust it and should reload app state to avoid sending notification twice
-			if !alreadyNotified && !refreshed {
-				refreshedApp, err := c.appClient.Get(app.GetName(), v1.GetOptions{})
-				if err != nil {
-					return err
-				}
-				if refreshedApp.GetAnnotations() != nil {
-					for k, v := range refreshedApp.GetAnnotations() {
-						annotations[k] = v
-					}
-				}
-				alreadyNotified = checkAlreadyNotified(annotations, trackTriggerKey, recipient)
-
-				refreshed = true
+		// informer might have stale data, so we cannot trust it and should reload app state to avoid sending notification twice
+		if triggered && !refreshed {
+			refreshedApp, err := c.appClient.Get(app.GetName(), v1.GetOptions{})
+			if err != nil {
+				return err
 			}
-			if alreadyNotified {
+			annotations = refreshedApp.GetAnnotations()
+			if annotations == nil {
+				annotations = map[string]string{}
+			}
+			refreshed = true
+		}
+
+		for recipient := range recipients {
+			if checkAlreadyNotified(annotations, trackTriggerKey, recipient) {
 				logEntry.Infof("%s notification already sent", triggerKey)
 				continue // move to the next recipient
 			}
