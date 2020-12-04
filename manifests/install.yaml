@@ -67,6 +67,7 @@ data:
           }
           {{range $index, $c := .app.status.conditions}}
           {{if not $index}},{{end}}
+          {{if $index}},{{end}}
           {
             "title": "{{$c.type}}",
             "value": "{{$c.message}}",
@@ -87,8 +88,9 @@ data:
         \   \"value\": \"{{.app.status.sync.status}}\",\n    \"short\": true\n  },\n  {\n
         \   \"title\": \"Repository\",\n    \"value\": \"{{.app.spec.source.repoURL}}\",\n
         \   \"short\": true\n  }\n  {{range $index, $c := .app.status.conditions}}\n  {{if
-        not $index}},{{end}}\n  {\n    \"title\": \"{{$c.type}}\",\n    \"value\": \"{{$c.message}}\",\n
-        \   \"short\": true\n  }\n  {{end}}\n  ]\n}]    "
+        not $index}},{{end}}\n  {{if $index}},{{end}}\n  {\n    \"title\": \"{{$c.type}}\",\n
+        \   \"value\": \"{{$c.message}}\",\n    \"short\": true\n  }\n  {{end}}\n  ]\n}]
+        \   "
     title: Failed to sync application {{.app.metadata.name}}.
   template.app-sync-running: |
     body: |
@@ -114,6 +116,7 @@ data:
           }
           {{range $index, $c := .app.status.conditions}}
           {{if not $index}},{{end}}
+          {{if $index}},{{end}}
           {
             "title": "{{$c.type}}",
             "value": "{{$c.message}}",
@@ -152,6 +155,7 @@ data:
           }
           {{range $index, $c := .app.status.conditions}}
           {{if not $index}},{{end}}
+          {{if $index}},{{end}}
           {
             "title": "{{$c.type}}",
             "value": "{{$c.message}}",
@@ -172,8 +176,9 @@ data:
         \   \"value\": \"{{.app.status.sync.status}}\",\n    \"short\": true\n  },\n  {\n
         \   \"title\": \"Repository\",\n    \"value\": \"{{.app.spec.source.repoURL}}\",\n
         \   \"short\": true\n  }\n  {{range $index, $c := .app.status.conditions}}\n  {{if
-        not $index}},{{end}}\n  {\n    \"title\": \"{{$c.type}}\",\n    \"value\": \"{{$c.message}}\",\n
-        \   \"short\": true\n  }\n  {{end}}\n  ]\n}]    "
+        not $index}},{{end}}\n  {{if $index}},{{end}}\n  {\n    \"title\": \"{{$c.type}}\",\n
+        \   \"value\": \"{{$c.message}}\",\n    \"short\": true\n  }\n  {{end}}\n  ]\n}]
+        \   "
     title: Application {{.app.metadata.name}} has been successfully synced.
   trigger.on-health-degraded: |
     condition: app.status.health.status == 'Degraded'
