@@ -4,6 +4,8 @@ metadata:
   name: argocd-notifications-cm
 data:
   config.yaml: |
+    context:
+      argocdUrl: https://cd.apps.argoproj.io/
     subscriptions:
     # global subscription for all type of notifications
     - recipients:
