@@ -625,10 +625,12 @@ So you can just enable them instead of reinventing new ones.</p>
 </code></pre></div>
 
 <ul>
-<li>Subscribe to notifications by adding the <code>recipients.argocd-notifications.argoproj.io</code> annotation to the Argo CD
-application or project:</li>
+<li>Subscribe to notifications by adding the <code>recipients.argocd-notifications.argoproj.io</code> annotation to the Argo CD application or project :</li>
 </ul>
 <div class="codehilite"><pre><span></span><code>kubectl patch app &lt;my-app&gt; -n argocd -p <span class="s1">&#39;{&quot;metadata&quot;: {&quot;annotations&quot;: {&quot;recipients.argocd-notifications.argoproj.io&quot;:&quot;slack:&lt;my-channel&gt;&quot;}}}&#39;</span> --type merge
+</code></pre></div>
+
+<div class="codehilite"><pre><span></span><code>kubectl patch appproject &lt;project-name&gt; -n argocd -p <span class="s1">&#39;{&quot;metadata&quot;: {&quot;annotations&quot;: {&quot;recipients.argocd-notifications.argoproj.io&quot;:&quot;slack:&lt;my-channel&gt;&quot;}}}&#39;</span> --type merge
 </code></pre></div>
 
 <p>Try syncing and application and get the notification once sync is completed.</p>
