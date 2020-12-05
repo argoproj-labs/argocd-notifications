@@ -194,24 +194,21 @@ func (c *notificationController) processApp(app *unstructured.Unstructured, logE
 			continue
 		}
 
-		for recipient := range recipients {
-			alreadyNotified := checkAlreadyNotified(annotations, trackTriggerKey, recipient, app)
-			// informer might have stale data, so we cannot trust it and should reload app state to avoid sending notification twice
-			if !alreadyNotified && !refreshed {
-				refreshedApp, err := c.appClient.Get(app.GetName(), v1.GetOptions{})
-				if err != nil {
-					return err
-				}
-				if refreshedApp.GetAnnotations() != nil {
-					for k, v := range refreshedApp.GetAnnotations() {
-						annotations[k] = v
-					}
-				}
-				alreadyNotified = checkAlreadyNotified(annotations, trackTriggerKey, recipient, app)
-
-				refreshed = true
+		// informer might have stale data, so we cannot trust it and should reload app state to avoid sending notification twice
+		if triggered && !refreshed {
+			refreshedApp, err := c.appClient.Get(app.GetName(), v1.GetOptions{})
+			if err != nil {
+				return err
 			}
-			if alreadyNotified {
+			annotations = refreshedApp.GetAnnotations()
+			if annotations == nil {
+				annotations = map[string]string{}
+			}
+			refreshed = true
+		}
+
+		for recipient := range recipients {
+			if checkAlreadyNotified(annotations, trackTriggerKey, recipient) {
 				logEntry.Infof("%s notification already sent", triggerKey)
 				continue // move to the next recipient
 			}
@@ -245,7 +242,7 @@ func (c *notificationController) processApp(app *unstructured.Unstructured, logE
 
 			if successful {
 				logEntry.Debugf("Notification %s was sent", recipient)
-				insertNotifiedTracking(annotations, trackTriggerKey, recipient, time.Now().Format(time.RFC3339), app)
+				insertNotifiedTracking(annotations, trackTriggerKey, recipient, time.Now().Format(time.RFC3339))
 			}
 		}
 
@@ -285,48 +282,14 @@ func getMapByTrackTrigger(annotations map[string]string, trackTriggerKey string)
 	return recipientTimestampMap
 }
 
-func checkAlreadyNotified(annotations map[string]string, trackTriggerKey string, recipient string, app *unstructured.Unstructured) bool {
+func checkAlreadyNotified(annotations map[string]string, trackTriggerKey string, recipient string) bool {
 	recipientTimestampMap := getMapByTrackTrigger(annotations, trackTriggerKey)
-	timestamps, ok := recipientTimestampMap[recipient]
-
-	if !ok {
-		return false
-	}
-
-	//If there is a second part of the timestamp from app annotation, that is last message's finishedAt.
-	//If our new app's finishedAt is after that, we should send again.
-	parts := strings.Split(timestamps, ";")
-	if len(parts) != 2 {
-		return true
-	}
-	lastFinishedAt, err := time.Parse(time.RFC3339, parts[1])
-	if err != nil {
-		return true
-	}
-	thisFinishedAtRaw, ok, err := unstructured.NestedString(app.Object, "status", "operationState", "finishedAt")
-	if !ok || err != nil {
-		return true
-	}
-	thisFinishedAt, err := time.Parse(time.RFC3339, thisFinishedAtRaw)
-	if err != nil {
-		return true
-	}
-
-	if thisFinishedAt.After(lastFinishedAt) {
-		return false
-	} else {
-		return true
-	}
+	_, ok := recipientTimestampMap[recipient]
+	return ok
 }
 
-func insertNotifiedTracking(annotations map[string]string, trackTriggerKey string, recipient string, recipientTimestamp string, app *unstructured.Unstructured) {
+func insertNotifiedTracking(annotations map[string]string, trackTriggerKey string, recipient string, recipientTimestamp string) {
 	recipientTimestampMap := getMapByTrackTrigger(annotations, trackTriggerKey)
-	//Insert finishedAt as the second part of timestamp annotation
-	finishedAtRaw, ok, err := unstructured.NestedString(app.Object, "status", "operationState", "finishedAt")
-	if ok && err == nil {
-		recipientTimestamp = recipientTimestamp + ";" + finishedAtRaw
-	}
-
 	recipientTimestampMap[recipient] = recipientTimestamp
 	annotations[trackTriggerKey] = mapToString(recipientTimestampMap)
 }
