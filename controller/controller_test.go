@@ -98,6 +98,30 @@ func TestDoesNotSendNotificationIfAnnotationPresent(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestSendsNotificationIfAnnotationPresentInStaleCache(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.TODO())
+	defer cancel()
+	staleApp := NewApp("test", WithAnnotations(map[string]string{
+		recipients.RecipientsAnnotation:                      "mock:recipient",
+		fmt.Sprintf("mock.%s", recipients.AnnotationPostfix): fmt.Sprintf("mock:recipient=%s\n", time.Now().Format(time.RFC3339)),
+	}))
+	refreshedApp := NewApp("test", WithAnnotations(map[string]string{
+		recipients.RecipientsAnnotation: "mock:recipient",
+	}))
+	ctrl, trigger, notifier, err := newController(t, ctx, fake.NewSimpleDynamicClient(runtime.NewScheme(), refreshedApp))
+	assert.NoError(t, err)
+
+	trigger.EXPECT().GetTemplateName().Return("test")
+	trigger.EXPECT().Triggered(staleApp).Return(true, nil)
+	trigger.EXPECT().FormatNotification(staleApp, map[string]string{"notificationType": "mock"}).Return(
+		&notifiers.Notification{Title: "title", Body: "body"}, nil)
+	notifier.EXPECT().Send(notifiers.Notification{Title: "title", Body: "body"}, "recipient").Return(nil)
+
+	err = ctrl.processApp(staleApp, logEntry)
+
+	assert.NoError(t, err)
+}
+
 func TestRemovesAnnotationIfNoTrigger(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
