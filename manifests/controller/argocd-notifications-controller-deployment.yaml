@@ -13,6 +13,10 @@ spec:
       labels:
         app.kubernetes.io/name: argocd-notifications-controller
     spec:
+      volumes:
+        - name: tls-certs
+          configMap:
+            name: argocd-tls-certs-cm
       containers:
         - command:
             - /app/argocd-notifications
@@ -21,6 +25,9 @@ spec:
           image: argoprojlabs/argocd-notifications:latest
           imagePullPolicy: Always
           name: argocd-notifications-controller
+          volumeMounts:
+            - name: tls-certs
+              mountPath: /app/config/tls
       serviceAccountName: argocd-notifications-controller
       securityContext:
           runAsNonRoot: true

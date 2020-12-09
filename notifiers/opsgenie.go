@@ -34,7 +34,8 @@ func (n *opsgenieNotifier) Send(notification Notification, recipient string) err
 		ApiKey:         apiKey,
 		OpsGenieAPIURL: client.ApiUrl(n.opts.ApiUrl),
 		HttpClient: &http.Client{
-			Transport: httputil.NewLoggingRoundTripper(http.DefaultTransport, log.WithField("notifier", "opsgenie")),
+			Transport: httputil.NewLoggingRoundTripper(
+				httputil.NewTransport(n.opts.ApiUrl, false), log.WithField("notifier", "opsgenie")),
 		},
 	})
 	_, err := alertClient.Create(context.TODO(), &alert.CreateAlertRequest{

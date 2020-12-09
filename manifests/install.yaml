@@ -258,7 +258,14 @@ spec:
         image: argoprojlabs/argocd-notifications:latest
         imagePullPolicy: Always
         name: argocd-notifications-controller
+        volumeMounts:
+        - mountPath: /app/config/tls
+          name: tls-certs
         workingDir: /app
       securityContext:
         runAsNonRoot: true
       serviceAccountName: argocd-notifications-controller
+      volumes:
+      - configMap:
+          name: argocd-tls-certs-cm
+        name: tls-certs
