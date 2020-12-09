@@ -12,7 +12,7 @@ import (
 func main() {
 	var command = &cobra.Command{
 		Use:   "argocd-notifications",
-		Short: "argocd controls a Argo CD server",
+		Short: "argocd-notifications notifies about Argo CD application changes",
 		Run: func(c *cobra.Command, args []string) {
 			c.HelpFunc()(c, args)
 		},

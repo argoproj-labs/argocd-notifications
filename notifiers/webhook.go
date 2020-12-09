@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"strings"
 
-	httputil "github.com/argoproj-labs/argocd-notifications/shared/http"
+	"github.com/argoproj-labs/argocd-notifications/shared/text"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/argoproj-labs/argocd-notifications/shared/text"
+	httputil "github.com/argoproj-labs/argocd-notifications/shared/http"
 )
 
 type WebhookNotification struct {
@@ -88,7 +88,7 @@ func (w webhookNotifier) Send(notification Notification, recipient string) error
 
 	client := http.Client{
 		Transport: httputil.NewLoggingRoundTripper(
-			http.DefaultTransport, log.WithField("notifier", fmt.Sprintf("webhook:%s", webhookSettings.Name))),
+			httputil.NewTransport(url, false), log.WithField("notifier", fmt.Sprintf("webhook:%s", webhookSettings.Name))),
 	}
 	resp, err := client.Do(req)
 	if err != nil {

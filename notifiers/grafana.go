@@ -2,7 +2,6 @@ package notifiers
 
 import (
 	"bytes"
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -46,11 +45,8 @@ func (n *grafanaNotifier) Send(notification Notification, tags string) error {
 	}
 
 	client := &http.Client{
-		Transport: httputil.NewLoggingRoundTripper(&http.Transport{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: n.opts.InsecureSkipVerify,
-			},
-		}, log.WithField("notifier", "grafana")),
+		Transport: httputil.NewLoggingRoundTripper(
+			httputil.NewTransport(n.opts.ApiUrl, n.opts.InsecureSkipVerify), log.WithField("notifier", "grafana")),
 	}
 
 	jsonValue, _ := json.Marshal(ga)
