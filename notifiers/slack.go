@@ -2,7 +2,6 @@ package notifiers
 
 import (
 	"context"
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -40,11 +39,7 @@ func NewSlackNotifier(opts SlackOptions) Notifier {
 }
 
 func (n *slackNotifier) Send(notification Notification, recipient string) error {
-	transport := &http.Transport{
-		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: n.opts.InsecureSkipVerify,
-		},
-	}
+	transport := httputil.NewTransport(slack.APIURL, n.opts.InsecureSkipVerify)
 	client := &http.Client{
 		Transport: httputil.NewLoggingRoundTripper(transport, log.WithField("notifier", "slack")),
 	}
