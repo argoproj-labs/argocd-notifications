@@ -3,10 +3,10 @@ kind: ConfigMap
 metadata:
   name: argocd-notifications-cm
 data:
-  config.yaml: |
-    context:
-      argocdUrl: https://cd.apps.argoproj.io/
-    subscriptions:
+  context: |
+    argocdUrl: https://cd.apps.argoproj.io/
+
+  subscriptions: |
     # global subscription for all type of notifications
     - recipients:
       - slack:test1
@@ -20,12 +20,14 @@ data:
     - recipients:
       - slack:test3
       selector: test=true
+
   template.my-custom-template: |
       # Add your custom template
       - name: my-custom-template
         title: Hello {{.app.metadata.name}}
         body: |
           Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
+
   trigger.on-sync-status-unknown: |
       # Enable existing built-in trigger
       - name: on-sync-status-unknown
