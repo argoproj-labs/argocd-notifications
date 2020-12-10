@@ -18,16 +18,16 @@ import (
 )
 
 type NotificationTrigger struct {
-	Name        string `json:"name,omitempty" yaml:"name,omitempty"`
-	Condition   string `json:"condition,omitempty" yaml:"condition,omitempty"`
-	Description string `json:"description,omitempty" yaml:"description,omitempty"`
-	Template    string `json:"template,omitempty" yaml:"template,omitempty"`
-	Enabled     *bool  `json:"enabled,omitempty" yaml:"enabled,omitempty"`
+	Name        string `json:"name,omitempty"`
+	Condition   string `json:"condition,omitempty"`
+	Description string `json:"description,omitempty"`
+	Template    string `json:"template,omitempty"`
+	Enabled     *bool  `json:"enabled,omitempty"`
 }
 
 type NotificationTemplate struct {
 	notifiers.Notification
-	Name string `json:"name,omitempty" yaml:"name,omitempty"`
+	Name string `json:"name,omitempty"`
 }
 
 type Trigger interface {

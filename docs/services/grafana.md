@@ -19,8 +19,7 @@ kind: Secret
 metadata:
   name: argocd-notifications-secret
 stringData:
-  notifiers.yaml: |
-    grafana:
-      apiUrl: https://grafana.example.com/api
-      apiKey: <grafana-api-key> 
+  notifier.grafana: |
+    apiUrl: https://grafana.example.com/api
+    apiKey: <grafana-api-key> 
 ```

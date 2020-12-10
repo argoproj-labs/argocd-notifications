@@ -13,51 +13,33 @@ import (
 )
 
 func TestParseSecret(t *testing.T) {
-	notifiersData := []byte(`
-email:
+
+	secret := &v1.Secret{Data: map[string][]byte{
+
+		"notifier.email": []byte(`
   host: smtp.gmail.com
   port: 587
   from: <myemail>@gmail.com
   username: <myemail>@gmail.com
-  password: <mypassword>
-slack:
+  password: <mypassword>`),
+
+		"notifier.slack": []byte(`
   token: <my-token>
-  username: <override-username>
-opsgenie:
+  username: <override-username>`),
+
+		"notifier.opsgenie": []byte(`
   apiUrl: api.opsgenie.com
   apiKeys:
-    <team-id>: <my-api-key>
-grafana:
-  apiUrl: grafana.com/api
-  apiKey: <my-api-key>`)
+    <team-id>: <my-api-key>`),
 
-	expectNotifiersCfg := notifiers.Config{
-		Email: &notifiers.EmailOptions{
-			Host:               "smtp.gmail.com",
-			Port:               587,
-			From:               "<myemail>@gmail.com",
-			InsecureSkipVerify: false,
-			Username:           "<myemail>@gmail.com",
-			Password:           "<mypassword>",
-		},
-		Slack: &notifiers.SlackOptions{
-			Username:           "<override-username>",
-			Token:              "<my-token>",
-			Channels:           nil,
-			InsecureSkipVerify: false,
-		},
-		Opsgenie: &notifiers.OpsgenieOptions{
-			ApiUrl:  "api.opsgenie.com",
-			ApiKeys: map[string]string{"<team-id>": "<my-api-key>"},
-		},
-		Grafana: &notifiers.GrafanaOptions{
-			ApiUrl: "grafana.com/api",
-			ApiKey: "<my-api-key>",
-		},
-	}
-	actualNotifiersCfg, err := ParseSecret(&v1.Secret{Data: map[string][]byte{"notifiers.yaml": notifiersData}})
+		"notifier.grafana": []byte(`
+  apiUrl: grafana.com/api
+  apiKey: <my-api-key>`),
+	}}
+
+	n, err := ParseSecret(secret)
 	assert.NoError(t, err)
-	assert.Equal(t, expectNotifiersCfg, actualNotifiersCfg)
+	assert.Len(t, n, 4)
 }
 
 func TestParseConfigMap(t *testing.T) {

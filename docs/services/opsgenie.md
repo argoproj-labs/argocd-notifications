@@ -20,9 +20,8 @@ kind: Secret
 metadata:
   name: argocd-notifications-secret
 stringData:
-  notifiers.yaml: |
-    opsgenie:
-      apiUrl: <api-url>
-      apiKeys:
-        <your-team>: <integration-api-key>
+  notifier.opsgenie: |
+    apiUrl: <api-url>
+    apiKeys:
+      <your-team>: <integration-api-key>
 ```

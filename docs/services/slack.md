@@ -18,14 +18,7 @@ kind: Secret
 metadata:
   name: argocd-notifications-secret
 stringData:
-  notifiers.yaml: |
-    email:
-      host: smtp.gmail.com
-      port: 587
-      from: <myemail>@gmail.com
-      username: <myemail>@gmail.com
-      password: <mypassword>
-    slack:
-      token: <my-token>
-      username: <override-username> # optional username
+  notifier.slack: |
+    token: <my-token>
+    username: <override-username> # optional username
 ```

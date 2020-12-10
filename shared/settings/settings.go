@@ -8,9 +8,9 @@ import (
 	"github.com/argoproj-labs/argocd-notifications/notifiers"
 	"github.com/argoproj-labs/argocd-notifications/shared/argocd"
 	"github.com/argoproj-labs/argocd-notifications/triggers"
-	log "github.com/sirupsen/logrus"
 
 	"github.com/ghodss/yaml"
+	log "github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
@@ -91,14 +91,75 @@ type Config struct {
 	Subscriptions DefaultSubscriptions            `json:"subscriptions,omitempty"`
 }
 
-// ParseSecret retrieves configured notification services from the provided secret
-func ParseSecret(secret *v1.Secret) (notifiersConfig notifiers.Config, err error) {
-	notifiersData := secret.Data["notifiers.yaml"]
-	err = yaml.Unmarshal(notifiersData, &notifiersConfig)
-	if err != nil {
-		return notifiers.Config{}, err
+func createNotifier(notifierType string, config []byte) (notifiers.Notifier, error) {
+	switch notifierType {
+	case "email":
+		var opts notifiers.EmailOptions
+		if err := yaml.Unmarshal(config, &opts); err != nil {
+			return nil, err
+		}
+		return notifiers.NewEmailNotifier(opts), nil
+	case "slack":
+		var opts notifiers.SlackOptions
+		if err := yaml.Unmarshal(config, &opts); err != nil {
+			return nil, err
+		}
+		return notifiers.NewSlackNotifier(opts), nil
+	case "grafana":
+		var opts notifiers.GrafanaOptions
+		if err := yaml.Unmarshal(config, &opts); err != nil {
+			return nil, err
+		}
+		return notifiers.NewGrafanaNotifier(opts), nil
+	case "opsgenie":
+		var opts notifiers.OpsgenieOptions
+		if err := yaml.Unmarshal(config, &opts); err != nil {
+			return nil, err
+		}
+		return notifiers.NewOpsgenieNotifier(opts), nil
+	case "webhook":
+		var opts notifiers.WebhookOptions
+		if err := yaml.Unmarshal(config, &opts); err != nil {
+			return nil, err
+		}
+		return notifiers.NewWebhookNotifier(opts), nil
+	default:
+		return nil, fmt.Errorf("notifier type '%s' is not supported", notifierType)
 	}
-	return notifiersConfig, nil
+}
+
+// ParseSecret retrieves configured notification services from the provided secret
+func ParseSecret(secret *v1.Secret) (map[string]notifiers.Notifier, error) {
+	res := map[string]notifiers.Notifier{}
+	if notifiersData, ok := secret.Data["notifiers.yaml"]; ok {
+		var legacyConf legacyConfig
+		err := yaml.Unmarshal(notifiersData, &legacyConf)
+		if err != nil {
+			return nil, err
+		}
+		legacyConf.addNotifiers(res)
+	}
+	for k, v := range secret.Data {
+		if strings.HasPrefix(k, "notifier.") {
+			name := ""
+			notifierType := ""
+			parts := strings.Split(k, ".")
+			if len(parts) == 3 {
+				notifierType, name = parts[1], parts[2]
+			} else if len(parts) == 2 {
+				notifierType, name = parts[1], parts[1]
+			} else {
+				return nil, fmt.Errorf("invalid notifier key; expected 'notifier.<type>(.<name>)' but got '%s'", k)
+			}
+
+			n, err := createNotifier(notifierType, v)
+			if err != nil {
+				return nil, err
+			}
+			res[name] = n
+		}
+	}
+	return res, nil
 }
 
 // ParseSecret retrieves configured templates and triggers from the provided config map
@@ -186,9 +247,9 @@ func ParseConfig(configMap *v1.ConfigMap, secret *v1.Secret, defaultCfg Config, 
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	notifiersConfig, err := ParseSecret(secret)
+	n, err := ParseSecret(secret)
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	return t, notifiers.GetAll(notifiersConfig), cfg, nil
+	return t, n, cfg, nil
 }
