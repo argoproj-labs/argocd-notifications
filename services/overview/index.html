@@ -570,22 +570,35 @@
 <span class="nt">metadata</span><span class="p">:</span>
   <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">argocd-notifications-secret</span>
 <span class="nt">stringData</span><span class="p">:</span>
-  <span class="nt">notifiers.yaml</span><span class="p">:</span> <span class="p p-Indicator">|</span>
-    <span class="no">email:</span>
-      <span class="no">host: smtp.gmail.com</span>
-      <span class="no">port: 587</span>
-      <span class="no">from: &lt;myemail&gt;@gmail.com</span>
-      <span class="no">username: &lt;myemail&gt;@gmail.com</span>
-      <span class="no">password: &lt;mypassword&gt;</span>
-    <span class="no">slack:</span>
-      <span class="no">token: &lt;my-token&gt;</span>
-      <span class="no">username: &lt;override-username&gt; # optional username</span>
-      <span class="no">icon: &lt;override-icon&gt; # optional icon for the message (supports both emoij and url notation)</span>
-    <span class="no">opsgenie:</span>
-      <span class="no">apiUrl: api.opsgenie.com</span>
-      <span class="no">apiKeys:</span>
-        <span class="no">&lt;team-id&gt;: &lt;my-api-key&gt;</span>
-        <span class="no">...</span>
+  <span class="c1"># Notifier format key is: notifier.&lt;type&gt;.&lt;optional-custom-name&gt;</span>
+
+  <span class="c1"># Slack</span>
+  <span class="nt">notifier.slack</span><span class="p">:</span> <span class="p p-Indicator">|</span>
+    <span class="no">token: &lt;my-token&gt;</span>
+    <span class="no">username: &lt;override-username&gt; # optional username</span>
+    <span class="no">icon: &lt;override-icon&gt; # optional icon for the message (supports both emoij and url notation)</span>
+
+  <span class="c1"># Slack based notifier with name mattermost</span>
+  <span class="nt">notifier.slack.mattermost</span><span class="p">:</span> <span class="p p-Indicator">|</span>
+    <span class="no">apiURL: https://my-mattermost-url.com/api</span>
+    <span class="no">token: &lt;my-token&gt;</span>
+    <span class="no">username: &lt;override-username&gt; # optional username</span>
+    <span class="no">icon: &lt;override-icon&gt; # optional icon for the message (supports both emoij and url notation)</span>
+
+  <span class="c1"># Email</span>
+  <span class="nt">notifier.email</span><span class="p">:</span> <span class="p p-Indicator">|</span>
+    <span class="no">host: smtp.gmail.com</span>
+    <span class="no">port: 587</span>
+    <span class="no">from: &lt;myemail&gt;@gmail.com</span>
+    <span class="no">username: &lt;myemail&gt;@gmail.com</span>
+    <span class="no">password: &lt;mypassword&gt;</span>
+
+  <span class="c1"># Opsgenie</span>
+  <span class="nt">notifier.opsgenie</span><span class="p">:</span> <span class="p p-Indicator">|</span>
+    <span class="no">apiUrl: api.opsgenie.com</span>
+    <span class="no">apiKeys:</span>
+      <span class="no">&lt;team-id&gt;: &lt;my-api-key&gt;</span>
+      <span class="no">...</span>
 <span class="nt">type</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Opaque</span>
 </code></pre></div>
                 

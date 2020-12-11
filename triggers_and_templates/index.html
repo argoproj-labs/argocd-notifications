@@ -588,10 +588,10 @@
 <span class="nt">metadata</span><span class="p">:</span>
   <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">argocd-notifications-cm</span>
 <span class="nt">data</span><span class="p">:</span>
-  <span class="nt">config.yaml</span><span class="p">:</span> <span class="p p-Indicator">|</span>
-    <span class="no">context:</span>
-      <span class="no">argocdUrl: https://cd.apps.argoproj.io/</span>
-    <span class="no">subscriptions:</span>
+  <span class="nt">context</span><span class="p">:</span> <span class="p p-Indicator">|</span>
+    <span class="no">argocdUrl: https://cd.apps.argoproj.io/</span>
+
+  <span class="nt">subscriptions</span><span class="p">:</span> <span class="p p-Indicator">|</span>
     <span class="no"># global subscription for all type of notifications</span>
     <span class="no">- recipients:</span>
       <span class="no">- slack:test1</span>
@@ -605,25 +605,19 @@
     <span class="no">- recipients:</span>
       <span class="no">- slack:test3</span>
       <span class="no">selector: test=true</span>
-    <span class="no">triggers:</span>
-      <span class="no"># Define your custom trigger</span>
-      <span class="no">- name: my-custom-trigger</span>
-        <span class="no">condition: app.status.sync.status == &#39;Unknown&#39;</span>
-        <span class="no">template: my-custom-template</span>
-    <span class="no">templates:</span>
-      <span class="no"># Override one field in built-in template</span>
-      <span class="no">- name: on-sync-succeeded</span>
-        <span class="no">title: Application {{.app.metadata.name}} sync status is {{.app.status.sync.status}}</span>
+
   <span class="nt">template.my-custom-template</span><span class="p">:</span> <span class="p p-Indicator">|</span>
       <span class="no"># Add your custom template</span>
       <span class="no">- name: my-custom-template</span>
         <span class="no">title: Hello {{.app.metadata.name}}</span>
         <span class="no">body: |</span>
           <span class="no">Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.</span>
+
   <span class="nt">trigger.on-sync-status-unknown</span><span class="p">:</span> <span class="p p-Indicator">|</span>
       <span class="no"># Enable existing built-in trigger</span>
       <span class="no">- name: on-sync-status-unknown</span>
-        <span class="no">enabled: true</span>
+        <span class="no">condition: app.status.sync.status == &#39;Unknown&#39;</span>
+        <span class="no">template: my-custom-template</span>
 </code></pre></div>
 
 <h2 id="triggers">Triggers<a class="headerlink" href="#triggers" title="Permanent link">&para;</a></h2>

@@ -542,16 +542,9 @@
 <span class="nt">metadata</span><span class="p">:</span>
   <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">argocd-notifications-secret</span>
 <span class="nt">stringData</span><span class="p">:</span>
-  <span class="nt">notifiers.yaml</span><span class="p">:</span> <span class="p p-Indicator">|</span>
-    <span class="no">email:</span>
-      <span class="no">host: smtp.gmail.com</span>
-      <span class="no">port: 587</span>
-      <span class="no">from: &lt;myemail&gt;@gmail.com</span>
-      <span class="no">username: &lt;myemail&gt;@gmail.com</span>
-      <span class="no">password: &lt;mypassword&gt;</span>
-    <span class="no">slack:</span>
-      <span class="no">token: &lt;my-token&gt;</span>
-      <span class="no">username: &lt;override-username&gt; # optional username</span>
+  <span class="nt">notifier.slack</span><span class="p">:</span> <span class="p p-Indicator">|</span>
+    <span class="no">token: &lt;my-token&gt;</span>
+    <span class="no">username: &lt;override-username&gt; # optional username</span>
 </code></pre></div>
                 
               
