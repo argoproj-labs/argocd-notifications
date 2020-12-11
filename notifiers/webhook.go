@@ -14,9 +14,9 @@ import (
 )
 
 type WebhookNotification struct {
-	Method string `json:"method" yaml:"method"`
-	Body   string `json:"body" yaml:"body"`
-	Path   string `json:"path" yaml:"path"`
+	Method string `json:"method"`
+	Body   string `json:"body"`
+	Path   string `json:"path"`
 }
 
 type Header struct {

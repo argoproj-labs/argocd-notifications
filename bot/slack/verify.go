@@ -12,6 +12,10 @@ import (
 	"github.com/argoproj-labs/argocd-notifications/shared/settings"
 )
 
+type HasSigningSecret interface {
+	GetSigningSecret() string
+}
+
 type RequestVerifier func(data []byte, header http.Header) error
 
 func NewVerifier(secretInformer cache.SharedIndexInformer) RequestVerifier {
@@ -24,17 +28,25 @@ func NewVerifier(secretInformer cache.SharedIndexInformer) RequestVerifier {
 		if !ok {
 			return errors.New("unexpected object in the secret informer storage")
 		}
-		config, err := settings.ParseSecret(secret)
+		notifiers, err := settings.ParseSecret(secret)
 		if err != nil {
 			return errors.New("unable to parse slack configuration")
 		}
-		if config.Slack == nil {
+		signingSecret := ""
+		for _, notifier := range notifiers {
+			if hasSecret, ok := notifier.(HasSigningSecret); ok {
+				signingSecret = hasSecret.GetSigningSecret()
+				if signingSecret == "" {
+					return errors.New("slack signing secret is not configured")
+				}
+			}
+		}
+
+		if signingSecret == "" {
 			return errors.New("slack is not configured")
 		}
-		if config.Slack.SigningSecret == "" {
-			return errors.New("slack signing secret is not configured")
-		}
-		verifier, err := slackclient.NewSecretsVerifier(header, config.Slack.SigningSecret)
+
+		verifier, err := slackclient.NewSecretsVerifier(header, signingSecret)
 		if err != nil {
 			return err
 		}

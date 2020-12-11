@@ -13,150 +13,46 @@ import (
 )
 
 func TestParseSecret(t *testing.T) {
-	notifiersData := []byte(`
-email:
+
+	secret := &v1.Secret{Data: map[string][]byte{
+
+		"notifier.email": []byte(`
   host: smtp.gmail.com
   port: 587
   from: <myemail>@gmail.com
   username: <myemail>@gmail.com
-  password: <mypassword>
-slack:
+  password: <mypassword>`),
+
+		"notifier.slack": []byte(`
   token: <my-token>
-  username: <override-username>
-opsgenie:
+  username: <override-username>`),
+
+		"notifier.opsgenie": []byte(`
   apiUrl: api.opsgenie.com
   apiKeys:
-    <team-id>: <my-api-key>
-grafana:
-  apiUrl: grafana.com/api
-  apiKey: <my-api-key>`)
+    <team-id>: <my-api-key>`),
 
-	expectNotifiersCfg := notifiers.Config{
-		Email: &notifiers.EmailOptions{
-			Host:               "smtp.gmail.com",
-			Port:               587,
-			From:               "<myemail>@gmail.com",
-			InsecureSkipVerify: false,
-			Username:           "<myemail>@gmail.com",
-			Password:           "<mypassword>",
-		},
-		Slack: &notifiers.SlackOptions{
-			Username:           "<override-username>",
-			Token:              "<my-token>",
-			Channels:           nil,
-			InsecureSkipVerify: false,
-		},
-		Opsgenie: &notifiers.OpsgenieOptions{
-			ApiUrl:  "api.opsgenie.com",
-			ApiKeys: map[string]string{"<team-id>": "<my-api-key>"},
-		},
-		Grafana: &notifiers.GrafanaOptions{
-			ApiUrl: "grafana.com/api",
-			ApiKey: "<my-api-key>",
-		},
-	}
-	actualNotifiersCfg, err := ParseSecret(&v1.Secret{Data: map[string][]byte{"notifiers.yaml": notifiersData}})
+		"notifier.grafana": []byte(`
+  apiUrl: grafana.com/api
+  apiKey: <my-api-key>`),
+	}}
+
+	n, err := ParseSecret(secret)
 	assert.NoError(t, err)
-	assert.Equal(t, expectNotifiersCfg, actualNotifiersCfg)
+	assert.Len(t, n, 4)
 }
 
 func TestParseConfigMap(t *testing.T) {
 	configData := map[string]string{
-		"config.yaml": `
-subscriptions:
+		"subscriptions": `
 - recipients:
     - slack:test
   triggers:
-    - on-sync-status-custom
-triggers:
-  - name: on-sync-status-custom
-    condition: app.status.operationState.phase in ['Custom']
-    description: Application custom trigger
-    template: app-sync-status
-    enabled: true
-templates:
-  - name: app-sync-status
-    title: Application {{.app.metadata.name}} sync status is {{.app.status.sync.status}}
-    body: |
-      Application {{.app.metadata.name}} sync is {{.app.status.sync.status}}.
-      Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
-    slack:
-      attachments: |
-        [{
-          "title": "{{.app.metadata.name}}",
-          "title_link": "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
-          "color": "#18be52",
-          "fields": [{
-            "title": "Sync Status",
-            "value": "{{.app.status.sync.status}}",
-            "short": true
-          }, {
-            "title": "Repository",
-            "value": "{{.app.spec.source.repoURL}}",
-            "short": true
-          }]
-        }]
-context:
-    argocdUrl: testUrl`}
+    - on-sync-status-custom`,
 
-	expectCfg := &Config{
-		Subscriptions: []Subscription{{
-			Recipients: []string{"slack:test"},
-			Triggers:   []string{"on-sync-status-custom"},
-			Selector:   labels.NewSelector(),
-		}},
-		Triggers: []triggers.NotificationTrigger{
-			{
-				Name:        "on-sync-status-custom",
-				Condition:   "app.status.operationState.phase in ['Custom']",
-				Description: "Application custom trigger",
-				Template:    "app-sync-status",
-				Enabled:     pointer.BoolPtr(true),
-			},
-		},
-		Templates: []triggers.NotificationTemplate{{
-			Name: "app-sync-status",
-			Notification: notifiers.Notification{
-				Title: "Application {{.app.metadata.name}} sync status is {{.app.status.sync.status}}",
-				Body: `Application {{.app.metadata.name}} sync is {{.app.status.sync.status}}.
-Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
-`,
-				Slack: &notifiers.SlackNotification{
-					Attachments: `[{
-  "title": "{{.app.metadata.name}}",
-  "title_link": "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
-  "color": "#18be52",
-  "fields": [{
-    "title": "Sync Status",
-    "value": "{{.app.status.sync.status}}",
-    "short": true
-  }, {
-    "title": "Repository",
-    "value": "{{.app.spec.source.repoURL}}",
-    "short": true
-  }]
-}]
-`,
-					Blocks: "",
-				}},
-		}},
-		Context: map[string]string{"argocdUrl": "testUrl"},
-	}
-	actualCfg, err := ParseConfigMap(&v1.ConfigMap{Data: configData})
-	assert.NoError(t, err)
-	assert.Equal(t, expectCfg, actualCfg)
-}
+		"context": `
+argocdUrl: testUrl`,
 
-func TestParseConfigMapWithFlattenTriggerTemplate(t *testing.T) {
-	configData := map[string]string{
-		"config.yaml": `
-subscriptions:
-- recipients:
-    - slack:test
-  triggers:
-    - on-sync-status-custom
-context:
-    argocdUrl: testUrl`,
 		"trigger.on-sync-status-custom": `
 name: on-sync-status-custom
 condition: app.status.operationState.phase in ['Custom']
