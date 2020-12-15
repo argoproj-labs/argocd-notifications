@@ -1,4 +1,4 @@
-package notifiers
+package services
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"regexp"
 
-	httputil "github.com/argoproj-labs/argocd-notifications/shared/http"
+	httputil "github.com/argoproj-labs/argocd-notifications/pkg/shared/http"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
@@ -29,37 +29,37 @@ type SlackOptions struct {
 	ApiURL             string   `json:"apiURL"`
 }
 
-type slackNotifier struct {
+type slackService struct {
 	opts SlackOptions
 }
 
 var validIconEmoij = regexp.MustCompile(`^:.+:$`)
 
-func NewSlackNotifier(opts SlackOptions) Notifier {
-	return &slackNotifier{opts: opts}
+func NewSlackService(opts SlackOptions) NotificationService {
+	return &slackService{opts: opts}
 }
 
-func (n *slackNotifier) Send(notification Notification, recipient string) error {
+func (s *slackService) Send(notification Notification, recipient string) error {
 	apiURL := slack.APIURL
-	if n.opts.ApiURL != "" {
-		apiURL = n.opts.ApiURL
+	if s.opts.ApiURL != "" {
+		apiURL = s.opts.ApiURL
 	}
-	transport := httputil.NewTransport(apiURL, n.opts.InsecureSkipVerify)
+	transport := httputil.NewTransport(apiURL, s.opts.InsecureSkipVerify)
 	client := &http.Client{
-		Transport: httputil.NewLoggingRoundTripper(transport, log.WithField("notifier", "slack")),
+		Transport: httputil.NewLoggingRoundTripper(transport, log.WithField("service", "slack")),
 	}
-	s := slack.New(n.opts.Token, slack.OptionHTTPClient(client), slack.OptionAPIURL(apiURL))
+	sl := slack.New(s.opts.Token, slack.OptionHTTPClient(client), slack.OptionAPIURL(apiURL))
 	msgOptions := []slack.MsgOption{slack.MsgOptionText(notification.Body, false)}
-	if n.opts.Username != "" {
-		msgOptions = append(msgOptions, slack.MsgOptionUsername(n.opts.Username))
+	if s.opts.Username != "" {
+		msgOptions = append(msgOptions, slack.MsgOptionUsername(s.opts.Username))
 	}
-	if n.opts.Icon != "" {
-		if validIconEmoij.MatchString(n.opts.Icon) {
-			msgOptions = append(msgOptions, slack.MsgOptionIconEmoji(n.opts.Icon))
-		} else if isValidIconURL(n.opts.Icon) {
-			msgOptions = append(msgOptions, slack.MsgOptionIconURL(n.opts.Icon))
+	if s.opts.Icon != "" {
+		if validIconEmoij.MatchString(s.opts.Icon) {
+			msgOptions = append(msgOptions, slack.MsgOptionIconEmoji(s.opts.Icon))
+		} else if isValidIconURL(s.opts.Icon) {
+			msgOptions = append(msgOptions, slack.MsgOptionIconURL(s.opts.Icon))
 		} else {
-			log.Warnf("Icon reference '%v' is not a valid emoij or url", n.opts.Icon)
+			log.Warnf("Icon reference '%v' is not a valid emoij or url", s.opts.Icon)
 		}
 	}
 
@@ -80,13 +80,13 @@ func (n *slackNotifier) Send(notification Notification, recipient string) error 
 		msgOptions = append(msgOptions, slack.MsgOptionAttachments(attachments...), slack.MsgOptionBlocks(blocks.BlockSet...))
 	}
 
-	_, _, err := s.PostMessageContext(context.TODO(), recipient, msgOptions...)
+	_, _, err := sl.PostMessageContext(context.TODO(), recipient, msgOptions...)
 	return err
 }
 
 // GetSigningSecret exposes signing secret for slack bot
-func (n *slackNotifier) GetSigningSecret() string {
-	return n.opts.SigningSecret
+func (s *slackService) GetSigningSecret() string {
+	return s.opts.SigningSecret
 }
 
 func isValidIconURL(iconURL string) bool {

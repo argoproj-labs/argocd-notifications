@@ -5,7 +5,6 @@
 package mocks
 
 import (
-	notifiers "github.com/argoproj-labs/argocd-notifications/notifiers"
 	gomock "github.com/golang/mock/gomock"
 	unstructured "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	reflect "reflect"
@@ -34,33 +33,18 @@ func (m *MockTrigger) EXPECT() *MockTriggerMockRecorder {
 	return m.recorder
 }
 
-// FormatNotification mocks base method
-func (m *MockTrigger) FormatNotification(arg0 *unstructured.Unstructured, arg1 map[string]string) (*notifiers.Notification, error) {
+// GetTemplate mocks base method
+func (m *MockTrigger) GetTemplate() string {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FormatNotification", arg0, arg1)
-	ret0, _ := ret[0].(*notifiers.Notification)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// FormatNotification indicates an expected call of FormatNotification
-func (mr *MockTriggerMockRecorder) FormatNotification(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FormatNotification", reflect.TypeOf((*MockTrigger)(nil).FormatNotification), arg0, arg1)
-}
-
-// GetTemplateName mocks base method
-func (m *MockTrigger) GetTemplateName() string {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTemplateName")
+	ret := m.ctrl.Call(m, "GetTemplate")
 	ret0, _ := ret[0].(string)
 	return ret0
 }
 
-// GetTemplateName indicates an expected call of GetTemplateName
-func (mr *MockTriggerMockRecorder) GetTemplateName() *gomock.Call {
+// GetTemplate indicates an expected call of GetTemplate
+func (mr *MockTriggerMockRecorder) GetTemplate() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTemplateName", reflect.TypeOf((*MockTrigger)(nil).GetTemplateName))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTemplate", reflect.TypeOf((*MockTrigger)(nil).GetTemplate))
 }
 
 // Triggered mocks base method

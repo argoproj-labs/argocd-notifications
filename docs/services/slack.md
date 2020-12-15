@@ -18,7 +18,7 @@ kind: Secret
 metadata:
   name: argocd-notifications-secret
 stringData:
-  notifier.slack: |
+  service.slack: |
     token: <my-token>
     username: <override-username> # optional username
 ```

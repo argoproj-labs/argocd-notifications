@@ -1,4 +1,4 @@
-package notifiers
+package services
 
 import (
 	"testing"

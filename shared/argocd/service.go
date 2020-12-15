@@ -9,7 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
 
-	"github.com/argoproj-labs/argocd-notifications/triggers/expr/shared"
+	"github.com/argoproj-labs/argocd-notifications/expr/shared"
 )
 
 //go:generate mockgen -destination=./mocks/service.go -package=mocks github.com/argoproj-labs/argocd-notifications/shared/argocd Service

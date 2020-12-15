@@ -6,28 +6,18 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/argoproj-labs/argocd-notifications/notifiers"
-	"github.com/argoproj-labs/argocd-notifications/shared/settings"
 	testingutil "github.com/argoproj-labs/argocd-notifications/testing"
-	"github.com/argoproj-labs/argocd-notifications/triggers"
 )
 
 func TestTemplateNotifyConsole(t *testing.T) {
+	cmData := map[string]string{
+		"trigger.my-trigger": `{condition: "app.metadata.name == 'guestbook'", template: my-template}`,
+		"template.my-template": `
+title: hello {{.app.metadata.name}}`,
+	}
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
-	ctx, closer, err := newTestContext(&stdout, &stderr, settings.Config{
-		Triggers: []triggers.NotificationTrigger{{
-			Name:      "my-trigger",
-			Condition: "app.metadata.name == 'guestbook'",
-			Template:  "my-template",
-		}},
-		Templates: []triggers.NotificationTemplate{{
-			Name: "my-template",
-			Notification: notifiers.Notification{
-				Title: "hello {{.app.metadata.name}}",
-			},
-		}},
-	}, testingutil.NewApp("guestbook"))
+	ctx, closer, err := newTestContext(&stdout, &stderr, cmData, testingutil.NewApp("guestbook"))
 	if !assert.NoError(t, err) {
 		return
 	}
@@ -41,15 +31,14 @@ func TestTemplateNotifyConsole(t *testing.T) {
 }
 
 func TestTemplateGet(t *testing.T) {
+	cmData := map[string]string{
+		"template.my-template1": `{title: hello}`,
+		"template.my-template2": `{title: hello}`,
+	}
+
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
-	ctx, closer, err := newTestContext(&stdout, &stderr, settings.Config{
-		Templates: []triggers.NotificationTemplate{{
-			Name: "my-template1",
-		}, {
-			Name: "my-template2",
-		}},
-	})
+	ctx, closer, err := newTestContext(&stdout, &stderr, cmData)
 	if !assert.NoError(t, err) {
 		return
 	}

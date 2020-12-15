@@ -7,7 +7,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/argoproj-labs/argocd-notifications/shared/clients"
+	"github.com/argoproj-labs/argocd-notifications/shared/k8s"
+
 	"github.com/argoproj-labs/argocd-notifications/shared/recipients"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -23,8 +24,8 @@ type Server interface {
 func NewServer(dynamicClient dynamic.Interface, namespace string) *server {
 	return &server{
 		mux:           http.NewServeMux(),
-		appClient:     clients.NewAppClient(dynamicClient, namespace),
-		appProjClient: clients.NewAppProjClient(dynamicClient, namespace),
+		appClient:     k8s.NewAppClient(dynamicClient, namespace),
+		appProjClient: k8s.NewAppProjClient(dynamicClient, namespace),
 	}
 }
 

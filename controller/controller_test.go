@@ -10,6 +10,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -17,8 +18,7 @@ import (
 	"k8s.io/client-go/dynamic/fake"
 	kubetesting "k8s.io/client-go/testing"
 
-	"github.com/argoproj-labs/argocd-notifications/notifiers"
-	notifiermocks "github.com/argoproj-labs/argocd-notifications/notifiers/mocks"
+	"github.com/argoproj-labs/argocd-notifications/pkg/mocks"
 	"github.com/argoproj-labs/argocd-notifications/shared/recipients"
 	"github.com/argoproj-labs/argocd-notifications/shared/settings"
 	. "github.com/argoproj-labs/argocd-notifications/testing"
@@ -30,21 +30,22 @@ var (
 	logEntry = logrus.NewEntry(logrus.New())
 )
 
-func newController(t *testing.T, ctx context.Context, client dynamic.Interface, subscriptions ...settings.Subscription) (*notificationController, *triggermocks.MockTrigger, *notifiermocks.MockNotifier, error) {
+func newController(t *testing.T, ctx context.Context, client dynamic.Interface, subscriptions ...settings.Subscription) (*notificationController, *triggermocks.MockTrigger, *mocks.MockNotifier, error) {
 	mockCtrl := gomock.NewController(t)
 	go func() {
 		<-ctx.Done()
 		mockCtrl.Finish()
 	}()
 	trigger := triggermocks.NewMockTrigger(mockCtrl)
-	notifier := notifiermocks.NewMockNotifier(mockCtrl)
+	notifier := mocks.NewMockNotifier(mockCtrl)
 	c, err := NewController(
 		client,
 		TestNamespace,
-		map[string]triggers.Trigger{"mock": trigger},
-		map[string]notifiers.Notifier{"mock": notifier},
-		map[string]string{},
-		subscriptions,
+		settings.Config{
+			Notifier:      notifier,
+			Triggers:      map[string]triggers.Trigger{"mock": trigger},
+			Subscriptions: subscriptions,
+		},
 		"",
 		NewMetricsRegistry())
 	if err != nil {
@@ -66,11 +67,14 @@ func TestSendsNotificationIfTriggered(t *testing.T) {
 	ctrl, trigger, notifier, err := newController(t, ctx, fake.NewSimpleDynamicClient(runtime.NewScheme(), app))
 	assert.NoError(t, err)
 
-	trigger.EXPECT().GetTemplateName().Return("test")
 	trigger.EXPECT().Triggered(app).Return(true, nil)
-	trigger.EXPECT().FormatNotification(app, map[string]string{"notificationType": "mock"}).Return(
-		&notifiers.Notification{Title: "title", Body: "body"}, nil)
-	notifier.EXPECT().Send(notifiers.Notification{Title: "title", Body: "body"}, "recipient").Return(nil)
+	trigger.EXPECT().GetTemplate().Return("test")
+
+	receivedVars := map[string]interface{}{}
+	notifier.EXPECT().Send(mock.MatchedBy(func(vars map[string]interface{}) bool {
+		receivedVars = vars
+		return true
+	}), "test", "mock", "recipient").Return(nil)
 
 	err = ctrl.processApp(app, logEntry)
 
@@ -79,6 +83,8 @@ func TestSendsNotificationIfTriggered(t *testing.T) {
 	annotation := app.GetAnnotations()[fmt.Sprintf("mock.%s", recipients.AnnotationPostfix)]
 	assert.NotEmpty(t, annotation)
 	assert.Contains(t, annotation, "mock:recipient")
+	assert.Equal(t, app.Object, receivedVars["app"])
+	assert.Equal(t, ctrl.cfg.Context, receivedVars["context"])
 }
 
 func TestDoesNotSendNotificationIfAnnotationPresent(t *testing.T) {
@@ -111,15 +117,20 @@ func TestSendsNotificationIfAnnotationPresentInStaleCache(t *testing.T) {
 	ctrl, trigger, notifier, err := newController(t, ctx, fake.NewSimpleDynamicClient(runtime.NewScheme(), refreshedApp))
 	assert.NoError(t, err)
 
-	trigger.EXPECT().GetTemplateName().Return("test")
+	receivedVars := map[string]interface{}{}
+
 	trigger.EXPECT().Triggered(staleApp).Return(true, nil)
-	trigger.EXPECT().FormatNotification(staleApp, map[string]string{"notificationType": "mock"}).Return(
-		&notifiers.Notification{Title: "title", Body: "body"}, nil)
-	notifier.EXPECT().Send(notifiers.Notification{Title: "title", Body: "body"}, "recipient").Return(nil)
+	trigger.EXPECT().GetTemplate().Return("test")
+	notifier.EXPECT().Send(mock.MatchedBy(func(vars map[string]interface{}) bool {
+		receivedVars = vars
+		return true
+	}), "test", "mock", "recipient").Return(nil)
 
 	err = ctrl.processApp(staleApp, logEntry)
 
 	assert.NoError(t, err)
+	assert.Equal(t, staleApp.Object, receivedVars["app"])
+	assert.Equal(t, ctrl.cfg.Context, receivedVars["context"])
 }
 
 func TestRemovesAnnotationIfNoTrigger(t *testing.T) {

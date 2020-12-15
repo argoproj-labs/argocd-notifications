@@ -1,4 +1,4 @@
-package clients
+package k8s
 
 import (
 	"k8s.io/apimachinery/pkg/runtime/schema"

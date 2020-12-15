@@ -1,10 +1,9 @@
 package recipients
 
 import (
-	"fmt"
 	"strings"
 
-	"github.com/argoproj-labs/argocd-notifications/shared/text"
+	"github.com/argoproj-labs/argocd-notifications/pkg/shared/text"
 )
 
 const (
@@ -71,12 +70,4 @@ func AnnotationsPatch(old map[string]string, new map[string]string) map[string]*
 		}
 	}
 	return patch
-}
-
-// FormatTriggerRecipientAnnotation builds from a trigger and recipient
-// valid kuberetes Annotation
-func FormatTriggerRecipientAnnotation(trigger string, recipient string) string {
-	recipient = strings.ReplaceAll(recipient, ":", ".")
-	recipient = strings.ReplaceAll(recipient, "@", ".")
-	return fmt.Sprintf("%s.%s.%s", trigger, recipient, AnnotationPostfix)
 }

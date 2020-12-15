@@ -7,13 +7,14 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/argoproj-labs/argocd-notifications/shared/settings"
-	"github.com/argoproj-labs/argocd-notifications/triggers"
 	"github.com/ghodss/yaml"
+
+	"github.com/argoproj-labs/argocd-notifications/pkg/templates"
+	"github.com/argoproj-labs/argocd-notifications/triggers"
 )
 
-func BuildConfigFromFS(templatesDir string, triggersDir string) (*settings.Config, error) {
-	notificationTemplates := []triggers.NotificationTemplate{}
+func BuildConfigFromFS(templatesDir string, triggersDir string) ([]templates.NotificationTemplate, []triggers.NotificationTrigger, error) {
+	var notificationTemplates []templates.NotificationTemplate
 	err := filepath.Walk(templatesDir, func(p string, info os.FileInfo, e error) error {
 		if e != nil {
 			return e
@@ -25,7 +26,7 @@ func BuildConfigFromFS(templatesDir string, triggersDir string) (*settings.Confi
 		if err != nil {
 			return err
 		}
-		template := triggers.NotificationTemplate{
+		template := templates.NotificationTemplate{
 			Name: strings.Split(path.Base(p), ".")[0],
 		}
 		if err := yaml.Unmarshal(data, &template); err != nil {
@@ -35,10 +36,10 @@ func BuildConfigFromFS(templatesDir string, triggersDir string) (*settings.Confi
 		return nil
 	})
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	notificationTriggers := []triggers.NotificationTrigger{}
+	var notificationTriggers []triggers.NotificationTrigger
 	err = filepath.Walk(triggersDir, func(p string, info os.FileInfo, e error) error {
 		if e != nil {
 			return e
@@ -60,11 +61,7 @@ func BuildConfigFromFS(templatesDir string, triggersDir string) (*settings.Confi
 		return nil
 	})
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	cnf := &settings.Config{
-		Triggers:  notificationTriggers,
-		Templates: notificationTemplates,
-	}
-	return cnf, nil
+	return notificationTemplates, notificationTriggers, nil
 }

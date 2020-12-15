@@ -9,9 +9,9 @@ import (
 	giturls "github.com/whilp/git-urls"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
+	"github.com/argoproj-labs/argocd-notifications/expr/shared"
+	"github.com/argoproj-labs/argocd-notifications/pkg/shared/text"
 	"github.com/argoproj-labs/argocd-notifications/shared/argocd"
-	"github.com/argoproj-labs/argocd-notifications/shared/text"
-	"github.com/argoproj-labs/argocd-notifications/triggers/expr/shared"
 )
 
 var (

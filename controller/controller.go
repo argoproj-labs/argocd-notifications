@@ -11,11 +11,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/argoproj-labs/argocd-notifications/notifiers"
-	"github.com/argoproj-labs/argocd-notifications/shared/clients"
+	"github.com/argoproj-labs/argocd-notifications/expr"
+
+	"github.com/argoproj-labs/argocd-notifications/shared/k8s"
 	sharedrecipients "github.com/argoproj-labs/argocd-notifications/shared/recipients"
 	"github.com/argoproj-labs/argocd-notifications/shared/settings"
-	"github.com/argoproj-labs/argocd-notifications/triggers"
 
 	log "github.com/sirupsen/logrus"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -31,8 +31,7 @@ import (
 )
 
 const (
-	resyncPeriod     = 60 * time.Second
-	notificationType = "notificationType"
+	resyncPeriod = 60 * time.Second
 )
 
 type NotificationController interface {
@@ -40,16 +39,14 @@ type NotificationController interface {
 	Init(ctx context.Context) error
 }
 
-func NewController(client dynamic.Interface,
+func NewController(
+	client dynamic.Interface,
 	namespace string,
-	triggers map[string]triggers.Trigger,
-	notifiers map[string]notifiers.Notifier,
-	context map[string]string,
-	subscriptions settings.DefaultSubscriptions,
+	cfg settings.Config,
 	appLabelSelector string,
 	metricsRegistry *controllerRegistry,
 ) (NotificationController, error) {
-	appClient := clients.NewAppClient(client, namespace)
+	appClient := k8s.NewAppClient(client, namespace)
 	queue := workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter())
 
 	appInformer := newInformer(appClient, appLabelSelector)
@@ -70,17 +67,14 @@ func NewController(client dynamic.Interface,
 			},
 		},
 	)
-	appProjInformer := newInformer(clients.NewAppProjClient(client, namespace), "")
+	appProjInformer := newInformer(k8s.NewAppProjClient(client, namespace), "")
 
 	return &notificationController{
-		subscriptions:   subscriptions,
 		appClient:       appClient,
 		appInformer:     appInformer,
 		appProjInformer: appProjInformer,
 		refreshQueue:    queue,
-		triggers:        triggers,
-		notifiers:       notifiers,
-		context:         context,
+		cfg:             cfg,
 		metricsRegistry: metricsRegistry,
 	}, nil
 }
@@ -109,10 +103,7 @@ type notificationController struct {
 	appInformer     cache.SharedIndexInformer
 	appProjInformer cache.SharedIndexInformer
 	refreshQueue    workqueue.RateLimitingInterface
-	triggers        map[string]triggers.Trigger
-	notifiers       map[string]notifiers.Notifier
-	context         map[string]string
-	subscriptions   settings.DefaultSubscriptions
+	cfg             settings.Config
 	metricsRegistry *controllerRegistry
 }
 
@@ -143,7 +134,7 @@ func (c *notificationController) Run(ctx context.Context, processors int) {
 
 func (c *notificationController) getRecipients(app *unstructured.Unstructured, trigger string) map[string]bool {
 	recipients := make(map[string]bool)
-	for _, r := range c.subscriptions.GetRecipients(trigger, app.GetLabels()) {
+	for _, r := range c.cfg.Subscriptions.GetRecipients(trigger, app.GetLabels()) {
 		recipients[r] = true
 	}
 	if annotations := app.GetAnnotations(); annotations != nil {
@@ -177,7 +168,7 @@ func (c *notificationController) processApp(app *unstructured.Unstructured, logE
 	if annotations == nil {
 		annotations = make(map[string]string)
 	}
-	for triggerKey, t := range c.triggers {
+	for triggerKey, t := range c.cfg.Triggers {
 		triggered, err := t.Triggered(app)
 		if err != nil {
 			logEntry.Debugf("Failed to execute condition of trigger %s: %v", triggerKey, err)
@@ -218,26 +209,20 @@ func (c *notificationController) processApp(app *unstructured.Unstructured, logE
 			if len(parts) < 2 {
 				return fmt.Errorf("%s is not valid recipient. Expected recipient format is <type>:<name>", recipient)
 			}
-			notifierType := parts[0]
-			notifier, ok := c.notifiers[notifierType]
-			if !ok {
-				return fmt.Errorf("%s is not valid recipient type.", notifierType)
-			}
+			serviceType := parts[0]
+			templateName := t.GetTemplate()
 
 			logEntry.Infof("Sending %s notification", triggerKey)
-			ctx := sharedrecipients.CopyStringMap(c.context)
-			ctx[notificationType] = notifierType
-			notification, err := t.FormatNotification(app, ctx)
-			if err != nil {
-				return err
-			}
-			if err = notifier.Send(*notification, parts[1]); err != nil {
+
+			vars := expr.Spawn(app, c.cfg.ArgoCDService, map[string]interface{}{"app": app.Object, "context": c.cfg.Context})
+			if err := c.cfg.Notifier.Send(
+				vars, templateName, serviceType, parts[1]); err != nil {
 				logEntry.Errorf("Failed to notify recipient %s defined in app %s/%s: %v",
 					recipient, app.GetNamespace(), app.GetName(), err)
 				successful = false
-				c.metricsRegistry.IncDeliveriesCounter(t.GetTemplateName(), notifierType, false)
+				c.metricsRegistry.IncDeliveriesCounter(templateName, serviceType, false)
 			} else {
-				c.metricsRegistry.IncDeliveriesCounter(t.GetTemplateName(), notifierType, true)
+				c.metricsRegistry.IncDeliveriesCounter(templateName, serviceType, true)
 			}
 
 			if successful {

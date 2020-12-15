@@ -3,6 +3,67 @@ kind: ConfigMap
 metadata:
   name: argocd-notifications-cm
 data:
+  # Templates
+  template.my-custom-template: |
+    # Add your custom template
+    - name: my-custom-template
+      title: Hello {{.app.metadata.name}}
+      body: |
+        Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
+
+  template.my-custom-template-slack-template: |
+    title: Application {{.app.metadata.name}} sync status is {{.app.status.sync.status}}
+    body: |
+      Application {{.app.metadata.name}} sync is {{.app.status.sync.status}}.
+      Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
+    slack:
+      attachments: |
+        [{
+          "title": "{{.app.metadata.name}}",
+          "title_link": "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+          "color": "#18be52",
+          "fields": [{
+            "title": "Sync Status",
+            "value": "{{.app.status.sync.status}}",
+            "short": true
+          }, {
+            "title": "Repository",
+            "value": "{{.app.spec.source.repoURL}}",
+            "short": true
+          }]
+        }]
+
+  # Notification services
+  # Service format key is: service.<type>.<optional-custom-name>
+
+  # Slack
+  service.slack: |
+    token: $slack-token
+    username: <override-username> # optional username
+    icon: <override-icon> # optional icon for the message (supports both emoij and url notation)
+
+  # Slack based notifier with name mattermost
+  service.slack.mattermost: |
+    apiURL: https://my-mattermost-url.com/api
+    token: $slack-token
+    username: <override-username> # optional username
+    icon: <override-icon> # optional icon for the message (supports both emoij and url notation)
+
+  # Email
+  service.email: |
+    host: smtp.gmail.com
+    port: 587
+    from: <myemail>@gmail.com
+    username: $email-username
+    password: $email-password
+
+  # Opsgenie
+  service.opsgenie: |
+    apiUrl: api.opsgenie.com
+    apiKeys:
+      $opsgenie-team-id: $opsgenie-team-api-key
+      ...
+
   context: |
     argocdUrl: https://cd.apps.argoproj.io/
 
@@ -21,15 +82,8 @@ data:
       - slack:test3
       selector: test=true
 
-  template.my-custom-template: |
-      # Add your custom template
-      - name: my-custom-template
-        title: Hello {{.app.metadata.name}}
-        body: |
-          Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
-
   trigger.on-sync-status-unknown: |
-      # Enable existing built-in trigger
-      - name: on-sync-status-unknown
-        condition: app.status.sync.status == 'Unknown'
-        template: my-custom-template
+    # Enable existing built-in trigger
+    - name: on-sync-status-unknown
+      condition: app.status.sync.status == 'Unknown'
+      template: my-custom-template

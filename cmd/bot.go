@@ -13,7 +13,7 @@ import (
 	"github.com/argoproj-labs/argocd-notifications/bot"
 	"github.com/argoproj-labs/argocd-notifications/bot/slack"
 	"github.com/argoproj-labs/argocd-notifications/shared/cmd"
-	"github.com/argoproj-labs/argocd-notifications/shared/settings"
+	"github.com/argoproj-labs/argocd-notifications/shared/k8s"
 )
 
 func newBotCommand() *cobra.Command {
@@ -43,13 +43,15 @@ func newBotCommand() *cobra.Command {
 					return err
 				}
 			}
-			secretInformer := settings.NewSecretInformer(clientset, namespace)
+			secretInformer := k8s.NewSecretInformer(clientset, namespace)
+			cmInformer := k8s.NewConfigMapInformer(clientset, namespace)
 			go secretInformer.Run(context.Background().Done())
-			if !cache.WaitForCacheSync(context.Background().Done(), secretInformer.HasSynced) {
+			go cmInformer.Run(context.Background().Done())
+			if !cache.WaitForCacheSync(context.Background().Done(), secretInformer.HasSynced, cmInformer.HasSynced) {
 				log.Fatal("Timed out waiting for caches to sync")
 			}
 			server := bot.NewServer(dynamicClient, namespace)
-			server.AddAdapter("/slack", slack.NewSlackAdapter(slack.NewVerifier(secretInformer)))
+			server.AddAdapter("/slack", slack.NewSlackAdapter(slack.NewVerifier(cmInformer, secretInformer)))
 			return server.Serve(port)
 		},
 	}

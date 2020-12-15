@@ -1,4 +1,4 @@
-package notifiers
+package services
 
 import (
 	"bytes"
@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	httputil "github.com/argoproj-labs/argocd-notifications/shared/http"
+	httputil "github.com/argoproj-labs/argocd-notifications/pkg/shared/http"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -21,12 +21,12 @@ type GrafanaOptions struct {
 	InsecureSkipVerify bool   `json:"insecureSkipVerify"`
 }
 
-type grafanaNotifier struct {
+type grafanaService struct {
 	opts GrafanaOptions
 }
 
-func NewGrafanaNotifier(opts GrafanaOptions) Notifier {
-	return &grafanaNotifier{opts: opts}
+func NewGrafanaService(opts GrafanaOptions) NotificationService {
+	return &grafanaService{opts: opts}
 }
 
 type GrafanaAnnotation struct {
@@ -36,7 +36,7 @@ type GrafanaAnnotation struct {
 	Text     string   `json:"text"`
 }
 
-func (n *grafanaNotifier) Send(notification Notification, tags string) error {
+func (s *grafanaService) Send(notification Notification, tags string) error {
 	ga := GrafanaAnnotation{
 		Time:     time.Now().Unix() * 1000, // unix ts in ms
 		IsRegion: false,
@@ -46,11 +46,11 @@ func (n *grafanaNotifier) Send(notification Notification, tags string) error {
 
 	client := &http.Client{
 		Transport: httputil.NewLoggingRoundTripper(
-			httputil.NewTransport(n.opts.ApiUrl, n.opts.InsecureSkipVerify), log.WithField("notifier", "grafana")),
+			httputil.NewTransport(s.opts.ApiUrl, s.opts.InsecureSkipVerify), log.WithField("notifier", "grafana")),
 	}
 
 	jsonValue, _ := json.Marshal(ga)
-	apiUrl, err := url.Parse(n.opts.ApiUrl)
+	apiUrl, err := url.Parse(s.opts.ApiUrl)
 
 	if err != nil {
 		return err
@@ -64,7 +64,7 @@ func (n *grafanaNotifier) Send(notification Notification, tags string) error {
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", n.opts.ApiKey))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", s.opts.ApiKey))
 
 	_, err = client.Do(req)
 	return err

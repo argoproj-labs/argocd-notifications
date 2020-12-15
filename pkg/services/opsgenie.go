@@ -1,4 +1,4 @@
-package notifiers
+package services
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/opsgenie/opsgenie-go-sdk-v2/client"
 	log "github.com/sirupsen/logrus"
 
-	httputil "github.com/argoproj-labs/argocd-notifications/shared/http"
+	httputil "github.com/argoproj-labs/argocd-notifications/pkg/shared/http"
 )
 
 type OpsgenieOptions struct {
@@ -17,25 +17,25 @@ type OpsgenieOptions struct {
 	ApiKeys map[string]string `json:"apiKeys"`
 }
 
-type opsgenieNotifier struct {
+type opsgenieService struct {
 	opts OpsgenieOptions
 }
 
-func NewOpsgenieNotifier(opts OpsgenieOptions) Notifier {
-	return &opsgenieNotifier{opts: opts}
+func NewOpsgenieService(opts OpsgenieOptions) NotificationService {
+	return &opsgenieService{opts: opts}
 }
 
-func (n *opsgenieNotifier) Send(notification Notification, recipient string) error {
-	apiKey, ok := n.opts.ApiKeys[recipient]
+func (s *opsgenieService) Send(notification Notification, recipient string) error {
+	apiKey, ok := s.opts.ApiKeys[recipient]
 	if !ok {
 		return fmt.Errorf("no API key configured for recipient %s", recipient)
 	}
 	alertClient, _ := alert.NewClient(&client.Config{
 		ApiKey:         apiKey,
-		OpsGenieAPIURL: client.ApiUrl(n.opts.ApiUrl),
+		OpsGenieAPIURL: client.ApiUrl(s.opts.ApiUrl),
 		HttpClient: &http.Client{
 			Transport: httputil.NewLoggingRoundTripper(
-				httputil.NewTransport(n.opts.ApiUrl, false), log.WithField("notifier", "opsgenie")),
+				httputil.NewTransport(s.opts.ApiUrl, false), log.WithField("service", "opsgenie")),
 		},
 	})
 	_, err := alertClient.Create(context.TODO(), &alert.CreateAlertRequest{

@@ -13,7 +13,7 @@ func TestExpr(t *testing.T) {
 	}
 
 	for _, ns := range namespaces {
-		helpers := Spawn(nil, nil)
+		helpers := Spawn(nil, nil, nil)
 		_, hasNamespace := helpers[ns]
 		assert.True(t, hasNamespace)
 	}

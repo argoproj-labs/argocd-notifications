@@ -7,18 +7,18 @@ import (
 	"strings"
 	"text/tabwriter"
 
+	"github.com/argoproj-labs/argocd-notifications/pkg/templates"
+
 	"github.com/spf13/cobra"
 
-	"github.com/argoproj-labs/argocd-notifications/notifiers"
-	sharedrecipients "github.com/argoproj-labs/argocd-notifications/shared/recipients"
-	"github.com/argoproj-labs/argocd-notifications/triggers"
+	"github.com/argoproj-labs/argocd-notifications/pkg/services"
 )
 
-type consoleNotifier struct {
+type consoleService struct {
 	stdout io.Writer
 }
 
-func (c *consoleNotifier) Send(notification notifiers.Notification, _ string) error {
+func (c *consoleService) Send(notification services.Notification, _ string) error {
 	return printFormatted(notification, "yaml", c.stdout)
 }
 
@@ -58,22 +58,12 @@ argocd-notifications tools template notify app-sync-succeeded guestbook
 			name := args[0]
 			application := args[1]
 
-			_, notifiersByName, config, err := cmdContext.getConfig()
+			config, err := cmdContext.getConfig()
 			if err != nil {
 				_, _ = fmt.Fprintf(cmdContext.stderr, "failed to parse config: %v\n", err)
 				return nil
 			}
-			notifiersByName["console"] = &consoleNotifier{stdout: cmdContext.stdout}
-			triggersByName, err := triggers.GetTriggers(config.Templates, []triggers.NotificationTrigger{{
-				Name:      "__test__",
-				Template:  name,
-				Condition: "true",
-			}}, cmdContext.argocdService)
-			if err != nil {
-				_, _ = fmt.Fprintf(cmdContext.stderr, "failed to parse config: %v\n", err)
-				return nil
-			}
-			trigger := triggersByName["__test__"]
+			config.Notifier.AddService("console", &consoleService{stdout: cmdContext.stdout})
 
 			app, err := cmdContext.loadApplication(application)
 			if err != nil {
@@ -87,21 +77,10 @@ argocd-notifications tools template notify app-sync-succeeded guestbook
 					_, _ = fmt.Fprintf(cmdContext.stderr, "%s is not valid recipient. Expected recipient format is <type>:<name>\n", recipient)
 					return nil
 				}
-				notifierType := parts[0]
-				notifier, ok := notifiersByName[notifierType]
-				if !ok {
-					_, _ = fmt.Fprintf(cmdContext.stderr, "%s is not valid recipient type.\n", notifierType)
-					return nil
-				}
+				serviceType := parts[0]
 
-				ctx := sharedrecipients.CopyStringMap(config.Context)
-				ctx["notificationType"] = notifierType
-				notification, err := trigger.FormatNotification(app, ctx)
-				if err != nil {
-					_, _ = fmt.Fprintf(cmdContext.stderr, "failed to format notification: %v\n", err)
-					return nil
-				}
-				if err = notifier.Send(*notification, parts[1]); err != nil {
+				vars := map[string]interface{}{"app": app.Object, "context": config.Context}
+				if err := config.Notifier.Send(vars, name, serviceType, parts[1]); err != nil {
 					_, _ = fmt.Fprintf(cmdContext.stderr, "failed to notify '%s': %v\n", recipient, err)
 					return nil
 				}
@@ -124,7 +103,6 @@ func newTemplateGetCommand(cmdContext *commandContext) *cobra.Command {
 		Example: `
 # prints all templates
 argocd-notifications tools template get
-
 # print YAML formatted app-sync-succeeded template definition
 argocd-notifications tools template get app-sync-succeeded -o=yaml
 `,
@@ -134,9 +112,9 @@ argocd-notifications tools template get app-sync-succeeded -o=yaml
 			if len(args) == 1 {
 				name = args[0]
 			}
-			var items []triggers.NotificationTemplate
+			var items []templates.NotificationTemplate
 
-			_, _, config, err := cmdContext.getConfig()
+			config, err := cmdContext.getConfig()
 			if err != nil {
 				_, _ = fmt.Fprintf(cmdContext.stderr, "failed to parse config: %v\n", err)
 				return nil

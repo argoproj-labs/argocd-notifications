@@ -10,14 +10,16 @@ import (
 	"path"
 	"strings"
 
+	"github.com/argoproj-labs/argocd-notifications/pkg/templates"
+	"github.com/argoproj-labs/argocd-notifications/triggers"
+
 	"github.com/olekukonko/tablewriter"
+	"github.com/spf13/cobra/doc"
 
 	"github.com/argoproj-labs/argocd-notifications/cmd/tools"
-	"github.com/argoproj-labs/argocd-notifications/shared/settings"
-	"github.com/spf13/cobra/doc"
 )
 
-func generateBuiltInTriggersDocs(out io.Writer, builtin *settings.Config) {
+func generateBuiltInTriggersDocs(out io.Writer, notificationTriggers []triggers.NotificationTrigger, notificationTemplates []templates.NotificationTemplate) {
 	_, _ = fmt.Fprintln(out, "# Built-in Triggers and Templates")
 	_, _ = fmt.Fprintln(out, "## Triggers")
 
@@ -26,14 +28,14 @@ func generateBuiltInTriggersDocs(out io.Writer, builtin *settings.Config) {
 	triggers.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
 	triggers.SetCenterSeparator("|")
 	triggers.SetAutoWrapText(false)
-	for _, t := range builtin.Triggers {
+	for _, t := range notificationTriggers {
 		triggers.Append([]string{t.Name, t.Description, fmt.Sprintf("[%s](#%s)", t.Template, t.Template)})
 	}
 	triggers.Render()
 
 	_, _ = fmt.Fprintln(out, "")
 	_, _ = fmt.Fprintln(out, "## Templates")
-	for _, t := range builtin.Templates {
+	for _, t := range notificationTemplates {
 		_, _ = fmt.Fprintf(out, "### %s\n**title**: `%s`\n\n**body**:\n```\n%s\n```\n", t.Name, t.Title, t.Body)
 	}
 }
@@ -65,9 +67,9 @@ func main() {
 	templatesDir := path.Join(wd, "builtin/templates")
 	triggersDir := path.Join(wd, "builtin/triggers")
 
-	cnf, err := tools.BuildConfigFromFS(templatesDir, triggersDir)
+	notificationTemplates, notificationTriggers, err := tools.BuildConfigFromFS(templatesDir, triggersDir)
 	dieOnError(err, "Failed to build builtin config")
-	generateBuiltInTriggersDocs(&builtItDocsData, cnf)
+	generateBuiltInTriggersDocs(&builtItDocsData, notificationTriggers, notificationTemplates)
 	if err := ioutil.WriteFile("./docs/built-in.md", builtItDocsData.Bytes(), 0644); err != nil {
 		log.Fatal(err)
 	}

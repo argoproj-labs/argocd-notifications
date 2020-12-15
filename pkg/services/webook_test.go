@@ -1,4 +1,4 @@
-package notifiers
+package services
 
 import (
 	"fmt"
@@ -21,13 +21,13 @@ func TestWebhook_SuccessfullySendsNotification(t *testing.T) {
 	}))
 	defer server.Close()
 
-	notifier := NewWebhookNotifier(WebhookOptions{{
+	service := NewWebhookService(WebhookOptions{{
 		Name:      "test",
 		BasicAuth: &BasicAuth{Username: "testUsername", Password: "testPassword"},
 		URL:       server.URL,
 		Headers:   []Header{{Name: "testHeader", Value: "testHeaderValue"}},
 	}})
-	err := notifier.Send(
+	err := service.Send(
 		Notification{
 			Webhook: map[string]WebhookNotification{
 				"test": {Body: "hello world", Method: http.MethodPost},
@@ -41,8 +41,8 @@ func TestWebhook_SuccessfullySendsNotification(t *testing.T) {
 }
 
 func TestWebhook_FailedToSendNotConfigured(t *testing.T) {
-	notifier := NewWebhookNotifier(WebhookOptions{})
-	err := notifier.Send(Notification{}, "test")
+	service := NewWebhookService(WebhookOptions{})
+	err := service.Send(Notification{}, "test")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "not configured")
 }
@@ -54,12 +54,12 @@ func TestWebhook_SubPath(t *testing.T) {
 	}))
 	defer server.Close()
 
-	notifier := NewWebhookNotifier(WebhookOptions{{
+	service := NewWebhookService(WebhookOptions{{
 		Name: "test",
 		URL:  fmt.Sprintf("%s/subpath1", server.URL),
 	}})
 
-	err := notifier.Send(Notification{
+	err := service.Send(Notification{
 		Webhook: map[string]WebhookNotification{
 			"test": {Body: "hello world", Method: http.MethodPost},
 		},
@@ -67,7 +67,7 @@ func TestWebhook_SubPath(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "/subpath1", receivedPath)
 
-	err = notifier.Send(Notification{
+	err = service.Send(Notification{
 		Webhook: map[string]WebhookNotification{
 			"test": {Body: "hello world", Method: http.MethodPost, Path: "/subpath2"},
 		},

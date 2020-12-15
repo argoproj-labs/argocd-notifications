@@ -16,7 +16,6 @@ tools template get [flags]
 
 # prints all templates
 argocd-notifications tools template get
-
 # print YAML formatted app-sync-succeeded template definition
 argocd-notifications tools template get app-sync-succeeded -o=yaml
 
@@ -126,7 +125,6 @@ tools trigger get [flags]
 
 # prints all triggers
 argocd-notifications tools trigger get
-
 # print YAML formatted on-sync-failed trigger definition
 argocd-notifications tools trigger get on-sync-failed -o=yaml
 

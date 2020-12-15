@@ -6,7 +6,7 @@ package mocks
 
 import (
 	context "context"
-	shared "github.com/argoproj-labs/argocd-notifications/triggers/expr/shared"
+	shared "github.com/argoproj-labs/argocd-notifications/expr/shared"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )

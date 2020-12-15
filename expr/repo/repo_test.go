@@ -7,9 +7,9 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/argoproj-labs/argocd-notifications/expr/shared"
 	"github.com/argoproj-labs/argocd-notifications/shared/argocd/mocks"
 	. "github.com/argoproj-labs/argocd-notifications/testing"
-	"github.com/argoproj-labs/argocd-notifications/triggers/expr/shared"
 )
 
 func TestToHttps(t *testing.T) {

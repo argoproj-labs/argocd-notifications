@@ -12,7 +12,7 @@ var (
 			Name: "argocd_notifications_deliveries_total",
 			Help: "Number of delivered notifications.",
 		},
-		[]string{"template", "notifier", "succeeded"},
+		[]string{"template", "service", "succeeded"},
 	)
 
 	triggerEvaluationsCounter = prometheus.NewCounterVec(
@@ -41,8 +41,8 @@ type controllerRegistry struct {
 	triggerEvaluationsCounter *prometheus.CounterVec
 }
 
-func (r *controllerRegistry) IncDeliveriesCounter(template string, notifier string, succeeded bool) {
-	r.deliveriesCounter.WithLabelValues(template, notifier, strconv.FormatBool(succeeded)).Inc()
+func (r *controllerRegistry) IncDeliveriesCounter(template string, service string, succeeded bool) {
+	r.deliveriesCounter.WithLabelValues(template, service, strconv.FormatBool(succeeded)).Inc()
 }
 
 func (r *controllerRegistry) IncTriggerEvaluationsCounter(name string, triggered bool) {

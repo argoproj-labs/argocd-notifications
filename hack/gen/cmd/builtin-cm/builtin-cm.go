@@ -30,19 +30,23 @@ func main() {
 	templatesDir := path.Join(wd, "builtin/templates")
 	triggersDir := path.Join(wd, "builtin/triggers")
 
-	cnf, err := tools.BuildConfigFromFS(templatesDir, triggersDir)
+	triggers, templates, err := tools.BuildConfigFromFS(templatesDir, triggersDir)
 	dieOnError(err, "Failed to build builtin config")
 
-	for _, trigger := range cnf.Triggers {
+	for _, trigger := range triggers {
+		name := trigger.Name
+		trigger.Name = ""
 		t, err := yaml.Marshal(trigger)
 		dieOnError(err, "Failed to marshal trigger")
-		cm.Data[fmt.Sprintf("trigger.%s", trigger.Name)] = string(t)
+		cm.Data[fmt.Sprintf("trigger.%s", name)] = string(t)
 	}
 
-	for _, template := range cnf.Templates {
+	for _, template := range templates {
+		name := template.Name
+		template.Name = ""
 		t, err := yaml.Marshal(template)
 		dieOnError(err, "Failed to marshal template")
-		cm.Data[fmt.Sprintf("template.%s", template.Name)] = string(t)
+		cm.Data[fmt.Sprintf("template.%s", name)] = string(t)
 	}
 
 	d, err := yaml.Marshal(cm)

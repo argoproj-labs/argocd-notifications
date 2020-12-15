@@ -1,4 +1,4 @@
-package notifiers
+package services
 
 import (
 	"bytes"
@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/argoproj-labs/argocd-notifications/shared/text"
+	"github.com/argoproj-labs/argocd-notifications/pkg/shared/text"
 	log "github.com/sirupsen/logrus"
 
-	httputil "github.com/argoproj-labs/argocd-notifications/shared/http"
+	httputil "github.com/argoproj-labs/argocd-notifications/pkg/shared/http"
 )
 
 type WebhookNotification struct {
@@ -39,11 +39,11 @@ type WebhookSettings struct {
 // WebhookOptions holds list of configured webhooks settings
 type WebhookOptions []WebhookSettings
 
-func NewWebhookNotifier(opts WebhookOptions) Notifier {
-	return &webhookNotifier{opts: opts}
+func NewWebhookService(opts WebhookOptions) NotificationService {
+	return &webhookService{opts: opts}
 }
 
-type webhookNotifier struct {
+type webhookService struct {
 	opts WebhookOptions
 }
 
@@ -56,8 +56,8 @@ func findWebhookSettingsByName(settings []WebhookSettings, name string) (*Webhoo
 	return nil, fmt.Errorf("webhook with name '%s' is not configured", name)
 }
 
-func (w webhookNotifier) Send(notification Notification, recipient string) error {
-	webhookSettings, err := findWebhookSettingsByName(w.opts, recipient)
+func (s webhookService) Send(notification Notification, recipient string) error {
+	webhookSettings, err := findWebhookSettingsByName(s.opts, recipient)
 	if err != nil {
 		return err
 	}
@@ -88,7 +88,7 @@ func (w webhookNotifier) Send(notification Notification, recipient string) error
 
 	client := http.Client{
 		Transport: httputil.NewLoggingRoundTripper(
-			httputil.NewTransport(url, false), log.WithField("notifier", fmt.Sprintf("webhook:%s", webhookSettings.Name))),
+			httputil.NewTransport(url, false), log.WithField("service", fmt.Sprintf("webhook:%s", webhookSettings.Name))),
 	}
 	resp, err := client.Do(req)
 	if err != nil {

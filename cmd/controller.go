@@ -8,12 +8,12 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/argoproj-labs/argocd-notifications/shared/settings"
+
 	"github.com/argoproj-labs/argocd-notifications/controller"
-	"github.com/argoproj-labs/argocd-notifications/notifiers"
 	"github.com/argoproj-labs/argocd-notifications/shared/argocd"
 	"github.com/argoproj-labs/argocd-notifications/shared/cmd"
-	"github.com/argoproj-labs/argocd-notifications/shared/settings"
-	"github.com/argoproj-labs/argocd-notifications/triggers"
+	"github.com/argoproj-labs/argocd-notifications/shared/k8s"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -85,13 +85,13 @@ func newControllerCommand() *cobra.Command {
 			log.Infof("loading configuration %d", metricsPort)
 
 			var cancelPrev context.CancelFunc
-			watchConfig(context.Background(), argocdService, k8sClient, namespace, func(triggers map[string]triggers.Trigger, notifiers map[string]notifiers.Notifier, cfg *settings.Config) error {
+			watchConfig(context.Background(), argocdService, k8sClient, namespace, func(cfg settings.Config) error {
 				if cancelPrev != nil {
 					log.Info("Settings had been updated. Restarting controller...")
 					cancelPrev()
 					cancelPrev = nil
 				}
-				ctrl, err := controller.NewController(dynamicClient, namespace, triggers, notifiers, cfg.Context, cfg.Subscriptions, appLabelSelector, registry)
+				ctrl, err := controller.NewController(dynamicClient, namespace, cfg, appLabelSelector, registry)
 				if err != nil {
 					return err
 				}
@@ -120,12 +120,9 @@ func newControllerCommand() *cobra.Command {
 	return &command
 }
 
-func watchConfig(ctx context.Context, argocdService argocd.Service, clientset kubernetes.Interface, namespace string, callback func(map[string]triggers.Trigger, map[string]notifiers.Notifier, *settings.Config) error) {
+func watchConfig(ctx context.Context, argocdService argocd.Service, clientset kubernetes.Interface, namespace string, callback func(settings.Config) error) {
 	var secret *v1.Secret
 	var configMap *v1.ConfigMap
-	defaultConfig := settings.Config{
-		Context: map[string]string{argocdURLContextVariable: "https://localhost:4000"},
-	}
 	lock := &sync.Mutex{}
 	onNewConfigMapAndSecret := func(newSecret *v1.Secret, newConfigMap *v1.ConfigMap) {
 		lock.Lock()
@@ -138,8 +135,8 @@ func watchConfig(ctx context.Context, argocdService argocd.Service, clientset ku
 		}
 
 		if secret != nil && configMap != nil {
-			if t, n, c, err := settings.ParseConfig(configMap, secret, defaultConfig, argocdService); err == nil {
-				if err = callback(t, n, c); err != nil {
+			if cfg, err := settings.NewConfig(configMap, secret, argocdService); err == nil {
+				if err = callback(*cfg); err != nil {
 					log.Fatalf("Failed to start controller: %v", err)
 				}
 			} else {
@@ -160,7 +157,7 @@ func watchConfig(ctx context.Context, argocdService argocd.Service, clientset ku
 		}
 	}
 
-	cmInformer := settings.NewConfigMapInformer(clientset, namespace)
+	cmInformer := k8s.NewConfigMapInformer(clientset, namespace)
 	cmInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		UpdateFunc: func(oldObj, newObj interface{}) {
 			onConfigMapChanged(newObj)
@@ -171,7 +168,7 @@ func watchConfig(ctx context.Context, argocdService argocd.Service, clientset ku
 		},
 	})
 
-	secretInformer := settings.NewSecretInformer(clientset, namespace)
+	secretInformer := k8s.NewSecretInformer(clientset, namespace)
 	secretInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		UpdateFunc: func(oldObj, newObj interface{}) {
 			onSecretChanged(newObj)
@@ -189,10 +186,10 @@ func watchConfig(ctx context.Context, argocdService argocd.Service, clientset ku
 	}
 	var missingWarn []string
 	if len(cmInformer.GetStore().List()) == 0 {
-		missingWarn = append(missingWarn, fmt.Sprintf("config map %s", settings.ConfigMapName))
+		missingWarn = append(missingWarn, fmt.Sprintf("config map %s", k8s.ConfigMapName))
 	}
 	if len(secretInformer.GetStore().List()) == 0 {
-		missingWarn = append(missingWarn, fmt.Sprintf("secret %s", settings.SecretName))
+		missingWarn = append(missingWarn, fmt.Sprintf("secret %s", k8s.SecretName))
 	}
 	if len(missingWarn) > 0 {
 		log.Warnf("Cannot find %s. Waiting when both config map and secret are created.", strings.Join(missingWarn, " and "))

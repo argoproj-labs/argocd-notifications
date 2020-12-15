@@ -17,23 +17,16 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/fake"
 
-	"github.com/argoproj-labs/argocd-notifications/shared/settings"
+	"github.com/argoproj-labs/argocd-notifications/shared/k8s"
 	testingutil "github.com/argoproj-labs/argocd-notifications/testing"
-	"github.com/argoproj-labs/argocd-notifications/triggers"
 )
 
-func newTestContext(stdout io.Writer, stderr io.Writer, config settings.Config, apps ...runtime.Object) (*commandContext, func(), error) {
-	configData, err := yaml.Marshal(config)
-	if err != nil {
-		return nil, nil, err
-	}
+func newTestContext(stdout io.Writer, stderr io.Writer, data map[string]string, apps ...runtime.Object) (*commandContext, func(), error) {
 	cm := v1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: settings.ConfigMapName,
+			Name: k8s.ConfigMapName,
 		},
-		Data: map[string]string{
-			"config.yaml": string(configData),
-		},
+		Data: data,
 	}
 	cmData, err := yaml.Marshal(cm)
 	if err != nil {
@@ -67,18 +60,17 @@ func newTestContext(stdout io.Writer, stderr io.Writer, config settings.Config, 
 }
 
 func TestTriggerRun(t *testing.T) {
+	cmData := map[string]string{
+		"trigger.my-trigger": `
+condition: app.metadata.name == 'guestbook'
+template: my-template`,
+		"template.my-template": `
+title: hello {{.app.metadata.name}}`,
+	}
+
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
-	ctx, closer, err := newTestContext(&stdout, &stderr, settings.Config{
-		Triggers: []triggers.NotificationTrigger{{
-			Name:      "my-trigger",
-			Condition: "app.metadata.name == 'guestbook'",
-			Template:  "my-template",
-		}},
-		Templates: []triggers.NotificationTemplate{{
-			Name: "my-template",
-		}},
-	}, testingutil.NewApp("guestbook"))
+	ctx, closer, err := newTestContext(&stdout, &stderr, cmData, testingutil.NewApp("guestbook"))
 	if !assert.NoError(t, err) {
 		return
 	}
@@ -92,22 +84,20 @@ func TestTriggerRun(t *testing.T) {
 }
 
 func TestTriggerGet(t *testing.T) {
+	cmData := map[string]string{
+		"trigger.my-trigger1": `
+condition: true
+template: my-template`,
+		"trigger.my-trigger2": `
+condition: false
+template: my-template`,
+		"template.my-template": `
+title: hello {{.app.metadata.name}}`,
+	}
+
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
-	ctx, closer, err := newTestContext(&stdout, &stderr, settings.Config{
-		Triggers: []triggers.NotificationTrigger{{
-			Name:      "my-trigger1",
-			Template:  "my-template",
-			Condition: "true",
-		}, {
-			Name:      "my-trigger2",
-			Template:  "my-template",
-			Condition: "false",
-		}},
-		Templates: []triggers.NotificationTemplate{{
-			Name: "my-template",
-		}},
-	})
+	ctx, closer, err := newTestContext(&stdout, &stderr, cmData)
 	if !assert.NoError(t, err) {
 		return
 	}

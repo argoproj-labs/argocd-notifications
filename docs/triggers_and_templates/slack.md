@@ -8,26 +8,25 @@ Notification templates can be customized to leverage slack message blocks and at
 The message blocks and attachments can be specified in `blocks` and `attachments` string fields under `slack` field:
 
 ```yaml
-templates:
-  - name: app-sync-status
-    title: Application {{.app.metadata.name}} sync status is {{.app.status.sync.status}}
-    body: |
-      Application {{.app.metadata.name}} sync is {{.app.status.sync.status}}.
-      Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
-    slack:
-      attachments: |
-        [{
-          "title": "{{.app.metadata.name}}",
-          "title_link": "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
-          "color": "#18be52",
-          "fields": [{
-            "title": "Sync Status",
-            "value": "{{.app.status.sync.status}}",
-            "short": true
-          }, {
-            "title": "Repository",
-            "value": "{{.app.spec.source.repoURL}}",
-            "short": true
-          }]
+template.app-sync-status: |
+  title: Application {{.app.metadata.name}} sync status is {{.app.status.sync.status}}
+  body: |
+    Application {{.app.metadata.name}} sync is {{.app.status.sync.status}}.
+    Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
+  slack:
+    attachments: |
+      [{
+        "title": "{{.app.metadata.name}}",
+        "title_link": "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+        "color": "#18be52",
+        "fields": [{
+          "title": "Sync Status",
+          "value": "{{.app.status.sync.status}}",
+          "short": true
+        }, {
+          "title": "Repository",
+          "value": "{{.app.spec.source.repoURL}}",
+          "short": true
         }]
+      }]
 ```

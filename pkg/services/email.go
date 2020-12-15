@@ -1,4 +1,4 @@
-package notifiers
+package services
 
 import (
 	"gomodules.xyz/notify/smtp"
@@ -13,21 +13,21 @@ type EmailOptions struct {
 	From               string `json:"from"`
 }
 
-type emailNotifier struct {
+type emailService struct {
 	opts EmailOptions
 }
 
-func NewEmailNotifier(opts EmailOptions) Notifier {
-	return &emailNotifier{opts: opts}
+func NewEmailService(opts EmailOptions) NotificationService {
+	return &emailService{opts: opts}
 }
 
-func (n *emailNotifier) Send(notification Notification, recipient string) error {
+func (s *emailService) Send(notification Notification, recipient string) error {
 	return smtp.New(smtp.Options{
-		From:               n.opts.From,
-		Host:               n.opts.Host,
-		Port:               n.opts.Port,
-		InsecureSkipVerify: n.opts.InsecureSkipVerify,
-		Password:           n.opts.Password,
-		Username:           n.opts.Username,
+		From:               s.opts.From,
+		Host:               s.opts.Host,
+		Port:               s.opts.Port,
+		InsecureSkipVerify: s.opts.InsecureSkipVerify,
+		Password:           s.opts.Password,
+		Username:           s.opts.Username,
 	}).WithSubject(notification.Title).WithBody(notification.Body).To(recipient).Send()
 }

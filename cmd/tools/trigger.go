@@ -6,9 +6,9 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/spf13/cobra"
-
 	"github.com/argoproj-labs/argocd-notifications/triggers"
+
+	"github.com/spf13/cobra"
 )
 
 func newTriggerCommand(cmdContext *commandContext) *cobra.Command {
@@ -42,15 +42,15 @@ argocd-notifications tools trigger run on-sync-status-unknown ./sample-app.yaml 
 			}
 			name := args[0]
 			application := args[1]
-			triggersByName, _, _, err := cmdContext.getConfig()
+			cfg, err := cmdContext.getConfig()
 			if err != nil {
 				_, _ = fmt.Fprintf(cmdContext.stderr, "failed to parse config: %v\n", err)
 				return nil
 			}
-			trigger, ok := triggersByName[name]
+			trigger, ok := cfg.Triggers[name]
 			if !ok {
 				var names []string
-				for name := range triggersByName {
+				for name := range cfg.Triggers {
 					names = append(names, name)
 				}
 				_, _ = fmt.Fprintf(cmdContext.stderr,
@@ -84,7 +84,6 @@ func newTriggerGetCommand(cmdContext *commandContext) *cobra.Command {
 		Example: `
 # prints all triggers
 argocd-notifications tools trigger get
-
 # print YAML formatted on-sync-failed trigger definition
 argocd-notifications tools trigger get on-sync-failed -o=yaml
 `,
@@ -96,12 +95,12 @@ argocd-notifications tools trigger get on-sync-failed -o=yaml
 			}
 			var items []triggers.NotificationTrigger
 
-			_, _, config, err := cmdContext.getConfig()
+			config, err := cmdContext.getConfig()
 			if err != nil {
 				_, _ = fmt.Fprintf(cmdContext.stderr, "failed to parse config: %v\n", err)
 				return nil
 			}
-			for _, trigger := range config.Triggers {
+			for _, trigger := range config.TriggersSettings {
 				if trigger.Name == name || name == "" {
 					items = append(items, trigger)
 				}

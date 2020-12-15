@@ -15,12 +15,10 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 
-	"github.com/argoproj-labs/argocd-notifications/notifiers"
+	"github.com/argoproj-labs/argocd-notifications/expr/shared"
 	"github.com/argoproj-labs/argocd-notifications/shared/argocd"
-	"github.com/argoproj-labs/argocd-notifications/shared/clients"
+	"github.com/argoproj-labs/argocd-notifications/shared/k8s"
 	"github.com/argoproj-labs/argocd-notifications/shared/settings"
-	"github.com/argoproj-labs/argocd-notifications/triggers"
-	"github.com/argoproj-labs/argocd-notifications/triggers/expr/shared"
 )
 
 type (
@@ -87,25 +85,25 @@ func getK8SClients(clientConfig clientcmd.ClientConfig) (kubernetes.Interface, d
 	return k8sClient, dynamicClient, ns, nil
 }
 
-func (c *commandContext) getConfig() (map[string]triggers.Trigger, map[string]notifiers.Notifier, *settings.Config, error) {
+func (c *commandContext) getConfig() (*settings.Config, error) {
 	var configMap v1.ConfigMap
 	if c.configMapPath == "" {
 		k8sClient, _, ns, err := c.getK8SClients()
 		if err != nil {
-			return nil, nil, nil, err
+			return nil, err
 		}
-		cm, err := k8sClient.CoreV1().ConfigMaps(ns).Get(settings.ConfigMapName, metav1.GetOptions{})
+		cm, err := k8sClient.CoreV1().ConfigMaps(ns).Get(k8s.ConfigMapName, metav1.GetOptions{})
 		if err != nil {
-			return nil, nil, nil, err
+			return nil, err
 		}
 		configMap = *cm
 	} else {
 		data, err := ioutil.ReadFile(c.configMapPath)
 		if err != nil {
-			return nil, nil, nil, err
+			return nil, err
 		}
 		if err = yaml.Unmarshal(data, &configMap); err != nil {
-			return nil, nil, nil, err
+			return nil, err
 		}
 	}
 
@@ -115,23 +113,23 @@ func (c *commandContext) getConfig() (map[string]triggers.Trigger, map[string]no
 	} else if c.secretPath == "" {
 		k8sClient, _, ns, err := c.getK8SClients()
 		if err != nil {
-			return nil, nil, nil, err
+			return nil, err
 		}
-		s, err := k8sClient.CoreV1().Secrets(ns).Get(settings.SecretName, metav1.GetOptions{})
+		s, err := k8sClient.CoreV1().Secrets(ns).Get(k8s.SecretName, metav1.GetOptions{})
 		if err != nil {
-			return nil, nil, nil, err
+			return nil, err
 		}
 		secret = *s
 	} else {
 		data, err := ioutil.ReadFile(c.secretPath)
 		if err != nil {
-			return nil, nil, nil, err
+			return nil, err
 		}
 		if err = yaml.Unmarshal(data, &secret); err != nil {
-			return nil, nil, nil, err
+			return nil, err
 		}
 	}
-	return settings.ParseConfig(&configMap, &secret, settings.Config{}, &lazyArgocdServiceInitializer{})
+	return settings.NewConfig(&configMap, &secret, &lazyArgocdServiceInitializer{})
 }
 
 func (c *commandContext) loadApplication(application string) (*unstructured.Unstructured, error) {
@@ -148,7 +146,7 @@ func (c *commandContext) loadApplication(application string) (*unstructured.Unst
 	if err != nil {
 		return nil, err
 	}
-	app, err := clients.NewAppClient(client, ns).Get(application, metav1.GetOptions{})
+	app, err := k8s.NewAppClient(client, ns).Get(application, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
