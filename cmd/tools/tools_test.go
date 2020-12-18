@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"testing"
 
+	"github.com/argoproj-labs/argocd-notifications/pkg/util/misc"
+
 	"github.com/stretchr/testify/assert"
 )
 
 func TestPrintFormatterJson(t *testing.T) {
 	var out bytes.Buffer
-	err := printFormatted(map[string]string{
+	err := misc.PrintFormatted(map[string]string{
 		"foo": "bar",
 	}, "json", &out)
 
@@ -21,7 +23,7 @@ func TestPrintFormatterJson(t *testing.T) {
 
 func TestPrintFormatterYaml(t *testing.T) {
 	var out bytes.Buffer
-	err := printFormatted(map[string]string{
+	err := misc.PrintFormatted(map[string]string{
 		"foo": "bar",
 	}, "yaml", &out)
 

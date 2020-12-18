@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"regexp"
 
-	httputil "github.com/argoproj-labs/argocd-notifications/pkg/shared/http"
+	httputil "github.com/argoproj-labs/argocd-notifications/pkg/util/http"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
@@ -39,7 +39,7 @@ func NewSlackService(opts SlackOptions) NotificationService {
 	return &slackService{opts: opts}
 }
 
-func (s *slackService) Send(notification Notification, recipient string) error {
+func (s *slackService) Send(notification Notification, dest Destination) error {
 	apiURL := slack.APIURL
 	if s.opts.ApiURL != "" {
 		apiURL = s.opts.ApiURL
@@ -80,7 +80,7 @@ func (s *slackService) Send(notification Notification, recipient string) error {
 		msgOptions = append(msgOptions, slack.MsgOptionAttachments(attachments...), slack.MsgOptionBlocks(blocks.BlockSet...))
 	}
 
-	_, _, err := sl.PostMessageContext(context.TODO(), recipient, msgOptions...)
+	_, _, err := sl.PostMessageContext(context.TODO(), dest.Recipient, msgOptions...)
 	return err
 }
 

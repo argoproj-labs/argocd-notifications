@@ -9,7 +9,7 @@ import (
 	"github.com/opsgenie/opsgenie-go-sdk-v2/client"
 	log "github.com/sirupsen/logrus"
 
-	httputil "github.com/argoproj-labs/argocd-notifications/pkg/shared/http"
+	httputil "github.com/argoproj-labs/argocd-notifications/pkg/util/http"
 )
 
 type OpsgenieOptions struct {
@@ -25,10 +25,10 @@ func NewOpsgenieService(opts OpsgenieOptions) NotificationService {
 	return &opsgenieService{opts: opts}
 }
 
-func (s *opsgenieService) Send(notification Notification, recipient string) error {
-	apiKey, ok := s.opts.ApiKeys[recipient]
+func (s *opsgenieService) Send(notification Notification, dest Destination) error {
+	apiKey, ok := s.opts.ApiKeys[dest.Recipient]
 	if !ok {
-		return fmt.Errorf("no API key configured for recipient %s", recipient)
+		return fmt.Errorf("no API key configured for recipient %s", dest.Recipient)
 	}
 	alertClient, _ := alert.NewClient(&client.Config{
 		ApiKey:         apiKey,
@@ -44,7 +44,7 @@ func (s *opsgenieService) Send(notification Notification, recipient string) erro
 		Responders: []alert.Responder{
 			{
 				Type: "team",
-				Id:   recipient,
+				Id:   dest.Recipient,
 			},
 		},
 		Source: "Argo CD",

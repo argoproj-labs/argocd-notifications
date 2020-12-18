@@ -10,13 +10,22 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
+// NotificationSubscription holds an information what explains when, where and how a notification should be sent
+type NotificationSubscription struct {
+	When string                 `json:"when"`
+	Send string                 `json:"send"`
+	To   []services.Destination `json:"to"`
+}
+
 type ServiceFactory func() (services.NotificationService, error)
 
+// Config holds settings required to create new notifier
 type Config struct {
 	Templates []templates.NotificationTemplate
 	Services  map[string]ServiceFactory
 }
 
+// ParseConfig retrieves Config from given ConfigMap and Secret
 func ParseConfig(configMap *v1.ConfigMap, secret *v1.Secret) (*Config, error) {
 	for k, v := range configMap.Data {
 		configMap.Data[k] = replaceStringSecret(v, secret.StringData)

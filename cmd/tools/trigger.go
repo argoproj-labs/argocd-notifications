@@ -6,6 +6,7 @@ import (
 	"strings"
 	"text/tabwriter"
 
+	"github.com/argoproj-labs/argocd-notifications/pkg/util/misc"
 	"github.com/argoproj-labs/argocd-notifications/triggers"
 
 	"github.com/spf13/cobra"
@@ -123,7 +124,7 @@ argocd-notifications tools trigger get on-sync-failed -o=yaml
 					_, _ = fmt.Println(items[i].Name)
 				}
 			default:
-				return printFormatted(items, output, cmdContext.stdout)
+				return misc.PrintFormatted(items, output, cmdContext.stdout)
 			}
 			return nil
 		},

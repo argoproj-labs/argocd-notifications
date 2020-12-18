@@ -30,7 +30,7 @@ func NewTrigger(t NotificationTrigger, argocdService argocd.Service) (Trigger, e
 		return nil, fmt.Errorf("failed to parse trigger '%s' condition: %v", t.Name, err)
 	}
 
-	return &trigger{condition: condition, argocdService: argocdService}, nil
+	return &trigger{condition: condition, argocdService: argocdService, template: t.Template}, nil
 }
 
 type Trigger interface {

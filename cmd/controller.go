@@ -5,15 +5,16 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 
-	"github.com/argoproj-labs/argocd-notifications/shared/settings"
-
 	"github.com/argoproj-labs/argocd-notifications/controller"
+	"github.com/argoproj-labs/argocd-notifications/pkg/services"
 	"github.com/argoproj-labs/argocd-notifications/shared/argocd"
 	"github.com/argoproj-labs/argocd-notifications/shared/cmd"
 	"github.com/argoproj-labs/argocd-notifications/shared/k8s"
+	"github.com/argoproj-labs/argocd-notifications/shared/settings"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -28,8 +29,7 @@ import (
 )
 
 const (
-	argocdURLContextVariable = "argocdUrl"
-	defaultMetricsPort       = 9001
+	defaultMetricsPort = 9001
 )
 
 func newControllerCommand() *cobra.Command {
@@ -136,6 +136,9 @@ func watchConfig(ctx context.Context, argocdService argocd.Service, clientset ku
 
 		if secret != nil && configMap != nil {
 			if cfg, err := settings.NewConfig(configMap, secret, argocdService); err == nil {
+				// add console service that is useful for debugging
+				cfg.Notifier.AddService("console", services.NewConsoleService(os.Stdout))
+
 				if err = callback(*cfg); err != nil {
 					log.Fatalf("Failed to start controller: %v", err)
 				}

@@ -1,8 +1,8 @@
 title: "Application {{.app.metadata.name}} sync status is 'Unknown'"
 body: |
-    {{if eq .context.notificationType "slack"}}:exclamation:{{end}} Application {{.app.metadata.name}} sync is 'Unknown'.
+    {{if eq .serviceType "slack"}}:exclamation:{{end}} Application {{.app.metadata.name}} sync is 'Unknown'.
     Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
-    {{if ne .context.notificationType "slack"}}
+    {{if ne .serviceType "slack"}}
     {{range $c := .app.status.conditions}}
         * {{$c.message}}
     {{end}}

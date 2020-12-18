@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/argoproj-labs/argocd-notifications/pkg/shared/text"
+	"github.com/argoproj-labs/argocd-notifications/pkg/util/text"
 	log "github.com/sirupsen/logrus"
 
-	httputil "github.com/argoproj-labs/argocd-notifications/pkg/shared/http"
+	httputil "github.com/argoproj-labs/argocd-notifications/pkg/util/http"
 )
 
 type WebhookNotification struct {
@@ -56,8 +56,8 @@ func findWebhookSettingsByName(settings []WebhookSettings, name string) (*Webhoo
 	return nil, fmt.Errorf("webhook with name '%s' is not configured", name)
 }
 
-func (s webhookService) Send(notification Notification, recipient string) error {
-	webhookSettings, err := findWebhookSettingsByName(s.opts, recipient)
+func (s webhookService) Send(notification Notification, dest Destination) error {
+	webhookSettings, err := findWebhookSettingsByName(s.opts, dest.Recipient)
 	if err != nil {
 		return err
 	}

@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	httputil "github.com/argoproj-labs/argocd-notifications/pkg/shared/http"
+	httputil "github.com/argoproj-labs/argocd-notifications/pkg/util/http"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -36,11 +36,11 @@ type GrafanaAnnotation struct {
 	Text     string   `json:"text"`
 }
 
-func (s *grafanaService) Send(notification Notification, tags string) error {
+func (s *grafanaService) Send(notification Notification, dest Destination) error {
 	ga := GrafanaAnnotation{
 		Time:     time.Now().Unix() * 1000, // unix ts in ms
 		IsRegion: false,
-		Tags:     strings.Split(tags, "|"),
+		Tags:     strings.Split(dest.Recipient, "|"),
 		Text:     notification.Title,
 	}
 

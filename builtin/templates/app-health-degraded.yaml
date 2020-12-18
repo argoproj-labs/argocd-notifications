@@ -1,6 +1,6 @@
 title: "Application {{.app.metadata.name}} has degraded."
 body: |
-    {{if eq .context.notificationType "slack"}}:exclamation:{{end}} Application {{.app.metadata.name}} has degraded.
+    {{if eq .serviceType "slack"}}:exclamation:{{end}} Application {{.app.metadata.name}} has degraded.
     Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
 slack:
     attachments: |

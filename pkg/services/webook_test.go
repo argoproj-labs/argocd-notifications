@@ -32,7 +32,7 @@ func TestWebhook_SuccessfullySendsNotification(t *testing.T) {
 			Webhook: map[string]WebhookNotification{
 				"test": {Body: "hello world", Method: http.MethodPost},
 			},
-		}, "test")
+		}, Destination{Recipient: "test"})
 	assert.NoError(t, err)
 
 	assert.Equal(t, "hello world", receivedBody)
@@ -42,7 +42,7 @@ func TestWebhook_SuccessfullySendsNotification(t *testing.T) {
 
 func TestWebhook_FailedToSendNotConfigured(t *testing.T) {
 	service := NewWebhookService(WebhookOptions{})
-	err := service.Send(Notification{}, "test")
+	err := service.Send(Notification{}, Destination{Recipient: "test"})
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "not configured")
 }
@@ -63,7 +63,7 @@ func TestWebhook_SubPath(t *testing.T) {
 		Webhook: map[string]WebhookNotification{
 			"test": {Body: "hello world", Method: http.MethodPost},
 		},
-	}, "test")
+	}, Destination{Recipient: "test"})
 	assert.NoError(t, err)
 	assert.Equal(t, "/subpath1", receivedPath)
 
@@ -71,7 +71,7 @@ func TestWebhook_SubPath(t *testing.T) {
 		Webhook: map[string]WebhookNotification{
 			"test": {Body: "hello world", Method: http.MethodPost, Path: "/subpath2"},
 		},
-	}, "test")
+	}, Destination{Recipient: "test"})
 	assert.NoError(t, err)
 	assert.Equal(t, "/subpath1/subpath2", receivedPath)
 }

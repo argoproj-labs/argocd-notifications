@@ -14,7 +14,7 @@
 
 **body**:
 ```
-{{if eq .context.notificationType "slack"}}:exclamation:{{end}} Application {{.app.metadata.name}} has degraded.
+{{if eq .serviceType "slack"}}:exclamation:{{end}} Application {{.app.metadata.name}} has degraded.
 Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
 
 ```
@@ -23,7 +23,7 @@ Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
 
 **body**:
 ```
-{{if eq .context.notificationType "slack"}}:exclamation:{{end}}  The sync operation of application {{.app.metadata.name}} has failed at {{.app.status.operationState.finishedAt}} with the following error: {{.app.status.operationState.message}}
+{{if eq .serviceType "slack"}}:exclamation:{{end}}  The sync operation of application {{.app.metadata.name}} has failed at {{.app.status.operationState.finishedAt}} with the following error: {{.app.status.operationState.message}}
 Sync operation details are available at: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}?operation=true .
 
 ```
@@ -41,9 +41,9 @@ Sync operation details are available at: {{.context.argocdUrl}}/applications/{{.
 
 **body**:
 ```
-{{if eq .context.notificationType "slack"}}:exclamation:{{end}} Application {{.app.metadata.name}} sync is 'Unknown'.
+{{if eq .serviceType "slack"}}:exclamation:{{end}} Application {{.app.metadata.name}} sync is 'Unknown'.
 Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
-{{if ne .context.notificationType "slack"}}
+{{if ne .serviceType "slack"}}
 {{range $c := .app.status.conditions}}
     * {{$c.message}}
 {{end}}
@@ -55,7 +55,7 @@ Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
 
 **body**:
 ```
-{{if eq .context.notificationType "slack"}}:white_check_mark:{{end}} Application {{.app.metadata.name}} has been successfully synced at {{.app.status.operationState.finishedAt}}.
+{{if eq .serviceType "slack"}}:white_check_mark:{{end}} Application {{.app.metadata.name}} has been successfully synced at {{.app.status.operationState.finishedAt}}.
 Sync operation details are available at: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}?operation=true .
 
 ```

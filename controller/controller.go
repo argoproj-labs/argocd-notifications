@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/argoproj-labs/argocd-notifications/pkg/services"
+
 	"github.com/argoproj-labs/argocd-notifications/expr"
 
 	"github.com/argoproj-labs/argocd-notifications/shared/k8s"
@@ -132,54 +134,37 @@ func (c *notificationController) Run(ctx context.Context, processors int) {
 	log.Warn("Controller has stopped.")
 }
 
-func (c *notificationController) getRecipients(app *unstructured.Unstructured, trigger string) map[string]bool {
-	recipients := make(map[string]bool)
-	for _, r := range c.cfg.Subscriptions.GetRecipients(trigger, app.GetLabels()) {
-		recipients[r] = true
-	}
-	if annotations := app.GetAnnotations(); annotations != nil {
-		for _, recipient := range sharedrecipients.GetRecipientsFromAnnotations(annotations, trigger) {
-			recipients[recipient] = true
-		}
-	}
-	projName, ok, err := unstructured.NestedString(app.Object, "spec", "project")
-	if !ok || err != nil {
-		return recipients
-	}
-	projObj, ok, err := c.appProjInformer.GetIndexer().GetByKey(fmt.Sprintf("%s/%s", app.GetNamespace(), projName))
-	if !ok || err != nil {
-		return recipients
-	}
-	proj, ok := projObj.(*unstructured.Unstructured)
-	if !ok {
-		return recipients
-	}
-	if annotations := proj.GetAnnotations(); annotations != nil {
-		for _, recipient := range sharedrecipients.GetRecipientsFromAnnotations(annotations, trigger) {
-			recipients[recipient] = true
-		}
-	}
-	return recipients
-}
-
 func (c *notificationController) processApp(app *unstructured.Unstructured, logEntry *log.Entry) error {
 	refreshed := false
 	annotations := app.GetAnnotations()
 	if annotations == nil {
 		annotations = make(map[string]string)
 	}
-	for triggerKey, t := range c.cfg.Triggers {
+	globalRecipients, err := sharedrecipients.GetGlobalRecipients(app.GetLabels(), c.cfg.Subscriptions, c.cfg.Triggers)
+	if err != nil {
+		return err
+	}
+	appRecipients, err := sharedrecipients.GetRecipientsFromAnnotations(annotations, c.cfg.Triggers)
+	if err != nil {
+		return err
+	}
+
+	for _, subscription := range globalRecipients.Merge(appRecipients).GetNotificationSubscriptions() {
+		triggerKey := subscription.When
+		t, ok := c.cfg.Triggers[triggerKey]
+		if !ok {
+			return fmt.Errorf("trigger '%s' is not configured", subscription.When)
+		}
 		triggered, err := t.Triggered(app)
 		if err != nil {
 			logEntry.Debugf("Failed to execute condition of trigger %s: %v", triggerKey, err)
 		}
-		recipients := c.getRecipients(app, triggerKey)
 		logEntry.Infof("Trigger %s result: %v", triggerKey, triggered)
 		c.metricsRegistry.IncTriggerEvaluationsCounter(triggerKey, triggered)
 		trackTriggerKey := fmt.Sprintf("%s.%s", triggerKey, sharedrecipients.AnnotationPostfix)
 		if !triggered {
-			for recipient := range recipients {
-				deleteNotifiedTracking(annotations, trackTriggerKey, recipient)
+			for _, to := range subscription.To {
+				deleteNotifiedTracking(annotations, trackTriggerKey, to)
 			}
 			app.SetAnnotations(annotations)
 			continue
@@ -198,40 +183,31 @@ func (c *notificationController) processApp(app *unstructured.Unstructured, logE
 			refreshed = true
 		}
 
-		for recipient := range recipients {
-			if checkAlreadyNotified(annotations, trackTriggerKey, recipient) {
+		for _, to := range subscription.To {
+			if checkAlreadyNotified(annotations, trackTriggerKey, to) {
 				logEntry.Infof("%s notification already sent", triggerKey)
 				continue // move to the next recipient
 			}
 			successful := true
 
-			parts := strings.Split(recipient, ":")
-			if len(parts) < 2 {
-				return fmt.Errorf("%s is not valid recipient. Expected recipient format is <type>:<name>", recipient)
-			}
-			serviceType := parts[0]
-			templateName := t.GetTemplate()
-
 			logEntry.Infof("Sending %s notification", triggerKey)
-
 			vars := expr.Spawn(app, c.cfg.ArgoCDService, map[string]interface{}{"app": app.Object, "context": c.cfg.Context})
-			if err := c.cfg.Notifier.Send(
-				vars, templateName, serviceType, parts[1]); err != nil {
+			if err := c.cfg.Notifier.Send(vars, subscription.Send, to); err != nil {
 				logEntry.Errorf("Failed to notify recipient %s defined in app %s/%s: %v",
-					recipient, app.GetNamespace(), app.GetName(), err)
+					to, app.GetNamespace(), app.GetName(), err)
 				successful = false
-				c.metricsRegistry.IncDeliveriesCounter(templateName, serviceType, false)
+				c.metricsRegistry.IncDeliveriesCounter(subscription.Send, to.Service, false)
 			} else {
-				c.metricsRegistry.IncDeliveriesCounter(templateName, serviceType, true)
+				c.metricsRegistry.IncDeliveriesCounter(subscription.Send, to.Service, true)
 			}
 
 			if successful {
-				logEntry.Debugf("Notification %s was sent", recipient)
-				insertNotifiedTracking(annotations, trackTriggerKey, recipient, time.Now().Format(time.RFC3339))
+				logEntry.Debugf("Notification %s was sent", to.Recipient)
+				insertNotifiedTracking(annotations, trackTriggerKey, to, time.Now().Format(time.RFC3339))
 			}
 		}
-
 	}
+
 	app.SetAnnotations(annotations)
 	return nil
 }
@@ -267,20 +243,21 @@ func getMapByTrackTrigger(annotations map[string]string, trackTriggerKey string)
 	return recipientTimestampMap
 }
 
-func checkAlreadyNotified(annotations map[string]string, trackTriggerKey string, recipient string) bool {
+func checkAlreadyNotified(annotations map[string]string, trackTriggerKey string, dest services.Destination) bool {
 	recipientTimestampMap := getMapByTrackTrigger(annotations, trackTriggerKey)
-	_, ok := recipientTimestampMap[recipient]
+	_, ok := recipientTimestampMap[fmt.Sprintf("%s:%s", dest.Service, dest.Recipient)]
 	return ok
 }
 
-func insertNotifiedTracking(annotations map[string]string, trackTriggerKey string, recipient string, recipientTimestamp string) {
+func insertNotifiedTracking(annotations map[string]string, trackTriggerKey string, dest services.Destination, recipientTimestamp string) {
 	recipientTimestampMap := getMapByTrackTrigger(annotations, trackTriggerKey)
-	recipientTimestampMap[recipient] = recipientTimestamp
+	recipientTimestampMap[fmt.Sprintf("%s:%s", dest.Service, dest.Recipient)] = recipientTimestamp
 	annotations[trackTriggerKey] = mapToString(recipientTimestampMap)
 }
 
-func deleteNotifiedTracking(annotations map[string]string, trackTriggerKey string, recipient string) {
+func deleteNotifiedTracking(annotations map[string]string, trackTriggerKey string, dest services.Destination) {
 	recipientTimestampMap := getMapByTrackTrigger(annotations, trackTriggerKey)
+	recipient := fmt.Sprintf("%s:%s", dest.Service, dest.Recipient)
 	_, ok := recipientTimestampMap[recipient]
 	if ok {
 		delete(recipientTimestampMap, recipient)

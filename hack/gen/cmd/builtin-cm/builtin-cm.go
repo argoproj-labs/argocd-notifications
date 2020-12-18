@@ -30,7 +30,7 @@ func main() {
 	templatesDir := path.Join(wd, "builtin/templates")
 	triggersDir := path.Join(wd, "builtin/triggers")
 
-	triggers, templates, err := tools.BuildConfigFromFS(templatesDir, triggersDir)
+	templates, triggers, err := tools.BuildConfigFromFS(templatesDir, triggersDir)
 	dieOnError(err, "Failed to build builtin config")
 
 	for _, trigger := range triggers {

@@ -21,7 +21,7 @@ func NewEmailService(opts EmailOptions) NotificationService {
 	return &emailService{opts: opts}
 }
 
-func (s *emailService) Send(notification Notification, recipient string) error {
+func (s *emailService) Send(notification Notification, dest Destination) error {
 	return smtp.New(smtp.Options{
 		From:               s.opts.From,
 		Host:               s.opts.Host,
@@ -29,5 +29,5 @@ func (s *emailService) Send(notification Notification, recipient string) error {
 		InsecureSkipVerify: s.opts.InsecureSkipVerify,
 		Password:           s.opts.Password,
 		Username:           s.opts.Username,
-	}).WithSubject(notification.Title).WithBody(notification.Body).To(recipient).Send()
+	}).WithSubject(notification.Title).WithBody(notification.Body).To(dest.Recipient).Send()
 }

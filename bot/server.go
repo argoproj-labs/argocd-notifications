@@ -35,6 +35,14 @@ type server struct {
 	mux           *http.ServeMux
 }
 
+func copyStringMap(in map[string]string) map[string]string {
+	out := make(map[string]string)
+	for k, v := range in {
+		out[k] = v
+	}
+	return out
+}
+
 func (s *server) handler(adapter Adapter) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cmd, err := adapter.Parse(r)
@@ -73,8 +81,8 @@ func findStringIndex(items []string, item string) int {
 }
 
 func addSubscription(recipient string, trigger string, annotations map[string]string) map[string]string {
-	annotations = recipients.CopyStringMap(annotations)
-	annotationKey := recipients.RecipientsAnnotation
+	annotations = copyStringMap(annotations)
+	annotationKey := recipients.AnnotationKey
 	if trigger != "" {
 		annotationKey = fmt.Sprintf("%s.%s", trigger, annotationKey)
 	}
@@ -85,8 +93,24 @@ func addSubscription(recipient string, trigger string, annotations map[string]st
 	return annotations
 }
 
+func annotationsPatch(old map[string]string, new map[string]string) map[string]*string {
+	patch := map[string]*string{}
+	for k := range new {
+		val := new[k]
+		if val != old[k] {
+			patch[k] = &val
+		}
+	}
+	for k := range old {
+		if _, ok := new[k]; !ok {
+			patch[k] = nil
+		}
+	}
+	return patch
+}
+
 func removeSubscription(recipient string, trigger string, annotations map[string]string) map[string]string {
-	annotations = recipients.CopyStringMap(annotations)
+	annotations = copyStringMap(annotations)
 	for _, k := range recipients.GetAnnotationKeys(annotations, trigger) {
 		existingRecipients := recipients.ParseRecipients(annotations[k])
 		if index := findStringIndex(existingRecipients, recipient); index > -1 {
@@ -118,14 +142,14 @@ func (s *server) updateSubscription(recipient string, subscribe bool, opts Updat
 	if err != nil {
 		return "", err
 	}
-	oldAnnotations := recipients.CopyStringMap(obj.GetAnnotations())
+	oldAnnotations := copyStringMap(obj.GetAnnotations())
 	var newAnnotations map[string]string
 	if subscribe {
 		newAnnotations = addSubscription(recipient, opts.Trigger, obj.GetAnnotations())
 	} else {
 		newAnnotations = removeSubscription(recipient, opts.Trigger, obj.GetAnnotations())
 	}
-	annotationsPatch := recipients.AnnotationsPatch(oldAnnotations, newAnnotations)
+	annotationsPatch := annotationsPatch(oldAnnotations, newAnnotations)
 	if len(annotationsPatch) > 0 {
 		patch := map[string]map[string]interface{}{
 			"metadata": {
@@ -146,13 +170,22 @@ func (s *server) updateSubscription(recipient string, subscribe bool, opts Updat
 }
 
 func (s *server) listSubscriptions(recipient string) (string, error) {
+	dest, _, err := recipients.ParseDestinationAndTemplate(recipient)
+	if err != nil {
+		return "", err
+	}
+
 	appList, err := s.appClient.List(v1.ListOptions{})
 	if err != nil {
 		return "", err
 	}
 	var apps []string
 	for _, app := range appList.Items {
-		if findStringIndex(recipients.GetRecipientsFromAnnotations(app.GetAnnotations(), ""), recipient) > -1 {
+		allDest, err := recipients.GetDestinations(app.GetAnnotations())
+		if err != nil {
+			return "", err
+		}
+		if allDest[dest] {
 			apps = append(apps, fmt.Sprintf("%s/%s", app.GetNamespace(), app.GetName()))
 		}
 	}
@@ -162,7 +195,12 @@ func (s *server) listSubscriptions(recipient string) (string, error) {
 	}
 	var appProjs []string
 	for _, appProj := range appProjList.Items {
-		if findStringIndex(recipients.GetRecipientsFromAnnotations(appProj.GetAnnotations(), ""), recipient) > -1 {
+		allDest, err := recipients.GetDestinations(appProj.GetAnnotations())
+		if err != nil {
+			return "", err
+		}
+
+		if allDest[dest] {
 			appProjs = append(appProjs, fmt.Sprintf("%s/%s", appProj.GetNamespace(), appProj.GetName()))
 		}
 	}

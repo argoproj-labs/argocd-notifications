@@ -7,12 +7,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/argoproj-labs/argocd-notifications/pkg/services"
+
 	"github.com/golang/mock/gomock"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/dynamic/fake"
@@ -30,7 +31,7 @@ var (
 	logEntry = logrus.NewEntry(logrus.New())
 )
 
-func newController(t *testing.T, ctx context.Context, client dynamic.Interface, subscriptions ...settings.Subscription) (*notificationController, *triggermocks.MockTrigger, *mocks.MockNotifier, error) {
+func newController(t *testing.T, ctx context.Context, client dynamic.Interface) (*notificationController, *triggermocks.MockTrigger, *mocks.MockNotifier, error) {
 	mockCtrl := gomock.NewController(t)
 	go func() {
 		<-ctx.Done()
@@ -42,9 +43,8 @@ func newController(t *testing.T, ctx context.Context, client dynamic.Interface, 
 		client,
 		TestNamespace,
 		settings.Config{
-			Notifier:      notifier,
-			Triggers:      map[string]triggers.Trigger{"mock": trigger},
-			Subscriptions: subscriptions,
+			Notifier: notifier,
+			Triggers: map[string]triggers.Trigger{"mock": trigger},
 		},
 		"",
 		NewMetricsRegistry())
@@ -62,7 +62,7 @@ func TestSendsNotificationIfTriggered(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 	app := NewApp("test", WithAnnotations(map[string]string{
-		recipients.RecipientsAnnotation: "mock:recipient",
+		recipients.AnnotationKey: "mock:recipient",
 	}))
 	ctrl, trigger, notifier, err := newController(t, ctx, fake.NewSimpleDynamicClient(runtime.NewScheme(), app))
 	assert.NoError(t, err)
@@ -74,7 +74,7 @@ func TestSendsNotificationIfTriggered(t *testing.T) {
 	notifier.EXPECT().Send(mock.MatchedBy(func(vars map[string]interface{}) bool {
 		receivedVars = vars
 		return true
-	}), "test", "mock", "recipient").Return(nil)
+	}), "test", services.Destination{Service: "mock", Recipient: "recipient"}).Return(nil)
 
 	err = ctrl.processApp(app, logEntry)
 
@@ -91,13 +91,14 @@ func TestDoesNotSendNotificationIfAnnotationPresent(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 	app := NewApp("test", WithAnnotations(map[string]string{
-		recipients.RecipientsAnnotation:                      "mock:recipient",
+		recipients.AnnotationKey:                             "mock:recipient",
 		fmt.Sprintf("mock.%s", recipients.AnnotationPostfix): fmt.Sprintf("mock:recipient=%s\n", time.Now().Format(time.RFC3339)),
 	}))
 	ctrl, trigger, _, err := newController(t, ctx, fake.NewSimpleDynamicClient(runtime.NewScheme(), app))
 	assert.NoError(t, err)
 
 	trigger.EXPECT().Triggered(app).Return(true, nil)
+	trigger.EXPECT().GetTemplate().Return("test")
 
 	err = ctrl.processApp(app, logEntry)
 
@@ -108,11 +109,11 @@ func TestSendsNotificationIfAnnotationPresentInStaleCache(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 	staleApp := NewApp("test", WithAnnotations(map[string]string{
-		recipients.RecipientsAnnotation:                      "mock:recipient",
+		recipients.AnnotationKey:                             "mock:recipient",
 		fmt.Sprintf("mock.%s", recipients.AnnotationPostfix): fmt.Sprintf("mock:recipient=%s\n", time.Now().Format(time.RFC3339)),
 	}))
 	refreshedApp := NewApp("test", WithAnnotations(map[string]string{
-		recipients.RecipientsAnnotation: "mock:recipient",
+		recipients.AnnotationKey: "mock:recipient",
 	}))
 	ctrl, trigger, notifier, err := newController(t, ctx, fake.NewSimpleDynamicClient(runtime.NewScheme(), refreshedApp))
 	assert.NoError(t, err)
@@ -124,7 +125,7 @@ func TestSendsNotificationIfAnnotationPresentInStaleCache(t *testing.T) {
 	notifier.EXPECT().Send(mock.MatchedBy(func(vars map[string]interface{}) bool {
 		receivedVars = vars
 		return true
-	}), "test", "mock", "recipient").Return(nil)
+	}), "test", services.Destination{Service: "mock", Recipient: "recipient"}).Return(nil)
 
 	err = ctrl.processApp(staleApp, logEntry)
 
@@ -137,13 +138,14 @@ func TestRemovesAnnotationIfNoTrigger(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 	app := NewApp("test", WithAnnotations(map[string]string{
-		recipients.RecipientsAnnotation:                      "mock:recipient",
+		recipients.AnnotationKey:                             "mock:recipient",
 		fmt.Sprintf("mock.%s", recipients.AnnotationPostfix): fmt.Sprintf("mock:recipient=%s\n", time.Now().Format(time.RFC3339)),
 	}))
 	ctrl, trigger, _, err := newController(t, ctx, fake.NewSimpleDynamicClient(runtime.NewScheme(), app))
 	assert.NoError(t, err)
 
 	trigger.EXPECT().Triggered(app).Return(false, nil)
+	trigger.EXPECT().GetTemplate().Return("test")
 
 	err = ctrl.processApp(app, logEntry)
 
@@ -151,42 +153,11 @@ func TestRemovesAnnotationIfNoTrigger(t *testing.T) {
 	assert.Empty(t, app.GetAnnotations()[fmt.Sprintf("mock.%s", recipients.AnnotationPostfix)])
 }
 
-func TestGetRecipients(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.TODO())
-	defer cancel()
-	app := NewApp("test", WithProject("default"), WithAnnotations(map[string]string{
-		recipients.RecipientsAnnotation: "slack:test1",
-	}))
-	appProj := NewProject("default", WithAnnotations(map[string]string{
-		recipients.RecipientsAnnotation:                                        "slack:test2",
-		fmt.Sprintf("on-app-sync-unknown.%s", recipients.RecipientsAnnotation): "slack:test3",
-	}))
-	ctrl, _, _, err := newController(t, ctx, fake.NewSimpleDynamicClient(runtime.NewScheme(), app, appProj))
-	assert.NoError(t, err)
-
-	recipients := ctrl.getRecipients(app, "on-app-health-degraded")
-	assert.Equal(t, map[string]bool{"slack:test1": true, "slack:test2": true}, recipients)
-}
-
-func TestGetRecipients_HasDefaultSubscriptions(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.TODO())
-	defer cancel()
-	app := NewApp("test", WithAnnotations(map[string]string{
-		recipients.RecipientsAnnotation: "slack:test1",
-	}))
-	ctrl, _, _, err := newController(t, ctx, fake.NewSimpleDynamicClient(runtime.NewScheme(), app), settings.Subscription{
-		Recipients: []string{"slack:test2"}, Selector: labels.NewSelector()})
-	assert.NoError(t, err)
-
-	recipients := ctrl.getRecipients(app, "on-app-health-degraded")
-	assert.Equal(t, map[string]bool{"slack:test1": true, "slack:test2": true}, recipients)
-}
-
 func TestUpdatedAnnotationsSavedAsPatch(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 	app := NewApp("test", WithAnnotations(map[string]string{
-		recipients.RecipientsAnnotation:                      "mock:recipient",
+		recipients.AnnotationKey:                             "mock:recipient",
 		fmt.Sprintf("mock.%s", recipients.AnnotationPostfix): fmt.Sprintf("mock:recipient=%s\n", time.Now().Format(time.RFC3339)),
 	}))
 
@@ -201,6 +172,7 @@ func TestUpdatedAnnotationsSavedAsPatch(t *testing.T) {
 	assert.NoError(t, err)
 
 	trigger.EXPECT().Triggered(gomock.Any()).Return(false, nil).AnyTimes()
+	trigger.EXPECT().GetTemplate().Return("test")
 
 	go ctrl.Run(ctx, 1)
 

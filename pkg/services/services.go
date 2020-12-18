@@ -13,8 +13,15 @@ type Notification struct {
 	Webhook map[string]WebhookNotification `json:"webhook,omitempty" patchStrategy:"replace"`
 }
 
+// Destination holds notification destination details
+type Destination struct {
+	Service   string `json:"service"`
+	Recipient string `json:"recipient"`
+}
+
+// NotificationService defines notification service interface
 type NotificationService interface {
-	Send(notification Notification, recipient string) error
+	Send(notification Notification, dest Destination) error
 }
 
 func NewService(serviceType string, optsData []byte) (NotificationService, error) {

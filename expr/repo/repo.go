@@ -10,7 +10,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
 	"github.com/argoproj-labs/argocd-notifications/expr/shared"
-	"github.com/argoproj-labs/argocd-notifications/pkg/shared/text"
+	"github.com/argoproj-labs/argocd-notifications/pkg/util/text"
 	"github.com/argoproj-labs/argocd-notifications/shared/argocd"
 )
 

@@ -8,7 +8,6 @@ import (
 	"github.com/argoproj-labs/argocd-notifications/shared/argocd"
 	"github.com/argoproj-labs/argocd-notifications/triggers"
 
-	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
 )
@@ -33,7 +32,14 @@ func NewConfig(configMap *v1.ConfigMap, secret *v1.Secret, argocdService argocd.
 	if err != nil {
 		return nil, err
 	}
-	cfg := Config{Config: *c, Triggers: map[string]triggers.Trigger{}, Notifier: notifier, ArgoCDService: argocdService}
+	cfg := Config{
+		Config:   *c,
+		Triggers: map[string]triggers.Trigger{},
+		Notifier: notifier, ArgoCDService: argocdService,
+		Context: map[string]string{
+			"argocdUrl": "https://localhost:4000",
+		},
+	}
 	// read all the keys in format of templates.%s and triggers.%s
 	// to create config
 	for k, v := range configMap.Data {
@@ -44,8 +50,12 @@ func NewConfig(configMap *v1.ConfigMap, secret *v1.Secret, argocdService argocd.
 				return nil, err
 			}
 		case k == "context":
-			if err := yaml.Unmarshal([]byte(v), &cfg.Context); err != nil {
+			ctx := map[string]string{}
+			if err := yaml.Unmarshal([]byte(v), &ctx); err != nil {
 				return nil, err
+			}
+			for k, v := range ctx {
+				cfg.Context[k] = v
 			}
 		case strings.HasPrefix(k, "trigger."):
 			name := strings.Join(parts[1:], ".")
@@ -60,8 +70,6 @@ func NewConfig(configMap *v1.ConfigMap, secret *v1.Secret, argocdService argocd.
 			}
 			cfg.Triggers[name] = trigger
 			cfg.TriggersSettings = append(cfg.TriggersSettings, nt)
-		default:
-			log.Warnf("Key %s does not match to any pattern, ignored", k)
 		}
 	}
 

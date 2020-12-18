@@ -49,7 +49,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   annotations:
-    on-sync-failed.recipients.argocd-notifications.argoproj.io: email:<sample-email>
+    on-sync-failed.recipients.argocd-notifications.argoproj.io: email:<sample-email>:test
 ```
 
 ## Default Subscriptions (v0.6.1)

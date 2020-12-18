@@ -1,9 +1,14 @@
 package recipients
 
 import (
+	"fmt"
 	"strings"
 
-	"github.com/argoproj-labs/argocd-notifications/pkg/shared/text"
+	"github.com/argoproj-labs/argocd-notifications/triggers"
+
+	"github.com/argoproj-labs/argocd-notifications/pkg/services"
+
+	"github.com/argoproj-labs/argocd-notifications/pkg/util/text"
 )
 
 const (
@@ -11,31 +16,84 @@ const (
 )
 
 var (
-	RecipientsAnnotation = "recipients." + AnnotationPostfix
+	AnnotationKey = "recipients." + AnnotationPostfix
 )
 
-func GetRecipientsFromAnnotations(annotations map[string]string, trigger string) []string {
-	recipients := make([]string, 0)
-	for _, k := range GetAnnotationKeys(annotations, trigger) {
-		annotation := annotations[k]
-		recipients = append(recipients, ParseRecipients(annotation)...)
-	}
+func GetRecipientsFromAnnotations(annotations map[string]string, triggersByName map[string]triggers.Trigger) (Recipients, error) {
+	destByTriggerTemplate := map[triggerTemplate][]services.Destination{}
+	for k, v := range annotations {
+		if !strings.HasSuffix(k, AnnotationKey) {
+			continue
+		}
 
-	return recipients
+		var triggerNames []string
+		triggerName := strings.TrimRight(k[0:len(k)-len(AnnotationKey)], ".")
+		if triggerName == "" {
+			for k := range triggersByName {
+				triggerNames = append(triggerNames, k)
+			}
+		} else {
+			triggerNames = []string{triggerName}
+		}
+
+		for _, recipient := range text.SplitRemoveEmpty(v, ",") {
+			if recipient = strings.TrimSpace(recipient); recipient != "" {
+
+				dest, templ, err := ParseDestinationAndTemplate(recipient)
+				if err != nil {
+					return nil, err
+				}
+
+				for _, name := range triggerNames {
+					trigger, ok := triggersByName[name]
+					if !ok {
+						return nil, fmt.Errorf("trigger '%s' is not configured or disabled", name)
+					}
+					templateName := text.Coalesce(trigger.GetTemplate(), templ)
+					if templateName == "" {
+						return nil, fmt.Errorf("recipient '%s' should include template since trigger '%s' does not have default template", recipient, name)
+					}
+					tt := triggerTemplate{trigger: name, template: templateName}
+					destByTriggerTemplate[tt] = append(destByTriggerTemplate[tt], dest)
+				}
+			}
+		}
+	}
+	return destByTriggerTemplate, nil
 }
 
 func GetAnnotationKeys(annotations map[string]string, trigger string) []string {
 	keys := make([]string, 0)
 	for k := range annotations {
-		if !strings.HasSuffix(k, RecipientsAnnotation) {
+		if !strings.HasSuffix(k, AnnotationKey) {
 			continue
 		}
-		if name := strings.TrimRight(k[0:len(k)-len(RecipientsAnnotation)], "."); name != "" && name != trigger {
+		if name := strings.TrimRight(k[0:len(k)-len(AnnotationKey)], "."); name != "" && name != trigger {
 			continue
 		}
 		keys = append(keys, k)
 	}
 	return keys
+}
+
+func GetDestinations(annotations map[string]string) (map[services.Destination]bool, error) {
+	res := map[services.Destination]bool{}
+	for k, v := range annotations {
+		if !strings.HasSuffix(k, AnnotationKey) {
+			continue
+		}
+		for _, recipient := range text.SplitRemoveEmpty(v, ",") {
+			if recipient = strings.TrimSpace(recipient); recipient != "" {
+
+				dest, _, err := ParseDestinationAndTemplate(recipient)
+				if err != nil {
+					return nil, err
+				}
+				res[dest] = true
+			}
+		}
+	}
+	return res, nil
 }
 
 func ParseRecipients(annotation string) []string {
@@ -46,28 +104,4 @@ func ParseRecipients(annotation string) []string {
 		}
 	}
 	return recipients
-}
-
-func CopyStringMap(in map[string]string) map[string]string {
-	out := make(map[string]string)
-	for k, v := range in {
-		out[k] = v
-	}
-	return out
-}
-
-func AnnotationsPatch(old map[string]string, new map[string]string) map[string]*string {
-	patch := map[string]*string{}
-	for k := range new {
-		val := new[k]
-		if val != old[k] {
-			patch[k] = &val
-		}
-	}
-	for k := range old {
-		if _, ok := new[k]; !ok {
-			patch[k] = nil
-		}
-	}
-	return patch
 }

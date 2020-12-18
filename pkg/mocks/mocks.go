@@ -60,15 +60,15 @@ func (mr *MockNotifierMockRecorder) GetServices() *gomock.Call {
 }
 
 // Send mocks base method
-func (m *MockNotifier) Send(arg0 map[string]interface{}, arg1, arg2, arg3 string) error {
+func (m *MockNotifier) Send(arg0 map[string]interface{}, arg1 string, arg2 services.Destination) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Send", arg0, arg1, arg2, arg3)
+	ret := m.ctrl.Call(m, "Send", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Send indicates an expected call of Send
-func (mr *MockNotifierMockRecorder) Send(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+func (mr *MockNotifierMockRecorder) Send(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Send", reflect.TypeOf((*MockNotifier)(nil).Send), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Send", reflect.TypeOf((*MockNotifier)(nil).Send), arg0, arg1, arg2)
 }
