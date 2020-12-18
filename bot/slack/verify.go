@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/argoproj-labs/argocd-notifications/pkg"
-
 	slackclient "github.com/slack-go/slack"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/cache"
 
+	"github.com/argoproj-labs/argocd-notifications/pkg"
 	"github.com/argoproj-labs/argocd-notifications/shared/k8s"
 )
 

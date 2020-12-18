@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/argoproj-labs/argocd-notifications/shared/k8s"
-
 	"github.com/argoproj-labs/argocd-notifications/shared/recipients"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"

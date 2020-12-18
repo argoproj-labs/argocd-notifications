@@ -8,9 +8,9 @@ import (
 )
 
 type rawSubscription struct {
-	Recipients []string
-	Triggers   []string
-	Selector   string
+	Recipients []string `json:"recipients"`
+	Triggers   []string `json:"triggers"`
+	Selector   string   `json:"selector"`
 }
 
 // DefaultSubscription holds recipients that receives notification by default.

@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -14,7 +15,6 @@ import (
 
 	"github.com/argoproj-labs/argocd-notifications/shared/k8s"
 	testingutil "github.com/argoproj-labs/argocd-notifications/testing"
-	"github.com/stretchr/testify/assert"
 )
 
 func syncedInformers(t *testing.T, ctx context.Context, objects ...runtime.Object) (cache.SharedIndexInformer, cache.SharedIndexInformer) {

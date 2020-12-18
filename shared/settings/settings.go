@@ -22,23 +22,19 @@ type Config struct {
 	ArgoCDService    argocd.Service
 }
 
-// ParseConfigMap retrieves configured templates and triggers from the provided config map
+// NewConfig retrieves configured templates and triggers from the provided config map
 func NewConfig(configMap *v1.ConfigMap, secret *v1.Secret, argocdService argocd.Service) (*Config, error) {
 	c, err := pkg.ParseConfig(configMap, secret)
-	if err != nil {
-		return nil, err
-	}
-	notifier, err := pkg.NewNotifier(*c)
 	if err != nil {
 		return nil, err
 	}
 	cfg := Config{
 		Config:   *c,
 		Triggers: map[string]triggers.Trigger{},
-		Notifier: notifier, ArgoCDService: argocdService,
 		Context: map[string]string{
 			"argocdUrl": "https://localhost:4000",
 		},
+		ArgoCDService: argocdService,
 	}
 	// read all the keys in format of templates.%s and triggers.%s
 	// to create config
@@ -64,13 +60,25 @@ func NewConfig(configMap *v1.ConfigMap, secret *v1.Secret, argocdService argocd.
 				return nil, fmt.Errorf("Failed to unmarshal trigger %s: %v", name, err)
 			}
 			nt.Name = name
-			trigger, err := triggers.NewTrigger(nt, argocdService)
-			if err != nil {
-				return nil, fmt.Errorf("Failed to create trigger %s: %v", name, err)
-			}
-			cfg.Triggers[name] = trigger
 			cfg.TriggersSettings = append(cfg.TriggersSettings, nt)
 		}
+	}
+
+	err = mergeLegacyConfig(&cfg, configMap, secret)
+	if err != nil {
+		return nil, err
+	}
+	notifier, err := pkg.NewNotifier(*c)
+	if err != nil {
+		return nil, err
+	}
+	cfg.Notifier = notifier
+	for _, nt := range cfg.TriggersSettings {
+		trigger, err := triggers.NewTrigger(nt, argocdService)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create trigger %s: %v", nt.Name, err)
+		}
+		cfg.Triggers[nt.Name] = trigger
 	}
 
 	return &cfg, nil

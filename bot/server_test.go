@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"k8s.io/utils/pointer"
-
 	"github.com/argoproj-labs/argocd-notifications/shared/recipients"
 	. "github.com/argoproj-labs/argocd-notifications/testing"
 
@@ -13,6 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/dynamic/fake"
+	"k8s.io/utils/pointer"
 )
 
 func TestListRecipients_NoSubscriptions(t *testing.T) {
