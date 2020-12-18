@@ -25,13 +25,13 @@ func main() {
 	}
 	wd, err := os.Getwd()
 	dieOnError(err, "Failed to get current working directory")
-	target := path.Join(wd, "manifests/controller/argocd-notifications-cm.yaml")
+	target := path.Join(wd, "catalog/install.yaml")
 
-	templatesDir := path.Join(wd, "builtin/templates")
-	triggersDir := path.Join(wd, "builtin/triggers")
+	templatesDir := path.Join(wd, "catalog/templates")
+	triggersDir := path.Join(wd, "catalog/triggers")
 
 	templates, triggers, err := tools.BuildConfigFromFS(templatesDir, triggersDir)
-	dieOnError(err, "Failed to build builtin config")
+	dieOnError(err, "Failed to build catalog config")
 
 	for _, trigger := range triggers {
 		name := trigger.Name

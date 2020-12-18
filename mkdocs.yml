@@ -40,4 +40,4 @@ nav:
     - recipients/telegram-bot.md
   - troubleshooting.md
   - monitoring.md
-  - built-in.md
+  - catalog.md

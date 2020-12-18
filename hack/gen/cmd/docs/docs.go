@@ -20,7 +20,7 @@ import (
 )
 
 func generateBuiltInTriggersDocs(out io.Writer, notificationTriggers []triggers.NotificationTrigger, notificationTemplates []templates.NotificationTemplate) {
-	_, _ = fmt.Fprintln(out, "# Built-in Triggers and Templates")
+	_, _ = fmt.Fprintln(out, "# Triggers and Templates Catalog")
 	_, _ = fmt.Fprintln(out, "## Triggers")
 
 	triggers := tablewriter.NewWriter(out)
@@ -64,13 +64,13 @@ func main() {
 	wd, err := os.Getwd()
 	dieOnError(err, "Failed to get current working directory")
 
-	templatesDir := path.Join(wd, "builtin/templates")
-	triggersDir := path.Join(wd, "builtin/triggers")
+	templatesDir := path.Join(wd, "catalog/templates")
+	triggersDir := path.Join(wd, "catalog/triggers")
 
 	notificationTemplates, notificationTriggers, err := tools.BuildConfigFromFS(templatesDir, triggersDir)
 	dieOnError(err, "Failed to build builtin config")
 	generateBuiltInTriggersDocs(&builtItDocsData, notificationTriggers, notificationTemplates)
-	if err := ioutil.WriteFile("./docs/built-in.md", builtItDocsData.Bytes(), 0644); err != nil {
+	if err := ioutil.WriteFile("./docs/catalog.md", builtItDocsData.Bytes(), 0644); err != nil {
 		log.Fatal(err)
 	}
 	var commandDocs bytes.Buffer
