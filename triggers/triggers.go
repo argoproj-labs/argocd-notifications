@@ -4,6 +4,7 @@ package triggers
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/antonmedv/expr"
 	"github.com/antonmedv/expr/vm"
@@ -18,6 +19,7 @@ type NotificationTrigger struct {
 	Condition   string `json:"condition,omitempty"`
 	Description string `json:"description,omitempty"`
 	Template    string `json:"template,omitempty"`
+	OncePer     string `json:"oncePer,omitempty"`
 
 	// TODO: remove when everyone migrate to new settings style
 	// Deprecated: used only by legacy settings
@@ -33,18 +35,19 @@ func NewTrigger(t NotificationTrigger, argocdService argocd.Service) (Trigger, e
 		return nil, fmt.Errorf("failed to parse trigger '%s' condition: %v", t.Name, err)
 	}
 
-	return &trigger{condition: condition, argocdService: argocdService, template: t.Template}, nil
+	return &trigger{condition: condition, argocdService: argocdService, config: t}, nil
 }
 
 type Trigger interface {
 	Triggered(app *unstructured.Unstructured) (bool, error)
 	GetTemplate() string
+	OncePerField(app *unstructured.Unstructured) string
 }
 
 type trigger struct {
 	condition     *vm.Program
 	argocdService argocd.Service
-	template      string
+	config        NotificationTrigger
 }
 
 func (t *trigger) Triggered(app *unstructured.Unstructured) (bool, error) {
@@ -58,5 +61,18 @@ func (t *trigger) Triggered(app *unstructured.Unstructured) (bool, error) {
 }
 
 func (t *trigger) GetTemplate() string {
-	return t.template
+	return t.config.Template
+}
+
+func (t *trigger) OncePerField(app *unstructured.Unstructured) string {
+	if t.config.OncePer == "" {
+		return ""
+	}
+	val, ok, err := unstructured.NestedFieldNoCopy(map[string]interface{}{
+		"app": app.Object,
+	}, strings.Split(t.config.OncePer, ".")...)
+	if err != nil || !ok {
+		return ""
+	}
+	return fmt.Sprintf("%v", val)
 }

@@ -1,5 +1,24 @@
 # Changelog
 
+## v1.0.0 (Unreleased)
+
+### Features
+
+* feat: support `oncePer` trigger property that allows sending notification "once per" app field value (#60)
+* feat: add support for proxy settings (#42)
+* feat: support self-signed certificates in all HTTP based integrations (#61)
+* feat: subscription support specifying message template
+
+### Bug Fixes
+
+* Failed notifications affect multiple subscribers (#79)
+
+### Refactor
+
+* Built-in triggers/templates replaced with triggers/templates "catalog" (#56)
+* `config.yaml` and `notifiers.yaml` configs split into multiple ConfigMap keys (#76)
+* `trigger.enabled` field is replaced with `defaultTriggers` setting
+
 ## v0.7.0 (2020-05-10)
 
 ### Features
@@ -10,7 +29,7 @@
 * feat: log http request/response in every notifier (#83)
 * feat: add CLI debugging commands (#81)
 
-###  Bug Fixes
+### Bug Fixes
 
 * fix: don't append slash to webhook url (#70) (#85)
 * fix: improve settings parsing errors (#84)

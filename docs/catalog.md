@@ -1,12 +1,13 @@
 # Triggers and Templates Catalog
 ## Triggers
-|          NAME          |            DESCRIPTION            |                      TEMPLATE                       |
-|------------------------|-----------------------------------|-----------------------------------------------------|
-| on-health-degraded     | Application has degraded          | [app-health-degraded](#app-health-degraded)         |
-| on-sync-failed         | Application syncing has failed    | [app-sync-failed](#app-sync-failed)                 |
-| on-sync-running        | Application is being synced       | [app-sync-running](#app-sync-running)               |
-| on-sync-status-unknown | Application status is 'Unknown'   | [app-sync-status-unknown](#app-sync-status-unknown) |
-| on-sync-succeeded      | Application syncing has succeeded | [app-sync-succeeded](#app-sync-succeeded)           |
+|          NAME          |                          DESCRIPTION                          |                      TEMPLATE                       |
+|------------------------|---------------------------------------------------------------|-----------------------------------------------------|
+| on-deployed            | Application is synced and healthy. Triggered once per commit. | [app-sync-succeeded](#app-sync-succeeded)           |
+| on-health-degraded     | Application has degraded                                      | [app-health-degraded](#app-health-degraded)         |
+| on-sync-failed         | Application syncing has failed                                | [app-sync-failed](#app-sync-failed)                 |
+| on-sync-running        | Application is being synced                                   | [app-sync-running](#app-sync-running)               |
+| on-sync-status-unknown | Application status is 'Unknown'                               | [app-sync-status-unknown](#app-sync-status-unknown) |
+| on-sync-succeeded      | Application syncing has succeeded                             | [app-sync-succeeded](#app-sync-succeeded)           |
 
 ## Templates
 ### app-health-degraded

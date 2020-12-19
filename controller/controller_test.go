@@ -31,6 +31,14 @@ var (
 	logEntry = logrus.NewEntry(logrus.New())
 )
 
+func mustToJson(val interface{}) string {
+	res, err := json.Marshal(val)
+	if err != nil {
+		panic(err)
+	}
+	return string(res)
+}
+
 func newController(t *testing.T, ctx context.Context, client dynamic.Interface) (*notificationController, *triggermocks.MockTrigger, *mocks.MockNotifier, error) {
 	mockCtrl := gomock.NewController(t)
 	go func() {
@@ -69,6 +77,7 @@ func TestSendsNotificationIfTriggered(t *testing.T) {
 	assert.NoError(t, err)
 
 	trigger.EXPECT().Triggered(app).Return(true, nil)
+	trigger.EXPECT().OncePerField(app).Return("")
 	trigger.EXPECT().GetTemplate().Return("test")
 
 	receivedVars := map[string]interface{}{}
@@ -81,9 +90,8 @@ func TestSendsNotificationIfTriggered(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	annotation := app.GetAnnotations()[fmt.Sprintf("mock.%s", recipients.AnnotationPostfix)]
-	assert.NotEmpty(t, annotation)
-	assert.Contains(t, annotation, "mock:recipient")
+	state := newState(app.GetAnnotations()[notifiedAnnotationKey])
+	assert.NotNil(t, state[stateItemKey("mock", "", services.Destination{Service: "mock", Recipient: "recipient"})])
 	assert.Equal(t, app.Object, receivedVars["app"])
 	assert.Equal(t, settings.InjectLegacyVar(ctrl.cfg.Context, "mock"), receivedVars["context"])
 }
@@ -91,14 +99,17 @@ func TestSendsNotificationIfTriggered(t *testing.T) {
 func TestDoesNotSendNotificationIfAnnotationPresent(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
+	state := notificationState{}
+	_ = state.setAlreadyNotified("mock", "", services.Destination{Service: "mock", Recipient: "recipient"}, true)
 	app := NewApp("test", WithAnnotations(map[string]string{
-		recipients.AnnotationKey:                             "mock:recipient",
-		fmt.Sprintf("mock.%s", recipients.AnnotationPostfix): fmt.Sprintf("mock:recipient=%s\n", time.Now().Format(time.RFC3339)),
+		recipients.AnnotationKey: "mock:recipient",
+		notifiedAnnotationKey:    mustToJson(state),
 	}))
 	ctrl, trigger, _, err := newController(t, ctx, fake.NewSimpleDynamicClient(runtime.NewScheme(), app))
 	assert.NoError(t, err)
 
 	trigger.EXPECT().Triggered(app).Return(true, nil)
+	trigger.EXPECT().OncePerField(app).Return("")
 	trigger.EXPECT().GetTemplate().Return("test")
 
 	err = ctrl.processApp(app, logEntry)
@@ -122,6 +133,7 @@ func TestSendsNotificationIfAnnotationPresentInStaleCache(t *testing.T) {
 	receivedVars := map[string]interface{}{}
 
 	trigger.EXPECT().Triggered(staleApp).Return(true, nil)
+	trigger.EXPECT().OncePerField(staleApp).Return("")
 	trigger.EXPECT().GetTemplate().Return("test")
 	notifier.EXPECT().Send(mock.MatchedBy(func(vars map[string]interface{}) bool {
 		receivedVars = vars
@@ -138,28 +150,37 @@ func TestSendsNotificationIfAnnotationPresentInStaleCache(t *testing.T) {
 func TestRemovesAnnotationIfNoTrigger(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
+
+	state := notificationState{}
+	_ = state.setAlreadyNotified("mock", "", services.Destination{Service: "mock", Recipient: "recipient"}, true)
 	app := NewApp("test", WithAnnotations(map[string]string{
-		recipients.AnnotationKey:                             "mock:recipient",
-		fmt.Sprintf("mock.%s", recipients.AnnotationPostfix): fmt.Sprintf("mock:recipient=%s\n", time.Now().Format(time.RFC3339)),
+		recipients.AnnotationKey: "mock:recipient",
+		notifiedAnnotationKey:    mustToJson(state),
 	}))
 	ctrl, trigger, _, err := newController(t, ctx, fake.NewSimpleDynamicClient(runtime.NewScheme(), app))
 	assert.NoError(t, err)
 
 	trigger.EXPECT().Triggered(app).Return(false, nil)
+	trigger.EXPECT().OncePerField(app).Return("")
 	trigger.EXPECT().GetTemplate().Return("test")
 
 	err = ctrl.processApp(app, logEntry)
 
 	assert.NoError(t, err)
-	assert.Empty(t, app.GetAnnotations()[fmt.Sprintf("mock.%s", recipients.AnnotationPostfix)])
+	state = newState(app.GetAnnotations()[notifiedAnnotationKey])
+	assert.Empty(t, state)
 }
 
 func TestUpdatedAnnotationsSavedAsPatch(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
+
+	state := notificationState{}
+	_ = state.setAlreadyNotified("mock", "", services.Destination{Service: "mock", Recipient: "recipient"}, true)
+
 	app := NewApp("test", WithAnnotations(map[string]string{
-		recipients.AnnotationKey:                             "mock:recipient",
-		fmt.Sprintf("mock.%s", recipients.AnnotationPostfix): fmt.Sprintf("mock:recipient=%s\n", time.Now().Format(time.RFC3339)),
+		recipients.AnnotationKey: "mock:recipient",
+		notifiedAnnotationKey:    mustToJson(state),
 	}))
 
 	patchCh := make(chan []byte)
@@ -173,6 +194,7 @@ func TestUpdatedAnnotationsSavedAsPatch(t *testing.T) {
 	assert.NoError(t, err)
 
 	trigger.EXPECT().Triggered(gomock.Any()).Return(false, nil).AnyTimes()
+	trigger.EXPECT().OncePerField(app).Return("")
 	trigger.EXPECT().GetTemplate().Return("test")
 
 	go ctrl.Run(ctx, 1)
@@ -184,7 +206,7 @@ func TestUpdatedAnnotationsSavedAsPatch(t *testing.T) {
 		patch := map[string]interface{}{}
 		err = json.Unmarshal(patchData, &patch)
 		assert.NoError(t, err)
-		val, ok, err := unstructured.NestedFieldNoCopy(patch, "metadata", "annotations", fmt.Sprintf("mock.%s", recipients.AnnotationPostfix))
+		val, ok, err := unstructured.NestedFieldNoCopy(patch, "metadata", "annotations", notifiedAnnotationKey)
 		assert.NoError(t, err)
 		assert.True(t, ok)
 		assert.Nil(t, val)

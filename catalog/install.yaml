@@ -132,30 +132,31 @@ data:
         \   \"value\": \"{{$c.message}}\",\n    \"short\": true\n  }\n  {{end}}\n  ]\n}]
         \   "
     title: Application {{.app.metadata.name}} has been successfully synced.
+  trigger.on-deployed: |
+    condition: app.status.operationState.phase in ['Succeeded'] and app.status.health.status
+      == 'Healthy'
+    description: Application is synced and healthy. Triggered once per commit.
+    oncePer: app.status.sync.revision
+    template: app-sync-succeeded
   trigger.on-health-degraded: |
     condition: app.status.health.status == 'Degraded'
     description: Application has degraded
-    enabled: false
     template: app-health-degraded
   trigger.on-sync-failed: |
     condition: app.status.operationState.phase in ['Error', 'Failed']
     description: Application syncing has failed
-    enabled: false
     template: app-sync-failed
   trigger.on-sync-running: |
     condition: app.status.operationState.phase in ['Running']
     description: Application is being synced
-    enabled: false
     template: app-sync-running
   trigger.on-sync-status-unknown: |
     condition: app.status.sync.status == 'Unknown'
     description: Application status is 'Unknown'
-    enabled: false
     template: app-sync-status-unknown
   trigger.on-sync-succeeded: |
     condition: app.status.operationState.phase in ['Succeeded']
     description: Application syncing has succeeded
-    enabled: false
     template: app-sync-succeeded
 kind: ConfigMap
 metadata:

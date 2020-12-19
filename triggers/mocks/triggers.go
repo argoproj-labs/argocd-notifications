@@ -47,6 +47,20 @@ func (mr *MockTriggerMockRecorder) GetTemplate() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTemplate", reflect.TypeOf((*MockTrigger)(nil).GetTemplate))
 }
 
+// OncePerField mocks base method
+func (m *MockTrigger) OncePerField(arg0 *unstructured.Unstructured) string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "OncePerField", arg0)
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// OncePerField indicates an expected call of OncePerField
+func (mr *MockTriggerMockRecorder) OncePerField(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OncePerField", reflect.TypeOf((*MockTrigger)(nil).OncePerField), arg0)
+}
+
 // Triggered mocks base method
 func (m *MockTrigger) Triggered(arg0 *unstructured.Unstructured) (bool, error) {
 	m.ctrl.T.Helper()

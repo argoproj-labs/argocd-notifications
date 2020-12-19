@@ -1,14 +1,12 @@
 package controller
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
 	"runtime/debug"
-	"strings"
 	"time"
 
 	"github.com/argoproj-labs/argocd-notifications/pkg/services"
@@ -33,7 +31,12 @@ import (
 )
 
 const (
-	resyncPeriod = 60 * time.Second
+	resyncPeriod           = 60 * time.Second
+	notifiedHistoryMaxSize = 100
+)
+
+var (
+	notifiedAnnotationKey = "notified." + sharedrecipients.AnnotationPostfix
 )
 
 type NotificationController interface {
@@ -140,6 +143,28 @@ func (c *notificationController) processApp(app *unstructured.Unstructured, logE
 	if annotations == nil {
 		annotations = make(map[string]string)
 	}
+
+	state := newState(annotations[notifiedAnnotationKey])
+	// changes state of specified trigger/destination and returns if state has changed or not
+	setAlreadyNotified := func(trigger string, oncePer string, dest services.Destination, isNotified bool) (bool, error) {
+		changed := state.setAlreadyNotified(trigger, oncePer, dest, isNotified)
+		// if state changes reload application
+		if changed && !refreshed {
+			refreshedApp, err := c.appClient.Get(app.GetName(), v1.GetOptions{})
+			if err != nil {
+				return false, err
+			}
+			annotations = refreshedApp.GetAnnotations()
+			if annotations == nil {
+				annotations = map[string]string{}
+			}
+			state = newState(annotations[notifiedAnnotationKey])
+			refreshed = true
+			return state.setAlreadyNotified(trigger, oncePer, dest, isNotified), nil
+		}
+		return changed, nil
+	}
+
 	globalRecipients, err := sharedrecipients.GetGlobalRecipients(app.GetLabels(), c.cfg.Subscriptions, c.cfg.Triggers, c.cfg.DefaultTriggers)
 	if err != nil {
 		return err
@@ -155,122 +180,62 @@ func (c *notificationController) processApp(app *unstructured.Unstructured, logE
 		if !ok {
 			return fmt.Errorf("trigger '%s' is not configured", subscription.When)
 		}
+		oncePer := t.OncePerField(app)
 		triggered, err := t.Triggered(app)
 		if err != nil {
 			logEntry.Debugf("Failed to execute condition of trigger %s: %v", triggerKey, err)
 		}
 		logEntry.Infof("Trigger %s result: %v", triggerKey, triggered)
 		c.metricsRegistry.IncTriggerEvaluationsCounter(triggerKey, triggered)
-		trackTriggerKey := fmt.Sprintf("%s.%s", triggerKey, sharedrecipients.AnnotationPostfix)
+
 		if !triggered {
 			for _, to := range subscription.To {
-				deleteNotifiedTracking(annotations, trackTriggerKey, to)
+				if _, err := setAlreadyNotified(triggerKey, oncePer, to, false); err != nil {
+					return err
+				}
 			}
-			app.SetAnnotations(annotations)
 			continue
 		}
 
-		// informer might have stale data, so we cannot trust it and should reload app state to avoid sending notification twice
-		if triggered && !refreshed {
-			refreshedApp, err := c.appClient.Get(app.GetName(), v1.GetOptions{})
-			if err != nil {
-				return err
-			}
-			annotations = refreshedApp.GetAnnotations()
-			if annotations == nil {
-				annotations = map[string]string{}
-			}
-			refreshed = true
-		}
-
 		for _, to := range subscription.To {
-			if checkAlreadyNotified(annotations, trackTriggerKey, to) {
+			if changed, err := setAlreadyNotified(triggerKey, oncePer, to, true); err != nil {
+				return err
+			} else if !changed {
 				logEntry.Infof("%s notification already sent", triggerKey)
 				continue // move to the next recipient
 			}
-			successful := true
 
 			logEntry.Infof("Sending %s notification", triggerKey)
 			vars := expr.Spawn(app, c.cfg.ArgoCDService, map[string]interface{}{
 				"app":     app.Object,
 				"context": settings.InjectLegacyVar(c.cfg.Context, to.Service),
 			})
+
 			if err := c.cfg.Notifier.Send(vars, subscription.Send, to); err != nil {
 				logEntry.Errorf("Failed to notify recipient %s defined in app %s/%s: %v",
 					to, app.GetNamespace(), app.GetName(), err)
-				successful = false
+				_ = state.setAlreadyNotified(triggerKey, oncePer, to, false)
 				c.metricsRegistry.IncDeliveriesCounter(subscription.Send, to.Service, false)
 			} else {
+				logEntry.Debugf("Notification %s was sent", to.Recipient)
 				c.metricsRegistry.IncDeliveriesCounter(subscription.Send, to.Service, true)
 			}
-
-			if successful {
-				logEntry.Debugf("Notification %s was sent", to.Recipient)
-				insertNotifiedTracking(annotations, trackTriggerKey, to, time.Now().Format(time.RFC3339))
-			}
 		}
+	}
+
+	state.truncate(notifiedHistoryMaxSize)
+	if len(state) == 0 {
+		delete(annotations, notifiedAnnotationKey)
+	} else {
+		stateJson, err := json.Marshal(state)
+		if err != nil {
+			return err
+		}
+		annotations[notifiedAnnotationKey] = string(stateJson)
 	}
 
 	app.SetAnnotations(annotations)
 	return nil
-}
-
-func mapToString(m map[string]string) string {
-	b := new(bytes.Buffer)
-	for key, value := range m {
-		fmt.Fprintf(b, "%s=%s\n", key, value)
-	}
-	return b.String()
-}
-
-//From annotations get recipientTimestampMap by trackTriggerKey. E.g. on-sync-succeeded.argocd-notifications.argoproj.io
-/*
-metadata:
-  annotations:
-    on-sync-succeeded.argocd-notifications.argoproj.io: |
-      slack:family=2020-11-23T14:29:19-08:00
-*/
-func getMapByTrackTrigger(annotations map[string]string, trackTriggerKey string) map[string]string {
-	recipientTimestampMap := map[string]string{}
-	recipientTimestampString, ok := annotations[trackTriggerKey]
-	if !ok {
-		return recipientTimestampMap
-	}
-
-	for _, value := range strings.Split(recipientTimestampString, "\n") {
-		parts := strings.Split(value, "=")
-		if len(parts) == 2 {
-			recipientTimestampMap[parts[0]] = parts[1]
-		}
-	}
-	return recipientTimestampMap
-}
-
-func checkAlreadyNotified(annotations map[string]string, trackTriggerKey string, dest services.Destination) bool {
-	recipientTimestampMap := getMapByTrackTrigger(annotations, trackTriggerKey)
-	_, ok := recipientTimestampMap[fmt.Sprintf("%s:%s", dest.Service, dest.Recipient)]
-	return ok
-}
-
-func insertNotifiedTracking(annotations map[string]string, trackTriggerKey string, dest services.Destination, recipientTimestamp string) {
-	recipientTimestampMap := getMapByTrackTrigger(annotations, trackTriggerKey)
-	recipientTimestampMap[fmt.Sprintf("%s:%s", dest.Service, dest.Recipient)] = recipientTimestamp
-	annotations[trackTriggerKey] = mapToString(recipientTimestampMap)
-}
-
-func deleteNotifiedTracking(annotations map[string]string, trackTriggerKey string, dest services.Destination) {
-	recipientTimestampMap := getMapByTrackTrigger(annotations, trackTriggerKey)
-	recipient := fmt.Sprintf("%s:%s", dest.Service, dest.Recipient)
-	_, ok := recipientTimestampMap[recipient]
-	if ok {
-		delete(recipientTimestampMap, recipient)
-		recipientTimestampString := mapToString(recipientTimestampMap)
-		if recipientTimestampString == "" {
-			delete(annotations, trackTriggerKey)
-		} else {
-			annotations[trackTriggerKey] = recipientTimestampString
-		}
-	}
 }
 
 // Checks if the application SyncStatus has been refreshed by Argo CD after an operation has completed

@@ -6,18 +6,23 @@ data:
   # Triggers define the condition when the notification should be sent and optional default message template.
   # Recipients can subscribe to the trigger and specify the required message template and destination notification service.
   trigger.on-sync-status-unknown: |
-    # Enable existing built-in trigger
-    - name: on-sync-status-unknown
-      condition: app.status.sync.status == 'Unknown'
-      template: my-custom-template
+    name: on-sync-status-unknown
+    condition: app.status.sync.status == 'Unknown'
+    template: my-custom-template
+
+  # Optional 'oncePer' property ensure that notification is sent only once per specified field value
+  # E.g. following is triggered once per sync revision
+  trigger.on-deployed: |
+    condition: app.status.operationState.phase in ['Succeeded'] and app.status.health.status == 'Healthy'
+    oncePer: app.status.sync.revision
+    template: app-sync-succeeded
 
   # Templates are used to generate the notification template message
   template.my-custom-template: |
-    # Add your custom template
-    - name: my-custom-template
-      title: Hello {{.app.metadata.name}}
-      body: |
-        Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
+    name: my-custom-template
+    title: Hello {{.app.metadata.name}}
+    body: |
+      Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
 
   # Templates might have notification service specific fields. E.g. slack message might include annotations
   template.my-custom-template-slack-template: |
