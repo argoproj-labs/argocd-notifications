@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/argoproj-labs/argocd-notifications/shared/settings"
+
 	slackclient "github.com/slack-go/slack"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/cache"
 
-	"github.com/argoproj-labs/argocd-notifications/pkg"
 	"github.com/argoproj-labs/argocd-notifications/shared/k8s"
 )
 
@@ -37,16 +38,12 @@ func NewVerifier(cmInformer cache.SharedIndexInformer, secretInformer cache.Shar
 		if !ok {
 			return errors.New("unexpected object in the configmap informer storage")
 		}
-		cfg, err := pkg.ParseConfig(cm, secret)
-		if err != nil {
-			return fmt.Errorf("unable to parse slack configuration: %v", err)
-		}
-		notifier, err := pkg.NewNotifier(*cfg)
+		cfg, err := settings.NewConfig(cm, secret, nil)
 		if err != nil {
 			return fmt.Errorf("unable to parse slack configuration: %v", err)
 		}
 		signingSecret := ""
-		for _, service := range notifier.GetServices() {
+		for _, service := range cfg.Notifier.GetServices() {
 			if hasSecret, ok := service.(HasSigningSecret); ok {
 				signingSecret = hasSecret.GetSigningSecret()
 				if signingSecret == "" {

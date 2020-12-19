@@ -15,10 +15,9 @@ metadata:
 rules:
 - apiGroups:
   - ""
-  resourceNames:
-  - argocd-notifications-secret
   resources:
   - secrets
+  - configmaps
   verbs:
   - get
   - list
