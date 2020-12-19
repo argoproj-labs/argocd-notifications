@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"text/tabwriter"
 
+	"github.com/argoproj-labs/argocd-notifications/shared/settings"
+
 	"github.com/argoproj-labs/argocd-notifications/pkg/services"
 	"github.com/argoproj-labs/argocd-notifications/pkg/templates"
 	"github.com/argoproj-labs/argocd-notifications/pkg/util/misc"
@@ -69,7 +71,7 @@ argocd-notifications tools template notify app-sync-succeeded guestbook
 					_, _ = fmt.Fprint(cmdContext.stderr, err.Error())
 					return nil
 				}
-				vars := map[string]interface{}{"app": app.Object, "context": config.Context}
+				vars := map[string]interface{}{"app": app.Object, "context": settings.InjectLegacyVar(config.Context, dest.Service)}
 				if err := config.Notifier.Send(vars, name, dest); err != nil {
 					_, _ = fmt.Fprintf(cmdContext.stderr, "failed to notify '%s': %v\n", recipient, err)
 					return nil

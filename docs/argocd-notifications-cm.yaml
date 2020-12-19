@@ -74,7 +74,7 @@ data:
 
   # Contains centrally managed global application subscriptions
   subscriptions: |
-    # global subscription for all type of notifications
+    # subscription for all default triggers
     - recipients:
       - slack:test1
       - webhook:github
@@ -82,8 +82,11 @@ data:
     - recipients:
       - slack:test2
       - email:test@gmail.com
-      trigger: on-sync-status-unknown
-    # global subscription restricted to applications with matching labels only
+      triggers:
+      - on-sync-status-unknown
+    # subscription restricted to applications with matching labels only
     - recipients:
       - slack:test3
       selector: test=true
+      triggers:
+      - on-sync-status-unknown

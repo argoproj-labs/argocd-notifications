@@ -85,7 +85,7 @@ func TestSendsNotificationIfTriggered(t *testing.T) {
 	assert.NotEmpty(t, annotation)
 	assert.Contains(t, annotation, "mock:recipient")
 	assert.Equal(t, app.Object, receivedVars["app"])
-	assert.Equal(t, ctrl.cfg.Context, receivedVars["context"])
+	assert.Equal(t, settings.InjectLegacyVar(ctrl.cfg.Context, "mock"), receivedVars["context"])
 }
 
 func TestDoesNotSendNotificationIfAnnotationPresent(t *testing.T) {
@@ -132,7 +132,7 @@ func TestSendsNotificationIfAnnotationPresentInStaleCache(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, staleApp.Object, receivedVars["app"])
-	assert.Equal(t, ctrl.cfg.Context, receivedVars["context"])
+	assert.Equal(t, settings.InjectLegacyVar(ctrl.cfg.Context, "mock"), receivedVars["context"])
 }
 
 func TestRemovesAnnotationIfNoTrigger(t *testing.T) {

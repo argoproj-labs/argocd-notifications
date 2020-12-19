@@ -19,6 +19,8 @@ type Destination struct {
 	Recipient string `json:"recipient"`
 }
 
+//go:generate mockgen -destination=./mocks/mocks.go -package=mocks github.com/argoproj-labs/argocd-notifications/pkg/services NotificationService
+
 // NotificationService defines notification service interface
 type NotificationService interface {
 	Send(notification Notification, dest Destination) error

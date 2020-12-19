@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/argoproj-labs/argocd-notifications/triggers"
-
 	"github.com/argoproj-labs/argocd-notifications/pkg/services"
-
 	"github.com/argoproj-labs/argocd-notifications/pkg/util/text"
+	"github.com/argoproj-labs/argocd-notifications/triggers"
 )
 
 const (
@@ -45,9 +43,9 @@ func GetRecipientsFromAnnotations(annotations map[string]string, triggersByName 
 				for _, name := range triggerNames {
 					trigger, ok := triggersByName[name]
 					if !ok {
-						return nil, fmt.Errorf("trigger '%s' is not configured or disabled", name)
+						return nil, fmt.Errorf("trigger '%s' is not configured", name)
 					}
-					templateName := text.Coalesce(trigger.GetTemplate(), templ)
+					templateName := text.Coalesce(templ, trigger.GetTemplate())
 					if templateName == "" {
 						return nil, fmt.Errorf("recipient '%s' should include template since trigger '%s' does not have default template", recipient, name)
 					}

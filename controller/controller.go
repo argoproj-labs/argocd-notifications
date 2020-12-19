@@ -140,7 +140,7 @@ func (c *notificationController) processApp(app *unstructured.Unstructured, logE
 	if annotations == nil {
 		annotations = make(map[string]string)
 	}
-	globalRecipients, err := sharedrecipients.GetGlobalRecipients(app.GetLabels(), c.cfg.Subscriptions, c.cfg.Triggers)
+	globalRecipients, err := sharedrecipients.GetGlobalRecipients(app.GetLabels(), c.cfg.Subscriptions, c.cfg.Triggers, c.cfg.DefaultTriggers)
 	if err != nil {
 		return err
 	}
@@ -191,7 +191,10 @@ func (c *notificationController) processApp(app *unstructured.Unstructured, logE
 			successful := true
 
 			logEntry.Infof("Sending %s notification", triggerKey)
-			vars := expr.Spawn(app, c.cfg.ArgoCDService, map[string]interface{}{"app": app.Object, "context": c.cfg.Context})
+			vars := expr.Spawn(app, c.cfg.ArgoCDService, map[string]interface{}{
+				"app":     app.Object,
+				"context": settings.InjectLegacyVar(c.cfg.Context, to.Service),
+			})
 			if err := c.cfg.Notifier.Send(vars, subscription.Send, to); err != nil {
 				logEntry.Errorf("Failed to notify recipient %s defined in app %s/%s: %v",
 					to, app.GetNamespace(), app.GetName(), err)

@@ -2,12 +2,9 @@ package pkg
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/argoproj-labs/argocd-notifications/pkg/services"
 	"github.com/argoproj-labs/argocd-notifications/pkg/templates"
-
-	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -61,20 +58,7 @@ func (n *notifier) Send(vars map[string]interface{}, templateName string, dest s
 	return service.Send(*notification, dest)
 }
 
-// replaceStringSecret checks if given string is a secret key reference ( starts with $ ) and returns corresponding value from provided map
-func replaceStringSecret(val string, secretValues map[string]string) string {
-	if val == "" || !strings.HasPrefix(val, "$") {
-		return val
-	}
-	secretKey := val[1:]
-	secretVal, ok := secretValues[secretKey]
-	if !ok {
-		log.Warnf("config referenced '%s', but key does not exist in secret", val)
-		return val
-	}
-	return secretVal
-}
-
+// NewNotifier creates new notifier instance using provided config
 func NewNotifier(cfg Config) (*notifier, error) {
 	n := notifier{
 		map[string]services.NotificationService{},
