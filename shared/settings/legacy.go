@@ -57,6 +57,11 @@ func (c legacyConfig) merge(cfg *Config) error {
 	cfg.TriggersSettings = merged.Triggers
 	cfg.Subscriptions = merged.Subscriptions
 	cfg.Context = merged.Context
+	for _, trigger := range c.Triggers {
+		if trigger.Enabled != nil && *trigger.Enabled {
+			cfg.DefaultTriggers = append(cfg.DefaultTriggers, trigger.Name)
+		}
+	}
 	return nil
 }
 

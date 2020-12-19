@@ -18,7 +18,10 @@ type NotificationTrigger struct {
 	Condition   string `json:"condition,omitempty"`
 	Description string `json:"description,omitempty"`
 	Template    string `json:"template,omitempty"`
-	Enabled     *bool  `json:"enabled,omitempty"`
+
+	// TODO: remove when everyone migrate to new settings style
+	// Deprecated: used only by legacy settings
+	Enabled *bool `json:"enabled,omitempty"`
 }
 
 func NewTrigger(t NotificationTrigger, argocdService argocd.Service) (Trigger, error) {

@@ -8,18 +8,27 @@ import (
 	"github.com/argoproj-labs/argocd-notifications/shared/argocd"
 	"github.com/argoproj-labs/argocd-notifications/triggers"
 
-	"gopkg.in/yaml.v2"
+	"github.com/ghodss/yaml"
 	v1 "k8s.io/api/core/v1"
 )
 
 type Config struct {
 	pkg.Config
-	Triggers         map[string]triggers.Trigger
+	// TriggersSettings holds list of configured triggers
 	TriggersSettings []triggers.NotificationTrigger
-	Context          map[string]string
-	Subscriptions    DefaultSubscriptions
-	Notifier         pkg.Notifier
-	ArgoCDService    argocd.Service
+	// Context holds list of configured key value pairs available in notification templates
+	Context map[string]string
+	// Subscriptions holds list of default application subscriptions
+	Subscriptions DefaultSubscriptions
+	// DefaultTriggers holds list of triggers that is used by default if subscriber don't specify trigger
+	DefaultTriggers []string
+
+	// ArgoCDService encapsulates methods provided by Argo CD
+	ArgoCDService argocd.Service
+	// Triggers holds map of triggers by name
+	Triggers map[string]triggers.Trigger
+	// Notifier allows sending notifications
+	Notifier pkg.Notifier
 }
 
 // NewConfig retrieves configured templates and triggers from the provided config map
@@ -42,9 +51,11 @@ func NewConfig(configMap *v1.ConfigMap, secret *v1.Secret, argocdService argocd.
 		parts := strings.Split(k, ".")
 		switch {
 		case k == "subscriptions":
-			if err := yaml.Unmarshal([]byte(v), &cfg.Subscriptions); err != nil {
+			var subscriptions DefaultSubscriptions
+			if err := yaml.Unmarshal([]byte(v), &subscriptions); err != nil {
 				return nil, err
 			}
+			cfg.Subscriptions = append(cfg.Subscriptions, subscriptions...)
 		case k == "context":
 			ctx := map[string]string{}
 			if err := yaml.Unmarshal([]byte(v), &ctx); err != nil {
@@ -53,11 +64,19 @@ func NewConfig(configMap *v1.ConfigMap, secret *v1.Secret, argocdService argocd.
 			for k, v := range ctx {
 				cfg.Context[k] = v
 			}
+		case k == "defaultTriggers":
+			var defaultTriggers []string
+			if err := yaml.Unmarshal([]byte(v), &defaultTriggers); err != nil {
+				return nil, err
+			}
+			for i := range defaultTriggers {
+				cfg.DefaultTriggers = append(cfg.DefaultTriggers, defaultTriggers[i])
+			}
 		case strings.HasPrefix(k, "trigger."):
 			name := strings.Join(parts[1:], ".")
 			nt := triggers.NotificationTrigger{}
 			if err := yaml.Unmarshal([]byte(v), &nt); err != nil {
-				return nil, fmt.Errorf("Failed to unmarshal trigger %s: %v", name, err)
+				return nil, fmt.Errorf("failed to unmarshal trigger %s: %v", name, err)
 			}
 			nt.Name = name
 			cfg.TriggersSettings = append(cfg.TriggersSettings, nt)

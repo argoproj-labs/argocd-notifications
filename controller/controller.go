@@ -144,7 +144,7 @@ func (c *notificationController) processApp(app *unstructured.Unstructured, logE
 	if err != nil {
 		return err
 	}
-	appRecipients, err := sharedrecipients.GetRecipientsFromAnnotations(annotations, c.cfg.Triggers)
+	appRecipients, err := sharedrecipients.GetRecipientsFromAnnotations(annotations, c.cfg.Triggers, c.cfg.DefaultTriggers)
 	if err != nil {
 		return err
 	}

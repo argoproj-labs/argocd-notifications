@@ -43,8 +43,9 @@ func newController(t *testing.T, ctx context.Context, client dynamic.Interface) 
 		client,
 		TestNamespace,
 		settings.Config{
-			Notifier: notifier,
-			Triggers: map[string]triggers.Trigger{"mock": trigger},
+			Notifier:        notifier,
+			Triggers:        map[string]triggers.Trigger{"mock": trigger},
+			DefaultTriggers: []string{"mock"},
 		},
 		"",
 		NewMetricsRegistry())

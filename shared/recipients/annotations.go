@@ -19,7 +19,7 @@ var (
 	AnnotationKey = "recipients." + AnnotationPostfix
 )
 
-func GetRecipientsFromAnnotations(annotations map[string]string, triggersByName map[string]triggers.Trigger) (Recipients, error) {
+func GetRecipientsFromAnnotations(annotations map[string]string, triggersByName map[string]triggers.Trigger, defaultTriggers []string) (Recipients, error) {
 	destByTriggerTemplate := map[triggerTemplate][]services.Destination{}
 	for k, v := range annotations {
 		if !strings.HasSuffix(k, AnnotationKey) {
@@ -29,9 +29,7 @@ func GetRecipientsFromAnnotations(annotations map[string]string, triggersByName 
 		var triggerNames []string
 		triggerName := strings.TrimRight(k[0:len(k)-len(AnnotationKey)], ".")
 		if triggerName == "" {
-			for k := range triggersByName {
-				triggerNames = append(triggerNames, k)
-			}
+			triggerNames = defaultTriggers
 		} else {
 			triggerNames = []string{triggerName}
 		}

@@ -109,14 +109,10 @@ argocd-notifications tools trigger get on-sync-failed -o=yaml
 			switch output {
 			case "", "wide":
 				w := tabwriter.NewWriter(cmdContext.stdout, 5, 0, 2, ' ', 0)
-				_, _ = fmt.Fprintf(w, "NAME\tENABLED\tTEMPLATE\tCONDITION\n")
+				_, _ = fmt.Fprintf(w, "NAME\tTEMPLATE\tCONDITION\n")
 				for _, trigger := range items {
-					enabled := "true"
-					if trigger.Enabled != nil && !*trigger.Enabled {
-						enabled = "false"
-					}
-					_, _ = fmt.Fprintf(w, "%s\t%v\t%s\t%s\n",
-						trigger.Name, enabled, trigger.Template, trigger.Condition)
+					_, _ = fmt.Fprintf(w, "%s\t%v\t%s\n",
+						trigger.Name, trigger.Template, trigger.Condition)
 				}
 				_ = w.Flush()
 			case "name":

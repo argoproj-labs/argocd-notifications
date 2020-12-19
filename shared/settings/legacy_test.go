@@ -15,6 +15,31 @@ import (
 	"github.com/argoproj-labs/argocd-notifications/triggers"
 )
 
+func TestMergeLegacyConfig_DefaultTriggers(t *testing.T) {
+	cfg := Config{
+		Config: pkg.Config{
+			Services: map[string]pkg.ServiceFactory{},
+		},
+		TriggersSettings: []triggers.NotificationTrigger{
+			{Name: "my-trigger1", Condition: "true"},
+			{Name: "my-trigger2", Condition: "false"},
+		},
+		Context: map[string]string{},
+	}
+	configYAML := `
+config.yaml:
+triggers:
+- name: my-trigger1
+  enabled: true
+`
+	err := mergeLegacyConfig(&cfg,
+		&v1.ConfigMap{Data: map[string]string{"config.yaml": configYAML}},
+		&v1.Secret{Data: map[string][]byte{}},
+	)
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"my-trigger1"}, cfg.DefaultTriggers)
+}
+
 func TestMergeLegacyConfig(t *testing.T) {
 	cfg := Config{
 		Config: pkg.Config{
@@ -47,7 +72,6 @@ subscriptions:
 slack:
   token: my-token
 `
-
 	err := mergeLegacyConfig(&cfg,
 		&v1.ConfigMap{Data: map[string]string{"config.yaml": configYAML}},
 		&v1.Secret{Data: map[string][]byte{"notifiers.yaml": []byte(notifiersYAML)}},
