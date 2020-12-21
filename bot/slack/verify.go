@@ -2,16 +2,11 @@ package slack
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/argoproj-labs/argocd-notifications/shared/settings"
 
 	slackclient "github.com/slack-go/slack"
-	v1 "k8s.io/api/core/v1"
-	"k8s.io/client-go/tools/cache"
-
-	"github.com/argoproj-labs/argocd-notifications/shared/k8s"
 )
 
 type HasSigningSecret interface {
@@ -20,28 +15,8 @@ type HasSigningSecret interface {
 
 type RequestVerifier func(data []byte, header http.Header) error
 
-func NewVerifier(cmInformer cache.SharedIndexInformer, secretInformer cache.SharedIndexInformer) RequestVerifier {
+func NewVerifier(cfg settings.Config) RequestVerifier {
 	return func(data []byte, header http.Header) error {
-		secrets := secretInformer.GetStore().List()
-		if len(secrets) == 0 {
-			return fmt.Errorf("cannot find secret %s the slack app secret", k8s.SecretName)
-		}
-		secret, ok := secrets[0].(*v1.Secret)
-		if !ok {
-			return errors.New("unexpected object in the secret informer storage")
-		}
-		configMaps := cmInformer.GetStore().List()
-		if len(configMaps) == 0 {
-			return fmt.Errorf("cannot find config map %s the slack app secret", k8s.ConfigMapName)
-		}
-		cm, ok := configMaps[0].(*v1.ConfigMap)
-		if !ok {
-			return errors.New("unexpected object in the configmap informer storage")
-		}
-		cfg, err := settings.NewConfig(cm, secret, nil)
-		if err != nil {
-			return fmt.Errorf("unable to parse slack configuration: %v", err)
-		}
 		signingSecret := ""
 		for _, service := range cfg.Notifier.GetServices() {
 			if hasSecret, ok := service.(HasSigningSecret); ok {

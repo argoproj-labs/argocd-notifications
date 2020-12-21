@@ -1,10 +1,10 @@
 # Overview
 
 Argo CD Notifications continuously monitors Argo CD applications and provides a flexible way to notify
-users about important changes in the application state. Using flexible mechanism of
-[triggers and templates](./triggers_and_templates/index.md) you can configure when the notification should be sent as well as notification content.
-Argo CD Notifications includes the set of useful [built-in](./built-in.md) triggers and templates.
-So you can just enable them instead of reinventing new ones.
+users about important changes in the application state. Using a flexible mechanism of
+[triggers and templates](./triggers_and_templates/index.md) you can configure when the notification should be sent as
+well as notification content. Argo CD Notifications includes the [catalog](./catalog.md) of useful triggers and templates.
+So you can just use them instead of reinventing new ones.
 
 ## Getting Started
 

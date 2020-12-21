@@ -1,15 +1,22 @@
 package settings
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"strings"
+	"sync"
+
+	"github.com/ghodss/yaml"
+	log "github.com/sirupsen/logrus"
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/cache"
 
 	"github.com/argoproj-labs/argocd-notifications/pkg"
 	"github.com/argoproj-labs/argocd-notifications/shared/argocd"
+	"github.com/argoproj-labs/argocd-notifications/shared/k8s"
 	"github.com/argoproj-labs/argocd-notifications/triggers"
-
-	"github.com/ghodss/yaml"
-	v1 "k8s.io/api/core/v1"
 )
 
 type Config struct {
@@ -101,4 +108,81 @@ func NewConfig(configMap *v1.ConfigMap, secret *v1.Secret, argocdService argocd.
 	}
 
 	return &cfg, nil
+}
+
+func WatchConfig(ctx context.Context, argocdService argocd.Service, clientset kubernetes.Interface, namespace string, callback func(Config) error) error {
+	var secret *v1.Secret
+	var configMap *v1.ConfigMap
+	lock := &sync.Mutex{}
+	onNewConfigMapAndSecret := func(newSecret *v1.Secret, newConfigMap *v1.ConfigMap) {
+		lock.Lock()
+		defer lock.Unlock()
+		if newSecret != nil {
+			secret = newSecret
+		}
+		if newConfigMap != nil {
+			configMap = newConfigMap
+		}
+
+		if secret != nil && configMap != nil {
+			if cfg, err := NewConfig(configMap, secret, argocdService); err == nil {
+				if err = callback(*cfg); err != nil {
+					log.Warnf("Failed to apply new settings: %v", err)
+				}
+			} else {
+				log.Warnf("Failed to parse new settings: %v", err)
+			}
+		}
+	}
+
+	onConfigMapChanged := func(newObj interface{}) {
+		if cm, ok := newObj.(*v1.ConfigMap); ok {
+			onNewConfigMapAndSecret(nil, cm)
+		}
+	}
+
+	onSecretChanged := func(newObj interface{}) {
+		if s, ok := newObj.(*v1.Secret); ok {
+			onNewConfigMapAndSecret(s, nil)
+		}
+	}
+
+	cmInformer := k8s.NewConfigMapInformer(clientset, namespace)
+	cmInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		UpdateFunc: func(oldObj, newObj interface{}) {
+			onConfigMapChanged(newObj)
+		},
+		AddFunc: func(obj interface{}) {
+			log.Info("config map found")
+			onConfigMapChanged(obj)
+		},
+	})
+
+	secretInformer := k8s.NewSecretInformer(clientset, namespace)
+	secretInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		UpdateFunc: func(oldObj, newObj interface{}) {
+			onSecretChanged(newObj)
+		},
+		AddFunc: func(obj interface{}) {
+			log.Info("secret found")
+			onSecretChanged(obj)
+		},
+	})
+	go secretInformer.Run(ctx.Done())
+	go cmInformer.Run(ctx.Done())
+
+	if !cache.WaitForCacheSync(ctx.Done(), cmInformer.HasSynced, secretInformer.HasSynced) {
+		return errors.New("timed out waiting for caches to sync")
+	}
+	var missingWarn []string
+	if len(cmInformer.GetStore().List()) == 0 {
+		missingWarn = append(missingWarn, fmt.Sprintf("config map %s", k8s.ConfigMapName))
+	}
+	if len(secretInformer.GetStore().List()) == 0 {
+		missingWarn = append(missingWarn, fmt.Sprintf("secret %s", k8s.SecretName))
+	}
+	if len(missingWarn) > 0 {
+		log.Warnf("Cannot find %s. Waiting when both config map and secret are created.", strings.Join(missingWarn, " and "))
+	}
+	return nil
 }

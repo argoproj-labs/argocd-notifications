@@ -1,12 +1,18 @@
 package settings
 
 import (
+	"context"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"k8s.io/apimachinery/pkg/labels"
+	"github.com/argoproj-labs/argocd-notifications/shared/argocd/mocks"
+	"github.com/argoproj-labs/argocd-notifications/shared/k8s"
+	"github.com/golang/mock/gomock"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/client-go/kubernetes/fake"
 )
 
 var (
@@ -60,4 +66,46 @@ func TestNewSettings_DefaultTriggers(t *testing.T) {
 		return
 	}
 	assert.Equal(t, []string{"trigger1", "trigger2"}, cfg.DefaultTriggers)
+}
+
+func TestWatchConfig(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	configMap := &v1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      k8s.ConfigMapName,
+			Namespace: "default",
+		},
+		Data: map[string]string{
+			"context": `
+argocdUrl: https://myargocd.com
+`,
+		},
+	}
+	secret := &v1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      k8s.SecretName,
+			Namespace: "default",
+		},
+		Data: map[string][]byte{},
+	}
+
+	argocdService := mocks.NewMockService(ctrl)
+	clientset := fake.NewSimpleClientset(configMap, secret)
+	cfgCn := make(chan Config)
+	err := WatchConfig(ctx, argocdService, clientset, "default", func(cfg Config) error {
+		cfgCn <- cfg
+		return nil
+	})
+
+	if !assert.NoError(t, err) {
+		return
+	}
+
+	parsedCfg := <-cfgCn
+
+	assert.Equal(t, "https://myargocd.com", parsedCfg.Context["argocdUrl"])
 }

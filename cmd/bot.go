@@ -3,17 +3,19 @@ package main
 import (
 	"context"
 	"log"
+	"net/http"
+	"sync"
+
+	"github.com/argoproj-labs/argocd-notifications/shared/settings"
 
 	"github.com/spf13/cobra"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/argoproj-labs/argocd-notifications/bot"
 	"github.com/argoproj-labs/argocd-notifications/bot/slack"
 	"github.com/argoproj-labs/argocd-notifications/shared/cmd"
-	"github.com/argoproj-labs/argocd-notifications/shared/k8s"
 )
 
 func newBotCommand() *cobra.Command {
@@ -43,15 +45,15 @@ func newBotCommand() *cobra.Command {
 					return err
 				}
 			}
-			secretInformer := k8s.NewSecretInformer(clientset, namespace)
-			cmInformer := k8s.NewConfigMapInformer(clientset, namespace)
-			go secretInformer.Run(context.Background().Done())
-			go cmInformer.Run(context.Background().Done())
-			if !cache.WaitForCacheSync(context.Background().Done(), secretInformer.HasSynced, cmInformer.HasSynced) {
-				log.Fatal("Timed out waiting for caches to sync")
+			cfgSrc := make(chan settings.Config)
+			if err = settings.WatchConfig(context.Background(), nil, clientset, namespace, func(config settings.Config) error {
+				cfgSrc <- config
+				return nil
+			}); err != nil {
+				log.Fatal(err)
 			}
 			server := bot.NewServer(dynamicClient, namespace)
-			server.AddAdapter("/slack", slack.NewSlackAdapter(slack.NewVerifier(cmInformer, secretInformer)))
+			server.AddAdapter("/slack", slack.NewSlackAdapter(getVerifier(cfgSrc)))
 			return server.Serve(port)
 		},
 	}
@@ -59,4 +61,27 @@ func newBotCommand() *cobra.Command {
 	command.Flags().IntVar(&port, "port", 8080, "Port number.")
 	command.Flags().StringVar(&namespace, "namespace", "", "Namespace which bot handles. Current namespace if empty.")
 	return &command
+}
+
+func getVerifier(cfgSrc chan settings.Config) slack.RequestVerifier {
+	cfg := <-cfgSrc
+	verifier := slack.NewVerifier(cfg)
+
+	var lock sync.Mutex
+
+	go func() {
+		for next := range cfgSrc {
+			lock.Lock()
+			verifier = slack.NewVerifier(next)
+			lock.Unlock()
+		}
+	}()
+
+	return func(data []byte, header http.Header) error {
+		var currentVerifier slack.RequestVerifier
+		lock.Lock()
+		currentVerifier = verifier
+		lock.Unlock()
+		return currentVerifier(data, header)
+	}
 }

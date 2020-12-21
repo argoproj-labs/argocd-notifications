@@ -5,7 +5,7 @@ DOCKER_PUSH?=false
 
 .PHONY: test
 test:
-	go test ./... -coverprofile=coverage.out
+	go test ./... -coverprofile=coverage.out -race
 
 .PHONY: lint
 lint:
