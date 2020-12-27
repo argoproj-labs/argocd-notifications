@@ -3,16 +3,14 @@ package tools
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"text/tabwriter"
 
-	"github.com/argoproj-labs/argocd-notifications/shared/settings"
+	"github.com/spf13/cobra"
 
 	"github.com/argoproj-labs/argocd-notifications/pkg/services"
-	"github.com/argoproj-labs/argocd-notifications/pkg/templates"
 	"github.com/argoproj-labs/argocd-notifications/pkg/util/misc"
-	sharedrecipients "github.com/argoproj-labs/argocd-notifications/shared/recipients"
-
-	"github.com/spf13/cobra"
+	"github.com/argoproj-labs/argocd-notifications/shared/legacy"
 )
 
 func newTemplateCommand(cmdContext *commandContext) *cobra.Command {
@@ -57,7 +55,7 @@ argocd-notifications tools template notify app-sync-succeeded guestbook
 				_, _ = fmt.Fprintf(cmdContext.stderr, "failed to parse config: %v\n", err)
 				return nil
 			}
-			config.Notifier.AddService("console", services.NewConsoleService(cmdContext.stdout))
+			config.API.AddNotificationService("console", services.NewConsoleService(cmdContext.stdout))
 
 			app, err := cmdContext.loadApplication(application)
 			if err != nil {
@@ -66,13 +64,13 @@ argocd-notifications tools template notify app-sync-succeeded guestbook
 			}
 
 			for _, recipient := range recipients {
-				dest, _, err := sharedrecipients.ParseDestinationAndTemplate(recipient)
-				if err != nil {
-					_, _ = fmt.Fprint(cmdContext.stderr, err.Error())
-					return nil
+				parts := strings.Split(recipient, ":")
+				dest := services.Destination{Service: parts[0]}
+				if len(parts) > 1 {
+					dest.Recipient = parts[1]
 				}
-				vars := map[string]interface{}{"app": app.Object, "context": settings.InjectLegacyVar(config.Context, dest.Service)}
-				if err := config.Notifier.Send(vars, name, dest); err != nil {
+				vars := map[string]interface{}{"app": app.Object, "context": legacy.InjectLegacyVar(config.Context, dest.Service)}
+				if err := config.API.Send(vars, []string{name}, dest); err != nil {
 					_, _ = fmt.Fprintf(cmdContext.stderr, "failed to notify '%s': %v\n", recipient, err)
 					return nil
 				}
@@ -104,30 +102,31 @@ argocd-notifications tools template get app-sync-succeeded -o=yaml
 			if len(args) == 1 {
 				name = args[0]
 			}
-			var items []templates.NotificationTemplate
+			items := map[string]services.Notification{}
 
 			config, err := cmdContext.getConfig()
 			if err != nil {
 				_, _ = fmt.Fprintf(cmdContext.stderr, "failed to parse config: %v\n", err)
 				return nil
 			}
-			for _, template := range config.Templates {
-				if template.Name == name || name == "" {
-					items = append(items, template)
+			for n, template := range config.Templates {
+				if n == name || name == "" {
+					items[n] = template
 				}
 			}
 			switch output {
 			case "", "wide":
 				w := tabwriter.NewWriter(cmdContext.stdout, 5, 0, 2, ' ', 0)
 				_, _ = fmt.Fprintf(w, "NAME\tTITLE\n")
-				for _, template := range items {
-					_, _ = fmt.Fprintf(w, "%s\t%s\n", template.Name, template.Title)
-				}
+				misc.IterateStringKeyMap(items, func(name string) {
+					template := items[name]
+					_, _ = fmt.Fprintf(w, "%s\t%s\n", name, template.Title)
+				})
 				_ = w.Flush()
 			case "name":
-				for i := range items {
-					_, _ = fmt.Println(items[i].Name)
-				}
+				misc.IterateStringKeyMap(items, func(name string) {
+					_, _ = fmt.Println(name)
+				})
 			default:
 				return misc.PrintFormatted(items, output, cmdContext.stdout)
 			}

@@ -18,6 +18,7 @@ import (
 	"github.com/argoproj-labs/argocd-notifications/expr/shared"
 	"github.com/argoproj-labs/argocd-notifications/shared/argocd"
 	"github.com/argoproj-labs/argocd-notifications/shared/k8s"
+	"github.com/argoproj-labs/argocd-notifications/shared/legacy"
 	"github.com/argoproj-labs/argocd-notifications/shared/settings"
 )
 
@@ -92,7 +93,7 @@ func (c *commandContext) getConfig() (*settings.Config, error) {
 		if err != nil {
 			return nil, err
 		}
-		cm, err := k8sClient.CoreV1().ConfigMaps(ns).Get(k8s.ConfigMapName, metav1.GetOptions{})
+		cm, err := k8sClient.CoreV1().ConfigMaps(ns).Get(context.Background(), k8s.ConfigMapName, metav1.GetOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -115,7 +116,7 @@ func (c *commandContext) getConfig() (*settings.Config, error) {
 		if err != nil {
 			return nil, err
 		}
-		s, err := k8sClient.CoreV1().Secrets(ns).Get(k8s.SecretName, metav1.GetOptions{})
+		s, err := k8sClient.CoreV1().Secrets(ns).Get(context.Background(), k8s.SecretName, metav1.GetOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -129,7 +130,7 @@ func (c *commandContext) getConfig() (*settings.Config, error) {
 			return nil, err
 		}
 	}
-	return settings.NewConfig(&configMap, &secret, &lazyArgocdServiceInitializer{})
+	return settings.NewConfig(&configMap, &secret, &lazyArgocdServiceInitializer{}, legacy.ApplyLegacyConfig)
 }
 
 func (c *commandContext) loadApplication(application string) (*unstructured.Unstructured, error) {
@@ -146,7 +147,7 @@ func (c *commandContext) loadApplication(application string) (*unstructured.Unst
 	if err != nil {
 		return nil, err
 	}
-	app, err := k8s.NewAppClient(client, ns).Get(application, metav1.GetOptions{})
+	app, err := k8s.NewAppClient(client, ns).Get(context.Background(), application, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}

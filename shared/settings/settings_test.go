@@ -6,11 +6,11 @@ import (
 
 	"github.com/argoproj-labs/argocd-notifications/shared/argocd/mocks"
 	"github.com/argoproj-labs/argocd-notifications/shared/k8s"
-	"github.com/golang/mock/gomock"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes/fake"
 )
@@ -37,7 +37,7 @@ func TestNewConfig_Subscriptions(t *testing.T) {
 	if !assert.NoError(t, err) {
 		return
 	}
-	assert.Equal(t, DefaultSubscriptions([]Subscription{
+	assert.Equal(t, DefaultSubscriptions([]DefaultSubscription{
 		{Triggers: []string{"my-trigger2"}, Selector: label},
 	}), cfg.Subscriptions)
 }

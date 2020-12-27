@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/argoproj-labs/argocd-notifications/pkg/services"
-
 	"github.com/argoproj-labs/argocd-notifications/controller"
+	"github.com/argoproj-labs/argocd-notifications/pkg/services"
 	"github.com/argoproj-labs/argocd-notifications/shared/argocd"
-	"github.com/argoproj-labs/argocd-notifications/shared/cmd"
+	"github.com/argoproj-labs/argocd-notifications/shared/k8s"
+	"github.com/argoproj-labs/argocd-notifications/shared/legacy"
 	"github.com/argoproj-labs/argocd-notifications/shared/settings"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -88,7 +88,7 @@ func newControllerCommand() *cobra.Command {
 				}
 
 				// add console service that is useful for debugging
-				cfg.Notifier.AddService("console", services.NewConsoleService(os.Stdout))
+				cfg.API.AddNotificationService("console", services.NewConsoleService(os.Stdout))
 
 				ctrl, err := controller.NewController(dynamicClient, namespace, cfg, appLabelSelector, registry)
 				if err != nil {
@@ -104,7 +104,7 @@ func newControllerCommand() *cobra.Command {
 
 				go ctrl.Run(ctx, processorsCount)
 				return nil
-			})
+			}, legacy.ApplyLegacyConfig)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -112,7 +112,7 @@ func newControllerCommand() *cobra.Command {
 			return nil
 		},
 	}
-	clientConfig = cmd.AddK8SFlagsToCmd(&command)
+	clientConfig = k8s.AddK8SFlagsToCmd(&command)
 	command.Flags().IntVar(&processorsCount, "processors-count", 1, "Processors count.")
 	command.Flags().StringVar(&appLabelSelector, "app-label-selector", "", "App label selector.")
 	command.Flags().StringVar(&namespace, "namespace", "", "Namespace which controller handles. Current namespace if empty.")

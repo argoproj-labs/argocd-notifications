@@ -65,24 +65,29 @@ func usageInstructions(query url.Values, command string, err error) string {
 	return usage.String()
 }
 
-func (s *slack) parseQuery(r *http.Request) (url.Values, error) {
+func (s *slack) parseQuery(r *http.Request) (string, url.Values, error) {
 	data, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
-	err = s.verifier(data, r.Header)
+	service, err := s.verifier(data, r.Header)
 	if err != nil {
-		return nil, fmt.Errorf("failed to verify request signature: %v", err)
+		return "", nil, fmt.Errorf("failed to verify request signature: %v", err)
 	}
-	return url.ParseQuery(string(data))
+	values, err := url.ParseQuery(string(data))
+	if err != nil {
+		return "", nil, err
+	}
+	return service, values, nil
 }
 
 func (s *slack) Parse(r *http.Request) (bot.Command, error) {
 	cmd := bot.Command{}
-	query, err := s.parseQuery(r)
+	service, query, err := s.parseQuery(r)
 	if err != nil {
 		return cmd, err
 	}
+	cmd.Service = service
 	channel := query.Get("channel_name")
 	if channel == "" {
 		return cmd, errors.New("request does not have channel")
@@ -93,7 +98,7 @@ func (s *slack) Parse(r *http.Request) (bot.Command, error) {
 	}
 	command := parts[0]
 
-	cmd.Recipient = fmt.Sprintf("slack:%s", channel)
+	cmd.Recipient = channel
 
 	switch command {
 	case "list-subscriptions":

@@ -3,7 +3,6 @@ package settings
 import (
 	"encoding/json"
 
-	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
 )
 
@@ -14,7 +13,7 @@ type rawSubscription struct {
 }
 
 // DefaultSubscription holds recipients that receives notification by default.
-type Subscription struct {
+type DefaultSubscription struct {
 	// Recipients comma separated list of recipients
 	Recipients []string
 	// Optional trigger name
@@ -23,7 +22,7 @@ type Subscription struct {
 	Selector labels.Selector
 }
 
-func (s *Subscription) MatchesTrigger(trigger string) bool {
+func (s *DefaultSubscription) MatchesTrigger(trigger string) bool {
 	if len(s.Triggers) == 0 {
 		return true
 	}
@@ -35,7 +34,7 @@ func (s *Subscription) MatchesTrigger(trigger string) bool {
 	return false
 }
 
-func (s *Subscription) UnmarshalJSON(data []byte) error {
+func (s *DefaultSubscription) UnmarshalJSON(data []byte) error {
 	raw := rawSubscription{}
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return err
@@ -50,7 +49,7 @@ func (s *Subscription) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (s *Subscription) MarshalJSON() ([]byte, error) {
+func (s *DefaultSubscription) MarshalJSON() ([]byte, error) {
 	raw := rawSubscription{
 		Triggers:   s.Triggers,
 		Recipients: s.Recipients,
@@ -61,15 +60,4 @@ func (s *Subscription) MarshalJSON() ([]byte, error) {
 	return json.Marshal(raw)
 }
 
-type DefaultSubscriptions []Subscription
-
-// Returns list of recipients for the specified trigger
-func (subscriptions DefaultSubscriptions) GetRecipients(trigger string, labels map[string]string) []string {
-	var result []string
-	for _, s := range subscriptions {
-		if s.MatchesTrigger(trigger) && s.Selector.Matches(fields.Set(labels)) {
-			result = append(result, s.Recipients...)
-		}
-	}
-	return result
-}
+type DefaultSubscriptions []DefaultSubscription

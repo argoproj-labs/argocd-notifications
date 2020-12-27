@@ -6,8 +6,6 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/argoproj-labs/argocd-notifications/shared/settings"
-
 	"github.com/spf13/cobra"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
@@ -15,7 +13,9 @@ import (
 
 	"github.com/argoproj-labs/argocd-notifications/bot"
 	"github.com/argoproj-labs/argocd-notifications/bot/slack"
-	"github.com/argoproj-labs/argocd-notifications/shared/cmd"
+	"github.com/argoproj-labs/argocd-notifications/shared/k8s"
+	"github.com/argoproj-labs/argocd-notifications/shared/legacy"
+	"github.com/argoproj-labs/argocd-notifications/shared/settings"
 )
 
 func newBotCommand() *cobra.Command {
@@ -49,7 +49,7 @@ func newBotCommand() *cobra.Command {
 			if err = settings.WatchConfig(context.Background(), nil, clientset, namespace, func(config settings.Config) error {
 				cfgSrc <- config
 				return nil
-			}); err != nil {
+			}, legacy.ApplyLegacyConfig); err != nil {
 				log.Fatal(err)
 			}
 			server := bot.NewServer(dynamicClient, namespace)
@@ -57,7 +57,7 @@ func newBotCommand() *cobra.Command {
 			return server.Serve(port)
 		},
 	}
-	clientConfig = cmd.AddK8SFlagsToCmd(&command)
+	clientConfig = k8s.AddK8SFlagsToCmd(&command)
 	command.Flags().IntVar(&port, "port", 8080, "Port number.")
 	command.Flags().StringVar(&namespace, "namespace", "", "Namespace which bot handles. Current namespace if empty.")
 	return &command
@@ -77,7 +77,7 @@ func getVerifier(cfgSrc chan settings.Config) slack.RequestVerifier {
 		}
 	}()
 
-	return func(data []byte, header http.Header) error {
+	return func(data []byte, header http.Header) (string, error) {
 		var currentVerifier slack.RequestVerifier
 		lock.Lock()
 		currentVerifier = verifier

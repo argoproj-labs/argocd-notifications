@@ -6,8 +6,9 @@ import (
 	"strings"
 	"text/tabwriter"
 
+	"github.com/argoproj-labs/argocd-notifications/expr"
+	"github.com/argoproj-labs/argocd-notifications/pkg/triggers"
 	"github.com/argoproj-labs/argocd-notifications/pkg/util/misc"
-	"github.com/argoproj-labs/argocd-notifications/triggers"
 
 	"github.com/spf13/cobra"
 )
@@ -48,7 +49,7 @@ argocd-notifications tools trigger run on-sync-status-unknown ./sample-app.yaml 
 				_, _ = fmt.Fprintf(cmdContext.stderr, "failed to parse config: %v\n", err)
 				return nil
 			}
-			trigger, ok := cfg.Triggers[name]
+			_, ok := cfg.Triggers[name]
 			if !ok {
 				var names []string
 				for name := range cfg.Triggers {
@@ -63,12 +64,17 @@ argocd-notifications tools trigger run on-sync-status-unknown ./sample-app.yaml 
 				_, _ = fmt.Fprintf(cmdContext.stderr, "failed to load application: %v\n", err)
 				return nil
 			}
-			ok, err = trigger.Triggered(app)
+			res, err := cfg.API.RunTrigger(name, expr.Spawn(app, cfg.ArgoCDService, map[string]interface{}{"app": app.Object}))
 			if err != nil {
 				_, _ = fmt.Fprintf(cmdContext.stderr, "failed to execute trigger %s: %v\n", name, err)
 				return nil
 			}
-			_, _ = fmt.Fprintf(cmdContext.stdout, "%v\n", ok)
+			w := tabwriter.NewWriter(cmdContext.stdout, 5, 0, 2, ' ', 0)
+			_, _ = fmt.Fprintf(w, "CONDITION\tRESULT\n")
+			for i := range res {
+				_, _ = fmt.Fprintf(w, "%s\t%v\n", cfg.Triggers[name][i].When, res[i].Triggered)
+			}
+			_ = w.Flush()
 			return nil
 		},
 	}
@@ -94,31 +100,36 @@ argocd-notifications tools trigger get on-sync-failed -o=yaml
 			if len(args) == 1 {
 				name = args[0]
 			}
-			var items []triggers.NotificationTrigger
+			items := map[string][]triggers.Condition{}
 
 			config, err := cmdContext.getConfig()
 			if err != nil {
 				_, _ = fmt.Fprintf(cmdContext.stderr, "failed to parse config: %v\n", err)
 				return nil
 			}
-			for _, trigger := range config.TriggersSettings {
-				if trigger.Name == name || name == "" {
-					items = append(items, trigger)
+			for triggerName, trigger := range config.Triggers {
+				if triggerName == name || name == "" {
+					items[triggerName] = trigger
 				}
 			}
 			switch output {
 			case "", "wide":
 				w := tabwriter.NewWriter(cmdContext.stdout, 5, 0, 2, ' ', 0)
 				_, _ = fmt.Fprintf(w, "NAME\tTEMPLATE\tCONDITION\n")
-				for _, trigger := range items {
-					_, _ = fmt.Fprintf(w, "%s\t%v\t%s\n",
-						trigger.Name, trigger.Template, trigger.Condition)
-				}
+				misc.IterateStringKeyMap(items, func(triggerName string) {
+					for i, condition := range items[triggerName] {
+						name := triggerName
+						if i > 0 {
+							name = ""
+						}
+						_, _ = fmt.Fprintf(w, "%s\t%v\t%s\n", name, strings.Join(condition.Send, ", "), condition.When)
+					}
+				})
 				_ = w.Flush()
 			case "name":
-				for i := range items {
-					_, _ = fmt.Println(items[i].Name)
-				}
+				misc.IterateStringKeyMap(items, func(name string) {
+					_, _ = fmt.Println(name)
+				})
 			default:
 				return misc.PrintFormatted(items, output, cmdContext.stdout)
 			}

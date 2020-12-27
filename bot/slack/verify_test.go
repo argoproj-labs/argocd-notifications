@@ -32,16 +32,16 @@ func TestNewVerifier_IncorrectConfig(t *testing.T) {
 
 		t.Run(k, func(t *testing.T) {
 
-			notifier, err := pkg.NewNotifier(pkg.Config{})
+			api, err := pkg.NewAPI(pkg.Config{})
 			if !assert.NoError(t, err) {
 				return
 			}
 			for k, v := range testCase.Services {
-				notifier.AddService(k, v)
+				api.AddNotificationService(k, v)
 			}
-			verifier := NewVerifier(settings.Config{Notifier: notifier})
+			verifier := NewVerifier(settings.Config{API: api})
 
-			err = verifier(nil, nil)
+			_, err = verifier(nil, nil)
 
 			assert.Error(t, err)
 			assert.Contains(t, err.Error(), testCase.Error)
@@ -50,16 +50,16 @@ func TestNewVerifier_IncorrectConfig(t *testing.T) {
 }
 
 func TestNewVerifier_IncorrectSignature(t *testing.T) {
-	notifier, err := pkg.NewNotifier(pkg.Config{})
+	api, err := pkg.NewAPI(pkg.Config{})
 	if !assert.NoError(t, err) {
 		return
 	}
-	notifier.AddService("slack", services.NewSlackService(services.SlackOptions{SigningSecret: "hello world"}))
-	verifier := NewVerifier(settings.Config{Notifier: notifier})
+	api.AddNotificationService("slack", services.NewSlackService(services.SlackOptions{SigningSecret: "hello world"}))
+	verifier := NewVerifier(settings.Config{API: api})
 
 	now := time.Now()
 	data := "hello world"
-	err = verifier([]byte(data), map[string][]string{
+	_, err = verifier([]byte(data), map[string][]string{
 		"X-Slack-Request-Timestamp": {strconv.Itoa(int(now.UnixNano()))},
 		"X-Slack-Signature":         {"v0=9e3753bb47fd3495894ab133c423ec93eff1ff30dd905ce39dda065e21ed9255"},
 	})

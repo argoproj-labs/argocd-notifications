@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/argoproj-labs/argocd-notifications/pkg/services"
-	"github.com/argoproj-labs/argocd-notifications/pkg/templates"
 
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/core/v1"
@@ -37,23 +36,22 @@ body: hello world
 		return
 	}
 
-	assert.Equal(t, []templates.NotificationTemplate{{
-		Name:         "my-template",
-		Notification: services.Notification{Body: "hello world"},
-	}}, cfg.Templates)
+	assert.Equal(t, map[string]services.Notification{
+		"my-template": {Body: "hello world"},
+	}, cfg.Templates)
 }
 
 func TestReplaceStringSecret_KeyPresent(t *testing.T) {
-	val := replaceStringSecret("hello $secret-value", map[string]string{
-		"secret-value": "world",
+	val := replaceStringSecret("hello $secret-value", map[string][]byte{
+		"secret-value": []byte("world"),
 	})
 
 	assert.Equal(t, "hello world", val)
 }
 
 func TestReplaceStringSecret_KeyMissing(t *testing.T) {
-	val := replaceStringSecret("hello $secret-value", map[string]string{
-		"another-secret-value": "world",
+	val := replaceStringSecret("hello $secret-value", map[string][]byte{
+		"another-secret-value": []byte("world"),
 	})
 
 	assert.Equal(t, "hello $secret-value", val)

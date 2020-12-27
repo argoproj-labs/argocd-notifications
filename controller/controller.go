@@ -9,12 +9,13 @@ import (
 	"runtime/debug"
 	"time"
 
-	"github.com/argoproj-labs/argocd-notifications/pkg/services"
-
 	"github.com/argoproj-labs/argocd-notifications/expr"
-
+	"github.com/argoproj-labs/argocd-notifications/pkg"
+	"github.com/argoproj-labs/argocd-notifications/pkg/services"
+	"github.com/argoproj-labs/argocd-notifications/pkg/subscriptions"
+	"github.com/argoproj-labs/argocd-notifications/pkg/triggers"
 	"github.com/argoproj-labs/argocd-notifications/shared/k8s"
-	sharedrecipients "github.com/argoproj-labs/argocd-notifications/shared/recipients"
+	"github.com/argoproj-labs/argocd-notifications/shared/legacy"
 	"github.com/argoproj-labs/argocd-notifications/shared/settings"
 
 	log "github.com/sirupsen/logrus"
@@ -36,7 +37,7 @@ const (
 )
 
 var (
-	notifiedAnnotationKey = "notified." + sharedrecipients.AnnotationPostfix
+	notifiedAnnotationKey = "notified." + subscriptions.AnnotationPrefix
 )
 
 type NotificationController interface {
@@ -89,11 +90,11 @@ func newInformer(resClient dynamic.ResourceInterface, selector string) cache.Sha
 		&cache.ListWatch{
 			ListFunc: func(options v1.ListOptions) (object runtime.Object, err error) {
 				options.LabelSelector = selector
-				return resClient.List(options)
+				return resClient.List(context.Background(), options)
 			},
 			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
 				options.LabelSelector = selector
-				return resClient.Watch(options)
+				return resClient.Watch(context.Background(), options)
 			},
 		},
 		&unstructured.Unstructured{},
@@ -137,93 +138,85 @@ func (c *notificationController) Run(ctx context.Context, processors int) {
 	log.Warn("Controller has stopped.")
 }
 
+func ensureAnnotations(obj *unstructured.Unstructured) {
+	if obj.GetAnnotations() == nil {
+		obj.SetAnnotations(map[string]string{})
+	}
+}
+
 func (c *notificationController) processApp(app *unstructured.Unstructured, logEntry *log.Entry) error {
 	refreshed := false
-	annotations := app.GetAnnotations()
-	if annotations == nil {
-		annotations = make(map[string]string)
-	}
+	ensureAnnotations(app)
 
-	state := newState(annotations[notifiedAnnotationKey])
+	state := triggers.NewState(app.GetAnnotations()[notifiedAnnotationKey])
 	// changes state of specified trigger/destination and returns if state has changed or not
-	setAlreadyNotified := func(trigger string, oncePer string, dest services.Destination, isNotified bool) (bool, error) {
-		changed := state.setAlreadyNotified(trigger, oncePer, dest, isNotified)
+	setAlreadyNotified := func(trigger string, result triggers.ConditionResult, dest services.Destination, isNotified bool) (bool, error) {
+		changed := state.SetAlreadyNotified(trigger, result, dest, isNotified)
 		// if state changes reload application
 		if changed && !refreshed {
-			refreshedApp, err := c.appClient.Get(app.GetName(), v1.GetOptions{})
+			refreshedApp, err := c.appClient.Get(context.Background(), app.GetName(), v1.GetOptions{})
 			if err != nil {
 				return false, err
 			}
-			annotations = refreshedApp.GetAnnotations()
-			if annotations == nil {
-				annotations = map[string]string{}
-			}
-			state = newState(annotations[notifiedAnnotationKey])
+			ensureAnnotations(refreshedApp)
+			app.GetAnnotations()[notifiedAnnotationKey] = refreshedApp.GetAnnotations()[notifiedAnnotationKey]
+
+			state = triggers.NewState(app.GetAnnotations()[notifiedAnnotationKey])
 			refreshed = true
-			return state.setAlreadyNotified(trigger, oncePer, dest, isNotified), nil
+			return state.SetAlreadyNotified(trigger, result, dest, isNotified), nil
 		}
 		return changed, nil
 	}
 
-	globalRecipients, err := sharedrecipients.GetGlobalRecipients(app.GetLabels(), c.cfg.Subscriptions, c.cfg.Triggers, c.cfg.DefaultTriggers)
-	if err != nil {
-		return err
-	}
-	appRecipients, err := sharedrecipients.GetRecipientsFromAnnotations(annotations, c.cfg.Triggers, c.cfg.DefaultTriggers)
-	if err != nil {
-		return err
-	}
+	for trigger, destinations := range c.getSubscriptions(app) {
 
-	for _, subscription := range globalRecipients.Merge(appRecipients).GetNotificationSubscriptions() {
-		triggerKey := subscription.When
-		t, ok := c.cfg.Triggers[triggerKey]
-		if !ok {
-			return fmt.Errorf("trigger '%s' is not configured", subscription.When)
-		}
-		oncePer := t.OncePerField(app)
-		triggered, err := t.Triggered(app)
+		res, err := c.cfg.API.RunTrigger(trigger, expr.Spawn(app, c.cfg.ArgoCDService, map[string]interface{}{"app": app.Object}))
 		if err != nil {
-			logEntry.Debugf("Failed to execute condition of trigger %s: %v", triggerKey, err)
+			logEntry.Debugf("Failed to execute condition of trigger %s: %v", trigger, err)
 		}
-		logEntry.Infof("Trigger %s result: %v", triggerKey, triggered)
-		c.metricsRegistry.IncTriggerEvaluationsCounter(triggerKey, triggered)
+		logEntry.Infof("Trigger %s result: %v", trigger, res)
 
-		if !triggered {
-			for _, to := range subscription.To {
-				if _, err := setAlreadyNotified(triggerKey, oncePer, to, false); err != nil {
+		for _, cr := range res {
+			if !cr.Triggered {
+				for _, to := range destinations {
+					if _, err := setAlreadyNotified(trigger, cr, to, false); err != nil {
+						return err
+					}
+				}
+				continue
+			}
+
+			for _, to := range destinations {
+				if changed, err := setAlreadyNotified(trigger, cr, to, true); err != nil {
 					return err
+				} else if !changed {
+					logEntry.Infof("%s notification already sent", trigger)
+					continue // move to the next recipient
+				}
+
+				logEntry.Infof("Sending %s notification", trigger)
+				vars := expr.Spawn(app, c.cfg.ArgoCDService, map[string]interface{}{
+					"app":     app.Object,
+					"context": legacy.InjectLegacyVar(c.cfg.Context, to.Service),
+				})
+
+				if err := c.cfg.API.Send(vars, cr.Templates, to); err != nil {
+					logEntry.Errorf("Failed to notify recipient %s defined in app %s/%s: %v",
+						to, app.GetNamespace(), app.GetName(), err)
+					_ = state.SetAlreadyNotified(trigger, cr, to, false)
+					c.metricsRegistry.IncDeliveriesCounter(trigger, to.Service, false)
+				} else {
+					logEntry.Debugf("Notification %s was sent", to.Recipient)
+					c.metricsRegistry.IncDeliveriesCounter(trigger, to.Service, true)
 				}
 			}
-			continue
-		}
-
-		for _, to := range subscription.To {
-			if changed, err := setAlreadyNotified(triggerKey, oncePer, to, true); err != nil {
-				return err
-			} else if !changed {
-				logEntry.Infof("%s notification already sent", triggerKey)
-				continue // move to the next recipient
-			}
-
-			logEntry.Infof("Sending %s notification", triggerKey)
-			vars := expr.Spawn(app, c.cfg.ArgoCDService, map[string]interface{}{
-				"app":     app.Object,
-				"context": settings.InjectLegacyVar(c.cfg.Context, to.Service),
-			})
-
-			if err := c.cfg.Notifier.Send(vars, subscription.Send, to); err != nil {
-				logEntry.Errorf("Failed to notify recipient %s defined in app %s/%s: %v",
-					to, app.GetNamespace(), app.GetName(), err)
-				_ = state.setAlreadyNotified(triggerKey, oncePer, to, false)
-				c.metricsRegistry.IncDeliveriesCounter(subscription.Send, to.Service, false)
-			} else {
-				logEntry.Debugf("Notification %s was sent", to.Recipient)
-				c.metricsRegistry.IncDeliveriesCounter(subscription.Send, to.Service, true)
-			}
 		}
 	}
 
-	state.truncate(notifiedHistoryMaxSize)
+	state.Truncate(notifiedHistoryMaxSize)
+
+	annotations := app.GetAnnotations()
+
 	if len(state) == 0 {
 		delete(annotations, notifiedAnnotationKey)
 	} else {
@@ -236,6 +229,37 @@ func (c *notificationController) processApp(app *unstructured.Unstructured, logE
 
 	app.SetAnnotations(annotations)
 	return nil
+}
+
+func (c *notificationController) getAppProj(app *unstructured.Unstructured) *unstructured.Unstructured {
+	projName, ok, err := unstructured.NestedString(app.Object, "spec", "project")
+	if !ok || err != nil {
+		return nil
+	}
+	projObj, ok, err := c.appProjInformer.GetIndexer().GetByKey(fmt.Sprintf("%s/%s", app.GetNamespace(), projName))
+	if !ok || err != nil {
+		return nil
+	}
+	proj, ok := projObj.(*unstructured.Unstructured)
+	if !ok {
+		return nil
+	}
+	ensureAnnotations(proj)
+	return proj
+}
+
+func (c *notificationController) getSubscriptions(app *unstructured.Unstructured) pkg.Subscriptions {
+	res := c.cfg.GetGlobalSubscriptions(app.GetLabels())
+
+	res.Merge(subscriptions.Annotations(app.GetAnnotations()).GetAll(c.cfg.DefaultTriggers...))
+	res.Merge(legacy.GetSubscriptions(app.GetAnnotations(), c.cfg.DefaultTriggers...))
+
+	if proj := c.getAppProj(app); proj != nil {
+		res.Merge(subscriptions.Annotations(proj.GetAnnotations()).GetAll(c.cfg.DefaultTriggers...))
+		res.Merge(legacy.GetSubscriptions(proj.GetAnnotations(), c.cfg.DefaultTriggers...))
+	}
+
+	return res.Dedup()
 }
 
 // Checks if the application SyncStatus has been refreshed by Argo CD after an operation has completed
@@ -342,7 +366,7 @@ func (c *notificationController) processQueueItem() (processNext bool) {
 			logEntry.Errorf("Failed to marshal app patch: %v", err)
 			return
 		}
-		_, err = c.appClient.Patch(app.GetName(), types.MergePatchType, patchData, v1.PatchOptions{})
+		_, err = c.appClient.Patch(context.Background(), app.GetName(), types.MergePatchType, patchData, v1.PatchOptions{})
 		if err != nil {
 			logEntry.Errorf("Failed to patch app: %v", err)
 			return

@@ -2,6 +2,8 @@ run:
   timeout: 2m
   skip-dirs:
     - .../../mocks
+    - hack
+    - testing
 linters:
   enable:
     - vet

@@ -9,19 +9,20 @@ import (
 )
 
 func TestFormat_BodyAndTitle(t *testing.T) {
-	templ, err := NewTemplate(NotificationTemplate{Notification: services.Notification{
-		Title: "{{.foo}}",
-		Body:  "{{.bar}}",
-	}})
+	svc, err := NewService(map[string]services.Notification{
+		"test": {
+			Title: "{{.foo}}", Body: "{{.bar}}",
+		},
+	})
 
 	if !assert.NoError(t, err) {
 		return
 	}
 
-	notification, err := templ.FormatNotification(map[string]interface{}{
+	notification, err := svc.FormatNotification(map[string]interface{}{
 		"foo": "hello",
 		"bar": "world",
-	})
+	}, "test")
 
 	if !assert.NoError(t, err) {
 		return
@@ -32,21 +33,23 @@ func TestFormat_BodyAndTitle(t *testing.T) {
 }
 
 func TestFormat_Slack(t *testing.T) {
-	templ, err := NewTemplate(NotificationTemplate{Notification: services.Notification{
-		Slack: &services.SlackNotification{
-			Attachments: "{{.foo}}",
-			Blocks:      "{{.bar}}",
+	svc, err := NewService(map[string]services.Notification{
+		"test": {
+			Slack: &services.SlackNotification{
+				Attachments: "{{.foo}}",
+				Blocks:      "{{.bar}}",
+			},
 		},
-	}})
+	})
 
 	if !assert.NoError(t, err) {
 		return
 	}
 
-	notification, err := templ.FormatNotification(map[string]interface{}{
+	notification, err := svc.FormatNotification(map[string]interface{}{
 		"foo": "hello",
 		"bar": "world",
-	})
+	}, "test")
 
 	if !assert.NoError(t, err) {
 		return
@@ -57,24 +60,26 @@ func TestFormat_Slack(t *testing.T) {
 }
 
 func TestFormat_Webhook(t *testing.T) {
-	templ, err := NewTemplate(NotificationTemplate{Notification: services.Notification{
-		Webhook: map[string]services.WebhookNotification{
-			"github": {
-				Method: "POST",
-				Body:   "{{.foo}}",
-				Path:   "{{.bar}}",
+	svc, err := NewService(map[string]services.Notification{
+		"test": {
+			Webhook: map[string]services.WebhookNotification{
+				"github": {
+					Method: "POST",
+					Body:   "{{.foo}}",
+					Path:   "{{.bar}}",
+				},
 			},
 		},
-	}})
+	})
 
 	if !assert.NoError(t, err) {
 		return
 	}
 
-	notification, err := templ.FormatNotification(map[string]interface{}{
+	notification, err := svc.FormatNotification(map[string]interface{}{
 		"foo": "hello",
 		"bar": "world",
-	})
+	}, "test")
 
 	if !assert.NoError(t, err) {
 		return

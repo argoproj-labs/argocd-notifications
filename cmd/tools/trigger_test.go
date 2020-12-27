@@ -62,8 +62,8 @@ func newTestContext(stdout io.Writer, stderr io.Writer, data map[string]string, 
 func TestTriggerRun(t *testing.T) {
 	cmData := map[string]string{
 		"trigger.my-trigger": `
-condition: app.metadata.name == 'guestbook'
-template: my-template`,
+- when: app.metadata.name == 'guestbook'
+  send: [my-template]`,
 		"template.my-template": `
 title: hello {{.app.metadata.name}}`,
 	}
@@ -86,11 +86,11 @@ title: hello {{.app.metadata.name}}`,
 func TestTriggerGet(t *testing.T) {
 	cmData := map[string]string{
 		"trigger.my-trigger1": `
-condition: true
-template: my-template`,
+- when: 'true'
+  send: [my-template]`,
 		"trigger.my-trigger2": `
-condition: false
-template: my-template`,
+- when: 'false'
+  send: [my-template]`,
 		"template.my-template": `
 title: hello {{.app.metadata.name}}`,
 	}

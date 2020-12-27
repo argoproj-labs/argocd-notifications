@@ -12,6 +12,7 @@ type UpdateSubscription struct {
 }
 
 type Command struct {
+	Service           string
 	Recipient         string
 	ListSubscriptions *ListSubscriptions
 	Subscribe         *UpdateSubscription

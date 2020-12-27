@@ -21,30 +21,22 @@ func TestWebhook_SuccessfullySendsNotification(t *testing.T) {
 	}))
 	defer server.Close()
 
-	service := NewWebhookService(WebhookOptions{{
-		Name:      "test",
+	service := NewWebhookService(WebhookOptions{
 		BasicAuth: &BasicAuth{Username: "testUsername", Password: "testPassword"},
 		URL:       server.URL,
 		Headers:   []Header{{Name: "testHeader", Value: "testHeaderValue"}},
-	}})
+	})
 	err := service.Send(
 		Notification{
 			Webhook: map[string]WebhookNotification{
 				"test": {Body: "hello world", Method: http.MethodPost},
 			},
-		}, Destination{Recipient: "test"})
+		}, Destination{Recipient: "test", Service: "test"})
 	assert.NoError(t, err)
 
 	assert.Equal(t, "hello world", receivedBody)
 	assert.Equal(t, receivedHeaders.Get("testHeader"), "testHeaderValue")
 	assert.Contains(t, receivedHeaders.Get("Authorization"), "Basic")
-}
-
-func TestWebhook_FailedToSendNotConfigured(t *testing.T) {
-	service := NewWebhookService(WebhookOptions{})
-	err := service.Send(Notification{}, Destination{Recipient: "test"})
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "not configured")
 }
 
 func TestWebhook_SubPath(t *testing.T) {
@@ -54,16 +46,15 @@ func TestWebhook_SubPath(t *testing.T) {
 	}))
 	defer server.Close()
 
-	service := NewWebhookService(WebhookOptions{{
-		Name: "test",
-		URL:  fmt.Sprintf("%s/subpath1", server.URL),
-	}})
+	service := NewWebhookService(WebhookOptions{
+		URL: fmt.Sprintf("%s/subpath1", server.URL),
+	})
 
 	err := service.Send(Notification{
 		Webhook: map[string]WebhookNotification{
 			"test": {Body: "hello world", Method: http.MethodPost},
 		},
-	}, Destination{Recipient: "test"})
+	}, Destination{Recipient: "test", Service: "test"})
 	assert.NoError(t, err)
 	assert.Equal(t, "/subpath1", receivedPath)
 
@@ -71,7 +62,7 @@ func TestWebhook_SubPath(t *testing.T) {
 		Webhook: map[string]WebhookNotification{
 			"test": {Body: "hello world", Method: http.MethodPost, Path: "/subpath2"},
 		},
-	}, Destination{Recipient: "test"})
+	}, Destination{Recipient: "test", Service: "test"})
 	assert.NoError(t, err)
 	assert.Equal(t, "/subpath1/subpath2", receivedPath)
 }

@@ -1,3 +1,3 @@
-condition:   "app.status.operationState.phase in ['Succeeded']"
-description: "Application syncing has succeeded"
-template:    "app-sync-succeeded"
+- when: app.status.operationState.phase in ['Succeeded']
+  description: Application syncing has succeeded
+  send: [app-sync-succeeded]

@@ -46,7 +46,7 @@ func (s *grafanaService) Send(notification Notification, dest Destination) error
 
 	client := &http.Client{
 		Transport: httputil.NewLoggingRoundTripper(
-			httputil.NewTransport(s.opts.ApiUrl, s.opts.InsecureSkipVerify), log.WithField("notifier", "grafana")),
+			httputil.NewTransport(s.opts.ApiUrl, s.opts.InsecureSkipVerify), log.WithField("service", "grafana")),
 	}
 
 	jsonValue, _ := json.Marshal(ga)

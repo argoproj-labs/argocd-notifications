@@ -3,12 +3,12 @@ package tools
 import (
 	"os"
 
+	"github.com/argoproj-labs/argocd-notifications/shared/k8s"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
-
-	"github.com/argoproj-labs/argocd-notifications/shared/cmd"
 )
 
 func withDebugLogs() func() {
@@ -49,7 +49,7 @@ func NewToolsCommand() *cobra.Command {
 		"secret", "", "argocd-notifications-secret.yaml file path. Use empty secret if provided value is ':empty'")
 	command.PersistentFlags().StringVar(&argocdRepoServer,
 		"argocd-repo-server", "argocd-repo-server:8081", "Argo CD repo server address")
-	clientConfig := cmd.AddK8SFlagsToCmd(&command)
+	clientConfig := k8s.AddK8SFlagsToCmd(&command)
 	cmdContext.getK8SClients = func() (kubernetes.Interface, dynamic.Interface, string, error) {
 		return getK8SClients(clientConfig)
 	}

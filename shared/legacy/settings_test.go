@@ -1,28 +1,34 @@
-package settings
+package legacy
 
 import (
 	"testing"
+
+	"github.com/argoproj-labs/argocd-notifications/shared/settings"
 
 	"k8s.io/apimachinery/pkg/labels"
 
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/utils/pointer"
 
 	"github.com/argoproj-labs/argocd-notifications/pkg"
 	"github.com/argoproj-labs/argocd-notifications/pkg/services"
-	"github.com/argoproj-labs/argocd-notifications/pkg/templates"
-	"github.com/argoproj-labs/argocd-notifications/triggers"
+	"github.com/argoproj-labs/argocd-notifications/pkg/triggers"
 )
 
 func TestMergeLegacyConfig_DefaultTriggers(t *testing.T) {
-	cfg := Config{
+	cfg := settings.Config{
 		Config: pkg.Config{
 			Services: map[string]pkg.ServiceFactory{},
-		},
-		TriggersSettings: []triggers.NotificationTrigger{
-			{Name: "my-trigger1", Condition: "true"},
-			{Name: "my-trigger2", Condition: "false"},
+			Triggers: map[string][]triggers.Condition{
+				"my-trigger1": {{
+					When: "true",
+					Send: []string{"my-template1"},
+				}},
+				"my-trigger2": {{
+					When: "false",
+					Send: []string{"my-template2"},
+				}},
+			},
 		},
 		Context: map[string]string{},
 	}
@@ -32,7 +38,7 @@ triggers:
 - name: my-trigger1
   enabled: true
 `
-	err := mergeLegacyConfig(&cfg,
+	err := ApplyLegacyConfig(&cfg,
 		&v1.ConfigMap{Data: map[string]string{"config.yaml": configYAML}},
 		&v1.Secret{Data: map[string][]byte{}},
 	)
@@ -41,14 +47,19 @@ triggers:
 }
 
 func TestMergeLegacyConfig(t *testing.T) {
-	cfg := Config{
+	cfg := settings.Config{
 		Config: pkg.Config{
-			Templates: []templates.NotificationTemplate{{Name: "my-template1", Notification: services.Notification{Body: "foo"}}},
-			Services:  map[string]pkg.ServiceFactory{},
+			Templates: map[string]services.Notification{"my-template1": {Body: "foo"}},
+			Triggers: map[string][]triggers.Condition{
+				"my-trigger1": {{
+					When: "true",
+					Send: []string{"my-template1"},
+				}},
+			},
+			Services: map[string]pkg.ServiceFactory{},
 		},
-		TriggersSettings: []triggers.NotificationTrigger{{Name: "my-trigger1", Condition: "true", Enabled: pointer.BoolPtr(false)}},
-		Context:          map[string]string{"some": "value"},
-		Subscriptions:    []Subscription{{Triggers: []string{"my-trigger1"}}},
+		Context:       map[string]string{"some": "value"},
+		Subscriptions: []settings.DefaultSubscription{{Triggers: []string{"my-trigger1"}}},
 	}
 
 	configYAML := `
@@ -57,12 +68,15 @@ triggers:
   enabled: true
 - name: my-trigger2
   condition: false
+  template: my-template2
   enabled: true
 templates:
 - name: my-template1
   body: bar
 - name: my-template2
   body: foo
+context:
+  other: value2
 subscriptions:
 - triggers:
   - my-trigger2
@@ -72,25 +86,31 @@ subscriptions:
 slack:
   token: my-token
 `
-	err := mergeLegacyConfig(&cfg,
+	err := ApplyLegacyConfig(&cfg,
 		&v1.ConfigMap{Data: map[string]string{"config.yaml": configYAML}},
 		&v1.Secret{Data: map[string][]byte{"notifiers.yaml": []byte(notifiersYAML)}},
 	)
 
 	assert.NoError(t, err)
-	assert.Equal(t, []templates.NotificationTemplate{
-		{Name: "my-template1", Notification: services.Notification{Body: "bar"}},
-		{Name: "my-template2", Notification: services.Notification{Body: "foo"}},
+	assert.Equal(t, map[string]services.Notification{
+		"my-template1": {Body: "bar"},
+		"my-template2": {Body: "foo"},
 	}, cfg.Templates)
-	assert.Equal(t, []triggers.NotificationTrigger{
-		{Name: "my-trigger1", Condition: "true", Enabled: pointer.BoolPtr(true)},
-		{Name: "my-trigger2", Condition: "false", Enabled: pointer.BoolPtr(true)},
-	}, cfg.TriggersSettings)
+
+	assert.Equal(t, []triggers.Condition{{
+		When: "true",
+		Send: []string{"my-template1"},
+	}}, cfg.Triggers["my-trigger1"])
+	assert.Equal(t, []triggers.Condition{{
+		When: "false",
+		Send: []string{"my-template2"},
+	}}, cfg.Triggers["my-trigger2"])
+
 	label, err := labels.Parse("test=true")
 	if !assert.NoError(t, err) {
 		return
 	}
-	assert.Equal(t, DefaultSubscriptions([]Subscription{
+	assert.Equal(t, settings.DefaultSubscriptions([]settings.DefaultSubscription{
 		{Triggers: []string{"my-trigger2"}, Selector: label},
 	}), cfg.Subscriptions)
 	assert.NotNil(t, cfg.Services["slack"])

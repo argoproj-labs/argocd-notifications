@@ -10,43 +10,65 @@ import (
 	"github.com/ghodss/yaml"
 	log "github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 
 	"github.com/argoproj-labs/argocd-notifications/pkg"
+	"github.com/argoproj-labs/argocd-notifications/pkg/services"
 	"github.com/argoproj-labs/argocd-notifications/shared/argocd"
 	"github.com/argoproj-labs/argocd-notifications/shared/k8s"
-	"github.com/argoproj-labs/argocd-notifications/triggers"
 )
 
 type Config struct {
 	pkg.Config
-	// TriggersSettings holds list of configured triggers
-	TriggersSettings []triggers.NotificationTrigger
+
 	// Context holds list of configured key value pairs available in notification templates
 	Context map[string]string
 	// Subscriptions holds list of default application subscriptions
 	Subscriptions DefaultSubscriptions
 	// DefaultTriggers holds list of triggers that is used by default if subscriber don't specify trigger
 	DefaultTriggers []string
-
 	// ArgoCDService encapsulates methods provided by Argo CD
 	ArgoCDService argocd.Service
-	// Triggers holds map of triggers by name
-	Triggers map[string]triggers.Trigger
-	// Notifier allows sending notifications
-	Notifier pkg.Notifier
+	// API allows sending notifications
+	API pkg.API
 }
 
+// Returns list of recipients for the specified trigger
+func (cfg Config) GetGlobalSubscriptions(labels map[string]string) pkg.Subscriptions {
+	subscriptions := pkg.Subscriptions{}
+	for _, s := range cfg.Subscriptions {
+		triggers := s.Triggers
+		if len(triggers) == 0 {
+			triggers = cfg.DefaultTriggers
+		}
+		for _, trigger := range triggers {
+			if s.MatchesTrigger(trigger) && s.Selector.Matches(fields.Set(labels)) {
+				for _, recipient := range s.Recipients {
+					parts := strings.Split(recipient, ":")
+					dest := services.Destination{Service: parts[0]}
+					if len(parts) > 1 {
+						dest.Recipient = parts[1]
+					}
+					subscriptions[trigger] = append(subscriptions[trigger], dest)
+				}
+			}
+		}
+	}
+	return subscriptions
+}
+
+type CfgOpts = func(*Config, *v1.ConfigMap, *v1.Secret) error
+
 // NewConfig retrieves configured templates and triggers from the provided config map
-func NewConfig(configMap *v1.ConfigMap, secret *v1.Secret, argocdService argocd.Service) (*Config, error) {
+func NewConfig(configMap *v1.ConfigMap, secret *v1.Secret, argocdService argocd.Service, opts ...CfgOpts) (*Config, error) {
 	c, err := pkg.ParseConfig(configMap, secret)
 	if err != nil {
 		return nil, err
 	}
 	cfg := Config{
-		Config:   *c,
-		Triggers: map[string]triggers.Trigger{},
+		Config: *c,
 		Context: map[string]string{
 			"argocdUrl": "https://localhost:4000",
 		},
@@ -55,7 +77,6 @@ func NewConfig(configMap *v1.ConfigMap, secret *v1.Secret, argocdService argocd.
 	// read all the keys in format of templates.%s and triggers.%s
 	// to create config
 	for k, v := range configMap.Data {
-		parts := strings.Split(k, ".")
 		switch {
 		case k == "subscriptions":
 			var subscriptions DefaultSubscriptions
@@ -79,38 +100,29 @@ func NewConfig(configMap *v1.ConfigMap, secret *v1.Secret, argocdService argocd.
 			for i := range defaultTriggers {
 				cfg.DefaultTriggers = append(cfg.DefaultTriggers, defaultTriggers[i])
 			}
-		case strings.HasPrefix(k, "trigger."):
-			name := strings.Join(parts[1:], ".")
-			nt := triggers.NotificationTrigger{}
-			if err := yaml.Unmarshal([]byte(v), &nt); err != nil {
-				return nil, fmt.Errorf("failed to unmarshal trigger %s: %v", name, err)
-			}
-			nt.Name = name
-			cfg.TriggersSettings = append(cfg.TriggersSettings, nt)
 		}
 	}
 
-	err = mergeLegacyConfig(&cfg, configMap, secret)
-	if err != nil {
-		return nil, err
-	}
-	notifier, err := pkg.NewNotifier(*c)
-	if err != nil {
-		return nil, err
-	}
-	cfg.Notifier = notifier
-	for _, nt := range cfg.TriggersSettings {
-		trigger, err := triggers.NewTrigger(nt, argocdService)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create trigger %s: %v", nt.Name, err)
+	for i := range opts {
+		if err := opts[i](&cfg, configMap, secret); err != nil {
+			return nil, err
 		}
-		cfg.Triggers[nt.Name] = trigger
 	}
-
+	api, err := pkg.NewAPI(*c)
+	if err != nil {
+		return nil, err
+	}
+	cfg.API = api
 	return &cfg, nil
 }
 
-func WatchConfig(ctx context.Context, argocdService argocd.Service, clientset kubernetes.Interface, namespace string, callback func(Config) error) error {
+func WatchConfig(
+	ctx context.Context,
+	argocdService argocd.Service,
+	clientset kubernetes.Interface,
+	namespace string,
+	callback func(Config) error, opts ...CfgOpts,
+) error {
 	var secret *v1.Secret
 	var configMap *v1.ConfigMap
 	lock := &sync.Mutex{}
@@ -125,7 +137,7 @@ func WatchConfig(ctx context.Context, argocdService argocd.Service, clientset ku
 		}
 
 		if secret != nil && configMap != nil {
-			if cfg, err := NewConfig(configMap, secret, argocdService); err == nil {
+			if cfg, err := NewConfig(configMap, secret, argocdService, opts...); err == nil {
 				if err = callback(*cfg); err != nil {
 					log.Warnf("Failed to apply new settings: %v", err)
 				}

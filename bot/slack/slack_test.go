@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var noopVerifier = func(data []byte, header http.Header) error {
-	return nil
+var noopVerifier = func(data []byte, header http.Header) (string, error) {
+	return "slack", nil
 }
 
 func TestParse_ListSubscriptionsCommand(t *testing.T) {
@@ -22,7 +22,7 @@ func TestParse_ListSubscriptionsCommand(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.NotNil(t, cmd.ListSubscriptions)
-	assert.Equal(t, cmd.Recipient, "slack:test")
+	assert.Equal(t, cmd.Recipient, "test")
 }
 
 func TestParse_SubscribeAppTrigger(t *testing.T) {
@@ -36,7 +36,7 @@ func TestParse_SubscribeAppTrigger(t *testing.T) {
 	assert.Equal(t, cmd.Subscribe.Trigger, "on-sync-failed")
 	assert.Equal(t, cmd.Subscribe.App, "foo")
 	assert.Equal(t, cmd.Subscribe.Project, "")
-	assert.Equal(t, cmd.Recipient, "slack:test")
+	assert.Equal(t, cmd.Recipient, "test")
 }
 
 func TestParse_SubscribeProject(t *testing.T) {
@@ -50,7 +50,7 @@ func TestParse_SubscribeProject(t *testing.T) {
 	assert.Equal(t, cmd.Subscribe.Trigger, "")
 	assert.Equal(t, cmd.Subscribe.App, "")
 	assert.Equal(t, cmd.Subscribe.Project, "foo")
-	assert.Equal(t, cmd.Recipient, "slack:test")
+	assert.Equal(t, cmd.Recipient, "test")
 }
 
 func TestParse_UnsubscribeApp(t *testing.T) {
@@ -64,7 +64,7 @@ func TestParse_UnsubscribeApp(t *testing.T) {
 	assert.Equal(t, cmd.Unsubscribe.Trigger, "")
 	assert.Equal(t, cmd.Unsubscribe.App, "foo")
 	assert.Equal(t, cmd.Unsubscribe.Project, "")
-	assert.Equal(t, cmd.Recipient, "slack:test")
+	assert.Equal(t, cmd.Recipient, "test")
 }
 
 func TestParse_WrongCommandHelpResponse(t *testing.T) {

@@ -1,4 +1,4 @@
-package cmd
+package k8s
 
 import (
 	"os"

@@ -13,7 +13,8 @@ lint:
 
 .PHONY: catalog
 catalog:
-	./hack/catalog.sh
+	go run github.com/argoproj-labs/argocd-notifications/hack/gen catalog
+	go run github.com/argoproj-labs/argocd-notifications/hack/gen docs
 
 .PHONY: manifests
 manifests:
@@ -23,7 +24,6 @@ manifests:
 .PHONY: generate
 generate: manifests catalog
 	go generate ./...
-	./hack/docs.sh
 
 .PHONY: build
 build:

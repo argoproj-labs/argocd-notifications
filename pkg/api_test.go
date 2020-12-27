@@ -8,15 +8,13 @@ import (
 
 	"github.com/argoproj-labs/argocd-notifications/pkg/services"
 	"github.com/argoproj-labs/argocd-notifications/pkg/services/mocks"
-	"github.com/argoproj-labs/argocd-notifications/pkg/templates"
 )
 
 func getConfig(ctrl *gomock.Controller, opts ...func(service *mocks.MockNotificationService)) Config {
 	return Config{
-		Templates: []templates.NotificationTemplate{{
-			Name:         "my-template",
-			Notification: services.Notification{Body: "hello {{ .foo }}"},
-		}},
+		Templates: map[string]services.Notification{
+			"my-template": {Body: "hello {{ .foo }}"},
+		},
 		Services: map[string]ServiceFactory{
 			"slack": func() (services.NotificationService, error) {
 				serviceMock := mocks.NewMockNotificationService(ctrl)
@@ -28,25 +26,11 @@ func getConfig(ctrl *gomock.Controller, opts ...func(service *mocks.MockNotifica
 		},
 	}
 }
-
-func TestNewNotifier(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	notifier, err := NewNotifier(getConfig(ctrl))
-	if !assert.NoError(t, err) {
-		return
-	}
-
-	assert.NotNil(t, notifier.services["slack"])
-	assert.NotNil(t, notifier.templates["my-template"])
-}
-
 func TestSend(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	notifier, err := NewNotifier(getConfig(ctrl, func(service *mocks.MockNotificationService) {
+	api, err := NewAPI(getConfig(ctrl, func(service *mocks.MockNotificationService) {
 		service.EXPECT().Send(services.Notification{
 			Body:    "hello world",
 			Webhook: map[string]services.WebhookNotification{},
@@ -59,9 +43,9 @@ func TestSend(t *testing.T) {
 		return
 	}
 
-	err = notifier.Send(
+	err = api.Send(
 		map[string]interface{}{"foo": "world"},
-		"my-template",
+		[]string{"my-template"},
 		services.Destination{Service: "slack", Recipient: "my-channel"},
 	)
 	assert.NoError(t, err)
@@ -71,14 +55,14 @@ func TestAddService(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	notifier, err := NewNotifier(getConfig(ctrl))
+	api, err := NewAPI(getConfig(ctrl))
 	if !assert.NoError(t, err) {
 		return
 	}
 
-	notifier.AddService("hello", mocks.NewMockNotificationService(ctrl))
+	api.AddNotificationService("hello", mocks.NewMockNotificationService(ctrl))
 
-	servicesMap := notifier.GetServices()
+	servicesMap := api.GetNotificationServices()
 	assert.NotNil(t, servicesMap["slack"])
 	assert.NotNil(t, servicesMap["hello"])
 }

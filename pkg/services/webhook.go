@@ -29,15 +29,11 @@ type BasicAuth struct {
 	Password string `json:"password"`
 }
 
-type WebhookSettings struct {
-	Name      string     `json:"name"`
+type WebhookOptions struct {
 	URL       string     `json:"url"`
 	Headers   []Header   `json:"headers"`
 	BasicAuth *BasicAuth `json:"basicAuth"`
 }
-
-// WebhookOptions holds list of configured webhooks settings
-type WebhookOptions []WebhookSettings
 
 func NewWebhookService(opts WebhookOptions) NotificationService {
 	return &webhookService{opts: opts}
@@ -47,48 +43,35 @@ type webhookService struct {
 	opts WebhookOptions
 }
 
-func findWebhookSettingsByName(settings []WebhookSettings, name string) (*WebhookSettings, error) {
-	for _, item := range settings {
-		if item.Name == name {
-			return &item, nil
-		}
-	}
-	return nil, fmt.Errorf("webhook with name '%s' is not configured", name)
-}
-
 func (s webhookService) Send(notification Notification, dest Destination) error {
-	webhookSettings, err := findWebhookSettingsByName(s.opts, dest.Recipient)
-	if err != nil {
-		return err
-	}
 	body := notification.Body
 	method := http.MethodGet
 	urlPath := ""
-	if webhookNotification, ok := notification.Webhook[webhookSettings.Name]; ok {
+	if webhookNotification, ok := notification.Webhook[dest.Service]; ok {
 		body = webhookNotification.Body
 		method = text.Coalesce(webhookNotification.Method, method)
 		if webhookNotification.Path != "" {
 			urlPath = webhookNotification.Path
 		}
 	}
-	url := webhookSettings.URL
+	url := s.opts.URL
 	if urlPath != "" {
-		url = strings.TrimRight(webhookSettings.URL, "/") + "/" + strings.TrimLeft(urlPath, "/")
+		url = strings.TrimRight(s.opts.URL, "/") + "/" + strings.TrimLeft(urlPath, "/")
 	}
 	req, err := http.NewRequest(method, url, bytes.NewBufferString(body))
 	if err != nil {
 		return err
 	}
-	for _, h := range webhookSettings.Headers {
+	for _, h := range s.opts.Headers {
 		req.Header.Set(h.Name, h.Value)
 	}
-	if webhookSettings.BasicAuth != nil {
-		req.SetBasicAuth(webhookSettings.BasicAuth.Username, webhookSettings.BasicAuth.Password)
+	if s.opts.BasicAuth != nil {
+		req.SetBasicAuth(s.opts.BasicAuth.Username, s.opts.BasicAuth.Password)
 	}
 
 	client := http.Client{
 		Transport: httputil.NewLoggingRoundTripper(
-			httputil.NewTransport(url, false), log.WithField("service", fmt.Sprintf("webhook:%s", webhookSettings.Name))),
+			httputil.NewTransport(url, false), log.WithField("service", dest.Service)),
 	}
 	resp, err := client.Do(req)
 	if err != nil {

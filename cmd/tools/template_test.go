@@ -11,7 +11,7 @@ import (
 
 func TestTemplateNotifyConsole(t *testing.T) {
 	cmData := map[string]string{
-		"trigger.my-trigger": `{condition: "app.metadata.name == 'guestbook'", template: my-template}`,
+		"trigger.my-trigger": `[{when: "app.metadata.name == 'guestbook'", send: [my-template]}]`,
 		"template.my-template": `
 title: hello {{.app.metadata.name}}`,
 	}
