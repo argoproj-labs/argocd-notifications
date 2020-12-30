@@ -17,7 +17,10 @@ jobs:
         with:
           go-version: '1.15.3'
       - run: make test
-      - uses: actions-contrib/golangci-lint@v1
+      - uses: golangci/golangci-lint-action@v2
+        with:
+          version: v1.29
+          args: --timeout 5m
         env:
           GOROOT: ""
       - uses: codecov/codecov-action@v1
@@ -25,7 +28,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }} #required
           file: ./coverage.out
   publish:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/release-1.0')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
