@@ -3,10 +3,8 @@ kind: ConfigMap
 metadata:
   name: argocd-notifications-cm
 data:
-  context: |
-    argocdUrl: https://cd.apps.argoproj.io/
-
-  subscriptions: |
+  config.yaml: |
+    subscriptions:
     # global subscription for all type of notifications
     - recipients:
       - slack:test1
@@ -20,16 +18,20 @@ data:
     - recipients:
       - slack:test3
       selector: test=true
-
-  template.my-custom-template: |
+    triggers:
+      # Enable existing built-in trigger
+      - name: on-sync-status-unknown
+        enabled: true
+      # Define your custom trigger
+      - name: my-custom-trigger
+        condition: app.status.sync.status == 'Unknown'
+        template: my-custom-template
+    templates:
       # Add your custom template
       - name: my-custom-template
         title: Hello {{.app.metadata.name}}
         body: |
           Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
-
-  trigger.on-sync-status-unknown: |
-      # Enable existing built-in trigger
-      - name: on-sync-status-unknown
-        condition: app.status.sync.status == 'Unknown'
-        template: my-custom-template
+      # Override one field in built-in template
+      - name: on-sync-succeeded
+        title: Application {{.app.metadata.name}} sync status is {{.app.status.sync.status}}
