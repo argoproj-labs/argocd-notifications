@@ -1,5 +1,8 @@
 [![codecov](https://codecov.io/gh/argoproj-labs/argocd-notifications/branch/master/graph/badge.svg)](https://codecov.io/gh/argoproj-labs/argocd-notifications)
 
+:bangbang: | v1.0 release is work in progress. See what is comming in [release-1.0](https://github.com/argoproj-labs/argocd-notifications/tree/release-1.0) branch
+:---: | :---
+
 # Argo CD Notifications
 
 Argo CD Notifications continuously monitors Argo CD applications and provides a flexible way to notify
