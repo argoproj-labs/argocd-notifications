@@ -1,22 +1,3 @@
-## Functions
-
-Both templates and triggers have access to the set of functions.
-
-Trigger example:
-
-```yaml
-name: app-operation-stuck
-condition: time.Now().Sub(time.Parse(app.status.operationState.startedAt)).Minutes() >= 5
-template: my-template
-```
-
-Template example:
-```yaml
-name: my-template
-title: Application {{.app.metadata.name}} sync status is {{.app.status.sync.status}}
-body: "Author: {{(call .repo.GetCommitMetadata .app.status.sync.revision).Author}}"
-```
-
 ### **time**
 Time related functions.
 

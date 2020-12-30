@@ -21,10 +21,8 @@ markdown_extensions:
     permalink: true
 nav:
   - Overview: index.md
-  - Triggers and Templates:
-    - triggers_and_templates/index.md
-    - triggers_and_templates/functions.md
-    - triggers_and_templates/slack.md
+  - triggers.md
+  - subscriptions.md
   - Notification Services:
     - services/overview.md
     - services/slack.md
@@ -32,12 +30,13 @@ nav:
     - services/grafana.md
     - services/telegram.md
     - services/webhook.md
-  - Recipients:
-    - recipients/overview.md
-    - recipients/bot.md
-    - recipients/slack-bot.md
-    - recipients/opsgenie-bot.md
-    - recipients/telegram-bot.md
-  - troubleshooting.md
-  - monitoring.md
   - catalog.md
+  - troubleshooting.md
+  - Bots:
+    - bots/overview.md
+    - bots/slack-bot.md
+    - bots/opsgenie-bot.md
+    - bots/telegram-bot.md
+  - monitoring.md
+  - Upgrading:
+    - upgrading/0.x-1.0.md

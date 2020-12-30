@@ -2,7 +2,7 @@
 
 Argo CD Notifications continuously monitors Argo CD applications and provides a flexible way to notify
 users about important changes in the application state. Using a flexible mechanism of
-[triggers and templates](./triggers_and_templates/index.md) you can configure when the notification should be sent as
+[triggers](./triggers.md) and [templates](./templates.md) you can configure when the notification should be sent as
 well as notification content. Argo CD Notifications includes the [catalog](./catalog.md) of useful triggers and templates.
 So you can just use them instead of reinventing new ones.
 
@@ -11,25 +11,16 @@ So you can just use them instead of reinventing new ones.
 * Install Argo CD Notifications
 
 ```
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/argocd-notifications/stable/manifests/install.yaml
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/argocd-notifications/release-v1.0/manifests/install.yaml
 ```
 
-* Configure integration with your Slack in `argocd-notifications-secret` secret:
+* Install Triggers and Templates from the catalog
 
-```bash
-kubectl apply -n argocd -f - << EOF
-apiVersion: v1
-kind: Secret
-metadata:
-  name: argocd-notifications-secret
-stringData:
-  notifiers.yaml: |
-    slack:
-      token: <my-token>
-type: Opaque
-EOF
 ```
-* Enable built-in trigger in the `argocd-notifications-cm` config map:
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/argocd-notifications/release-v1.0/catalog/install.yaml
+```
+
+* Configure Slack integration
 
 ```bash
 kubectl apply -n argocd -f - << EOF
@@ -38,20 +29,29 @@ kind: ConfigMap
 metadata:
   name: argocd-notifications-cm
 data:
-  config.yaml: |
-    triggers:
-      - name: on-sync-succeeded
-        enabled: true
+  service.slack: |
+    token: $slack-token
 EOF
 ```
 
-* Subscribe to notifications by adding the `recipients.argocd-notifications.argoproj.io` annotation to the Argo CD application or project :
+* Add Slack token to `argocd-notifications-secret` secret
 
 ```bash
-kubectl patch app <my-app> -n argocd -p '{"metadata": {"annotations": {"recipients.argocd-notifications.argoproj.io":"slack:<my-channel>"}}}' --type merge
+kubectl apply -n argocd -f - << EOF
+apiVersion: v1
+kind: Secret
+metadata:
+  name: argocd-notifications-secret
+stringData:
+  slack-token: <my-slack-token>
+type: Opaque
+EOF
 ```
+
+* Subscribe to notifications by adding the `notifications.argoproj.io/subscribe.on-sync-succeeded.slack` annotation to the Argo CD application or project:
+
 ```bash
-kubectl patch appproject <project-name> -n argocd -p '{"metadata": {"annotations": {"recipients.argocd-notifications.argoproj.io":"slack:<my-channel>"}}}' --type merge
+kubectl patch app <my-app> -n argocd -p '{"metadata": {"annotations": {"notifications.argoproj.io/subscribe.on-sync-succeeded.slack":"<my-channel>"}}}' --type merge
 ```
 
 Try syncing and application and get the notification once sync is completed.

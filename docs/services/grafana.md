@@ -11,14 +11,14 @@ To be able to create Grafana annotation with argocd-notifications you have to cr
 3. Click "Add API Key" 
 4. Fill the Key with name `ArgoCD Notification`, role `Editor` and Time to Live `10y` (for example)
 5. Click on Add button
-6. Copy your API Key and define it in `notifiers.yaml`
+6. Copy your API Key and define it in `argocd-notifications-cm` ConfigMap
 
 ```yaml
 apiVersion: v1
-kind: Secret
+kind: ConfigMap
 metadata:
-  name: argocd-notifications-secret
-stringData:
+  name: argocd-notifications-cm
+data:
   service.grafana: |
     apiUrl: https://grafana.example.com/api
     apiKey: <grafana-api-key> 
