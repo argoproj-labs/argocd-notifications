@@ -11,6 +11,7 @@ theme:
     primary: teal
   font:
     text: 'Work Sans'
+  logo: 'assets/logo.png'
 markdown_extensions:
 - codehilite
 - admonition
