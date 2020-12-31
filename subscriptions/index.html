@@ -9,19 +9,19 @@
       
       
       
-      <link rel="shortcut icon" href="../../assets/images/favicon.png">
+      <link rel="shortcut icon" href="../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-6.2.3">
     
     
       
-        <title>Slack bot (v0.5) - Argo CD Notifications</title>
+        <title>Subscriptions - Argo CD Notifications</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.3b61ea93.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.3b61ea93.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.39b8e14a.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.39b8e14a.min.css">
         
           
           
@@ -66,7 +66,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#slack-bot-v05" class="md-skip">
+        <a href="#default-subscriptions-v061" class="md-skip">
           Skip to content
         </a>
       
@@ -79,9 +79,9 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header-nav md-grid" aria-label="Header">
-    <a href="../.." title="Argo CD Notifications" class="md-header-nav__button md-logo" aria-label="Argo CD Notifications">
+    <a href=".." title="Argo CD Notifications" class="md-header-nav__button md-logo" aria-label="Argo CD Notifications">
       
-  <img src="../../assets/logo.png" alt="logo">
+  <img src="../assets/logo.png" alt="logo">
 
     </a>
     <label class="md-header-nav__button md-icon" for="__drawer">
@@ -97,7 +97,7 @@
         <div class="md-header-nav__topic">
           <span class="md-ellipsis">
             
-              Slack bot (v0.5)
+              Subscriptions
             
           </span>
         </div>
@@ -171,9 +171,9 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="Argo CD Notifications" class="md-nav__button md-logo" aria-label="Argo CD Notifications">
+    <a href=".." title="Argo CD Notifications" class="md-nav__button md-logo" aria-label="Argo CD Notifications">
       
-  <img src="../../assets/logo.png" alt="logo">
+  <img src="../assets/logo.png" alt="logo">
 
     </a>
     Argo CD Notifications
@@ -201,7 +201,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../.." class="md-nav__link">
+    <a href=".." class="md-nav__link">
       Overview
     </a>
   </li>
@@ -213,65 +213,57 @@
 
 
 
+  <li class="md-nav__item">
+    <a href="../triggers/" class="md-nav__link">
+      Triggers
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
   
-  <li class="md-nav__item md-nav__item--nested">
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
     
     
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2" >
-    
-    <label class="md-nav__link" for="nav-2">
-      Triggers and Templates
-      <span class="md-nav__icon md-icon"></span>
-    </label>
-    <nav class="md-nav" aria-label="Triggers and Templates" data-md-level="1">
-      <label class="md-nav__title" for="nav-2">
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Subscriptions
         <span class="md-nav__icon md-icon"></span>
-        Triggers and Templates
       </label>
-      <ul class="md-nav__list" data-md-scrollfix>
-        
-        
-          
-          
-          
-
-
-
-  <li class="md-nav__item">
-    <a href="../../triggers_and_templates/" class="md-nav__link">
-      Overview
+    
+    <a href="./" class="md-nav__link md-nav__link--active">
+      Subscriptions
     </a>
-  </li>
-
-        
-          
-          
-          
-
-
-
-  <li class="md-nav__item">
-    <a href="../../triggers_and_templates/functions/" class="md-nav__link">
-      Functions
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-
-  <li class="md-nav__item">
-    <a href="../../triggers_and_templates/slack/" class="md-nav__link">
-      Slack (v0.4.0+)
-    </a>
-  </li>
-
-        
-      </ul>
-    </nav>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#default-subscriptions-v061" class="md-nav__link">
+    Default Subscriptions (v0.6.1)
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
   </li>
 
     
@@ -285,14 +277,14 @@
   <li class="md-nav__item md-nav__item--nested">
     
     
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3" >
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-4" type="checkbox" id="nav-4" >
     
-    <label class="md-nav__link" for="nav-3">
+    <label class="md-nav__link" for="nav-4">
       Notification Services
       <span class="md-nav__icon md-icon"></span>
     </label>
     <nav class="md-nav" aria-label="Notification Services" data-md-level="1">
-      <label class="md-nav__title" for="nav-3">
+      <label class="md-nav__title" for="nav-4">
         <span class="md-nav__icon md-icon"></span>
         Notification Services
       </label>
@@ -306,7 +298,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../services/overview/" class="md-nav__link">
+    <a href="../services/overview/" class="md-nav__link">
       Overview
     </a>
   </li>
@@ -319,7 +311,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../services/slack/" class="md-nav__link">
+    <a href="../services/slack/" class="md-nav__link">
       Slack
     </a>
   </li>
@@ -332,7 +324,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../services/opsgenie/" class="md-nav__link">
+    <a href="../services/opsgenie/" class="md-nav__link">
       Opsgenie
     </a>
   </li>
@@ -345,7 +337,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../services/grafana/" class="md-nav__link">
+    <a href="../services/grafana/" class="md-nav__link">
       Grafana
     </a>
   </li>
@@ -358,7 +350,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../services/telegram/" class="md-nav__link">
+    <a href="../services/telegram/" class="md-nav__link">
       Telegram
     </a>
   </li>
@@ -371,7 +363,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../services/webhook/" class="md-nav__link">
+    <a href="../services/webhook/" class="md-nav__link">
       Webhook
     </a>
   </li>
@@ -387,23 +379,47 @@
       
 
 
-  
+
+  <li class="md-nav__item">
+    <a href="../catalog/" class="md-nav__link">
+      Triggers and Templates Catalog
+    </a>
+  </li>
+
+    
+      
+      
+      
 
 
+
+  <li class="md-nav__item">
+    <a href="../troubleshooting/" class="md-nav__link">
+      Troubleshooting
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+
   
-  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+  <li class="md-nav__item md-nav__item--nested">
     
     
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-4" type="checkbox" id="nav-4" checked>
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7" >
     
-    <label class="md-nav__link" for="nav-4">
-      Recipients
+    <label class="md-nav__link" for="nav-7">
+      Bots
       <span class="md-nav__icon md-icon"></span>
     </label>
-    <nav class="md-nav" aria-label="Recipients" data-md-level="1">
-      <label class="md-nav__title" for="nav-4">
+    <nav class="md-nav" aria-label="Bots" data-md-level="1">
+      <label class="md-nav__title" for="nav-7">
         <span class="md-nav__icon md-icon"></span>
-        Recipients
+        Bots
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
         
@@ -415,20 +431,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../overview/" class="md-nav__link">
-      Overview
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-
-  <li class="md-nav__item">
-    <a href="../bot/" class="md-nav__link">
+    <a href="../bots/overview/" class="md-nav__link">
       Bot (v0.5)
     </a>
   </li>
@@ -439,49 +442,11 @@
           
 
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active">
-    
-    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-    
-      
-    
-    
-      <label class="md-nav__link md-nav__link--active" for="__toc">
-        Slack bot (v0.5)
-        <span class="md-nav__icon md-icon"></span>
-      </label>
-    
-    <a href="./" class="md-nav__link md-nav__link--active">
+  <li class="md-nav__item">
+    <a href="../bots/slack-bot/" class="md-nav__link">
       Slack bot (v0.5)
     </a>
-    
-      
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#commands" class="md-nav__link">
-    Commands
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-    
   </li>
 
         
@@ -492,7 +457,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../opsgenie-bot/" class="md-nav__link">
+    <a href="../bots/opsgenie-bot/" class="md-nav__link">
       Opsgenie bot
     </a>
   </li>
@@ -505,7 +470,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../telegram-bot/" class="md-nav__link">
+    <a href="../bots/telegram-bot/" class="md-nav__link">
       Telegram bot
     </a>
   </li>
@@ -523,20 +488,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../troubleshooting/" class="md-nav__link">
-      Troubleshooting
-    </a>
-  </li>
-
-    
-      
-      
-      
-
-
-
-  <li class="md-nav__item">
-    <a href="../../monitoring/" class="md-nav__link">
+    <a href="../monitoring/" class="md-nav__link">
       Monitoring
     </a>
   </li>
@@ -548,10 +500,39 @@
 
 
 
+  
+  <li class="md-nav__item md-nav__item--nested">
+    
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-9" type="checkbox" id="nav-9" >
+    
+    <label class="md-nav__link" for="nav-9">
+      Upgrading
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Upgrading" data-md-level="1">
+      <label class="md-nav__title" for="nav-9">
+        <span class="md-nav__icon md-icon"></span>
+        Upgrading
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+
   <li class="md-nav__item">
-    <a href="../../built-in/" class="md-nav__link">
-      Built-in Triggers and Templates
+    <a href="../upgrading/0.x-1.0/" class="md-nav__link">
+      v0.x to v1.0
     </a>
+  </li>
+
+        
+      </ul>
+    </nav>
   </li>
 
     
@@ -570,8 +551,6 @@
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
-    
-  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -580,8 +559,8 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#commands" class="md-nav__link">
-    Commands
+  <a href="#default-subscriptions-v061" class="md-nav__link">
+    Default Subscriptions (v0.6.1)
   </a>
   
 </li>
@@ -598,43 +577,60 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/argoproj-labs/argocd-notifications/edit/master/docs/recipients/slack-bot.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/argoproj-labs/argocd-notifications/edit/master/docs/subscriptions.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
                 
-                <h1 id="slack-bot-v05">Slack bot (v0.5)<a class="headerlink" href="#slack-bot-v05" title="Permanent link">&para;</a></h1>
-<p>The Slack bot leverages <a href="https://api.slack.com/interactivity/slash-commands">slash commands</a>. The bot allows slack users
-to view existing channel subscriptions and subscribe or unsubscribe channels.</p>
-<ol>
-<li>Make sure bot component is <a href="../bot/">installed</a>.</li>
-<li>Configure slack <a href="../../services/slack/">integration</a>.</li>
-<li>In the slack application settings page navigate to the 'Slash Commands' section and click 'Create New Command' button.</li>
-<li>Fill in new slack command details
-<img alt="image" src="https://user-images.githubusercontent.com/426437/75645798-2e022480-5bfc-11ea-8682-5ce362bdcc9a.png" /></li>
-<li>In the slack application settings page navigate to the 'Basic Information' section and copy 'Signing Secret' from the 'App Credentials' section.</li>
-<li>Add <code>signingSecret</code> to the slack configuration in the <code>notifiers.yaml</code> field of the <code>argocd-notification-secret</code>:</li>
-</ol>
-<div class="codehilite"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1</span>
-<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Secret</span>
+                  <h1>Subscriptions</h1>
+                
+                <p>The subscription to Argo CD application events can be defined using <code>notifications.argoproj.io/subscribe.&lt;trigger&gt;.&lt;service&gt;: &lt;recipient&gt;</code> annotation.
+For example, the following annotation subscribes two Slack channels to notifications about every successful synchronization of the Argo CD application:</p>
+<div class="codehilite"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">argoproj.io/v1alpha1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Application</span>
 <span class="nt">metadata</span><span class="p">:</span>
-  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">argocd-notifications-secret</span>
-<span class="nt">stringData</span><span class="p">:</span>
-  <span class="nt">notifiers.yaml</span><span class="p">:</span> <span class="p p-Indicator">|</span>
-    <span class="no">slack:</span>
-      <span class="no">token: &lt;my-token&gt;</span>
-      <span class="no">signingSecret: &lt;my-secret&gt;</span>
+  <span class="nt">annotations</span><span class="p">:</span>
+    <span class="nt">notifications.argoproj.io/subscribe.on-sync-succeeded.slack</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">my-channel1;my-channel2</span>
 </code></pre></div>
 
-<h2 id="commands">Commands<a class="headerlink" href="#commands" title="Permanent link">&para;</a></h2>
-<p>The bot supports following commands:</p>
+<p>Annotation key consists of following parts:</p>
 <ul>
-<li><code>list-subscriptions</code> - list channel subscriptions</li>
-<li><code>subscribe &lt;my-app&gt; &lt;optional-trigger&gt;</code> - subscribes channel to the app notifications</li>
-<li><code>subscribe proj:&lt;my-app&gt; &lt;optional-trigger&gt;</code> - subscribes channel to the app project notifications</li>
-<li><code>unsubscribe &lt;my-app&gt; &lt;optional-trigger&gt;</code> - unsubscribes channel from the app notifications</li>
-<li><code>unsubscribe proj:&lt;my-app&gt; &lt;optional-trigger&gt;</code> - unsubscribes channel from the app project notifications</li>
+<li><code>on-sync-succeeded</code> - trigger name</li>
+<li><code>slack</code> - notification service name</li>
+<li><code>my-channel1;my-channel2</code> - a semicolon separated list of recipients</li>
 </ul>
+<p>You can create subscriptions for all applications of the Argo CD project by adding the same annotation to AppProject CRD:</p>
+<div class="codehilite"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">argoproj.io/v1alpha1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">AppProject</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">annotations</span><span class="p">:</span>
+    <span class="nt">notifications.argoproj.io/subscribe.on-sync-succeeded.slack</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">my-channel1;my-channel2</span>
+</code></pre></div>
+
+<h2 id="default-subscriptions-v061">Default Subscriptions (v0.6.1)<a class="headerlink" href="#default-subscriptions-v061" title="Permanent link">&para;</a></h2>
+<p>The subscriptions might be configured globally in the <code>argocd-notifications-cm</code> ConfigMap using <code>subscriptions</code> field. The default subscriptions
+are applied to all applications. The trigger and applications might be configured using the
+<code>triggers</code> and <code>selector</code> fields:</p>
+<div class="codehilite"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ConfigMap</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">argocd-notifications-cm</span>
+<span class="nt">data</span><span class="p">:</span>
+  <span class="c1"># Contains centrally managed global application subscriptions</span>
+  <span class="nt">subscriptions</span><span class="p">:</span> <span class="p p-Indicator">|</span>
+    <span class="no"># subscription for on-sync-status-unknown trigger notifications</span>
+    <span class="no">- recipients:</span>
+      <span class="no">- slack:test2</span>
+      <span class="no">- email:test@gmail.com</span>
+      <span class="no">triggers:</span>
+      <span class="no">- on-sync-status-unknown</span>
+    <span class="no"># subscription restricted to applications with matching labels only</span>
+    <span class="no">- recipients:</span>
+      <span class="no">- slack:test3</span>
+      <span class="no">selector: test=true</span>
+      <span class="no">triggers:</span>
+      <span class="no">- on-sync-status-unknown</span>
+</code></pre></div>
                 
               
               
@@ -653,7 +649,7 @@ to view existing channel subscriptions and subscribe or unsubscribe channels.</p
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
         
-          <a href="../bot/" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+          <a href="../triggers/" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
             <div class="md-footer-nav__button md-icon">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
             </div>
@@ -662,19 +658,19 @@ to view existing channel subscriptions and subscribe or unsubscribe channels.</p
                 <span class="md-footer-nav__direction">
                   Previous
                 </span>
-                Bot (v0.5)
+                Triggers
               </div>
             </div>
           </a>
         
         
-          <a href="../opsgenie-bot/" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../services/overview/" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Opsgenie bot
+                Overview
               </div>
             </div>
             <div class="md-footer-nav__button md-icon">
@@ -701,15 +697,15 @@ to view existing channel subscriptions and subscribe or unsubscribe channels.</p
       
     </div>
     
-      <script src="../../assets/javascripts/vendor.08c56446.min.js"></script>
-      <script src="../../assets/javascripts/bundle.6ced434e.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}</script>
+      <script src="../assets/javascripts/vendor.08c56446.min.js"></script>
+      <script src="../assets/javascripts/bundle.6ced434e.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}</script>
       
       <script>
         app = initialize({
-          base: "../..",
+          base: "..",
           features: [],
           search: Object.assign({
-            worker: "../../assets/javascripts/worker/search.8c7e0a7e.min.js"
+            worker: "../assets/javascripts/worker/search.8c7e0a7e.min.js"
           }, typeof search !== "undefined" && search)
         })
       </script>

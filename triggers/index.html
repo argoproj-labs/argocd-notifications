@@ -9,19 +9,19 @@
       
       
       
-      <link rel="shortcut icon" href="../../assets/images/favicon.png">
+      <link rel="shortcut icon" href="../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-6.2.3">
     
     
       
-        <title>Functions - Argo CD Notifications</title>
+        <title>Triggers - Argo CD Notifications</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.3b61ea93.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.3b61ea93.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.39b8e14a.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.39b8e14a.min.css">
         
           
           
@@ -66,7 +66,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#functions" class="md-skip">
+        <a href="#conditions-bundles" class="md-skip">
           Skip to content
         </a>
       
@@ -79,9 +79,9 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header-nav md-grid" aria-label="Header">
-    <a href="../.." title="Argo CD Notifications" class="md-header-nav__button md-logo" aria-label="Argo CD Notifications">
+    <a href=".." title="Argo CD Notifications" class="md-header-nav__button md-logo" aria-label="Argo CD Notifications">
       
-  <img src="../../assets/logo.png" alt="logo">
+  <img src="../assets/logo.png" alt="logo">
 
     </a>
     <label class="md-header-nav__button md-icon" for="__drawer">
@@ -97,7 +97,7 @@
         <div class="md-header-nav__topic">
           <span class="md-ellipsis">
             
-              Functions
+              Triggers
             
           </span>
         </div>
@@ -171,9 +171,9 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="Argo CD Notifications" class="md-nav__button md-logo" aria-label="Argo CD Notifications">
+    <a href=".." title="Argo CD Notifications" class="md-nav__button md-logo" aria-label="Argo CD Notifications">
       
-  <img src="../../assets/logo.png" alt="logo">
+  <img src="../assets/logo.png" alt="logo">
 
     </a>
     Argo CD Notifications
@@ -201,7 +201,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../.." class="md-nav__link">
+    <a href=".." class="md-nav__link">
       Overview
     </a>
   </li>
@@ -210,45 +210,6 @@
       
       
       
-
-
-  
-
-
-  
-  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
-    
-    
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2" checked>
-    
-    <label class="md-nav__link" for="nav-2">
-      Triggers and Templates
-      <span class="md-nav__icon md-icon"></span>
-    </label>
-    <nav class="md-nav" aria-label="Triggers and Templates" data-md-level="1">
-      <label class="md-nav__title" for="nav-2">
-        <span class="md-nav__icon md-icon"></span>
-        Triggers and Templates
-      </label>
-      <ul class="md-nav__list" data-md-scrollfix>
-        
-        
-          
-          
-          
-
-
-
-  <li class="md-nav__item">
-    <a href="../" class="md-nav__link">
-      Overview
-    </a>
-  </li>
-
-        
-          
-          
-          
 
 
   
@@ -260,12 +221,12 @@
     
     
       <label class="md-nav__link md-nav__link--active" for="__toc">
-        Functions
+        Triggers
         <span class="md-nav__icon md-icon"></span>
       </label>
     
     <a href="./" class="md-nav__link md-nav__link--active">
-      Functions
+      Triggers
     </a>
     
       
@@ -278,6 +239,20 @@
       Table of contents
     </label>
     <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#conditions-bundles" class="md-nav__link">
+    Conditions Bundles
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#avoid-sending-same-notification-too-often" class="md-nav__link">
+    Avoid Sending Same Notification Too Often
+  </a>
+  
+</li>
       
         <li class="md-nav__item">
   <a href="#functions" class="md-nav__link">
@@ -312,24 +287,6 @@
     
   </li>
 
-        
-          
-          
-          
-
-
-
-  <li class="md-nav__item">
-    <a href="../slack/" class="md-nav__link">
-      Slack (v0.4.0+)
-    </a>
-  </li>
-
-        
-      </ul>
-    </nav>
-  </li>
-
     
       
       
@@ -337,104 +294,10 @@
 
 
 
-  
-  <li class="md-nav__item md-nav__item--nested">
-    
-    
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3" >
-    
-    <label class="md-nav__link" for="nav-3">
-      Notification Services
-      <span class="md-nav__icon md-icon"></span>
-    </label>
-    <nav class="md-nav" aria-label="Notification Services" data-md-level="1">
-      <label class="md-nav__title" for="nav-3">
-        <span class="md-nav__icon md-icon"></span>
-        Notification Services
-      </label>
-      <ul class="md-nav__list" data-md-scrollfix>
-        
-        
-          
-          
-          
-
-
-
   <li class="md-nav__item">
-    <a href="../../services/overview/" class="md-nav__link">
-      Overview
+    <a href="../subscriptions/" class="md-nav__link">
+      Subscriptions
     </a>
-  </li>
-
-        
-          
-          
-          
-
-
-
-  <li class="md-nav__item">
-    <a href="../../services/slack/" class="md-nav__link">
-      Slack
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-
-  <li class="md-nav__item">
-    <a href="../../services/opsgenie/" class="md-nav__link">
-      Opsgenie
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-
-  <li class="md-nav__item">
-    <a href="../../services/grafana/" class="md-nav__link">
-      Grafana
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-
-  <li class="md-nav__item">
-    <a href="../../services/telegram/" class="md-nav__link">
-      Telegram
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-
-  <li class="md-nav__item">
-    <a href="../../services/webhook/" class="md-nav__link">
-      Webhook
-    </a>
-  </li>
-
-        
-      </ul>
-    </nav>
   </li>
 
     
@@ -451,13 +314,13 @@
       <input class="md-nav__toggle md-toggle" data-md-toggle="nav-4" type="checkbox" id="nav-4" >
     
     <label class="md-nav__link" for="nav-4">
-      Recipients
+      Notification Services
       <span class="md-nav__icon md-icon"></span>
     </label>
-    <nav class="md-nav" aria-label="Recipients" data-md-level="1">
+    <nav class="md-nav" aria-label="Notification Services" data-md-level="1">
       <label class="md-nav__title" for="nav-4">
         <span class="md-nav__icon md-icon"></span>
-        Recipients
+        Notification Services
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
         
@@ -469,7 +332,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../recipients/overview/" class="md-nav__link">
+    <a href="../services/overview/" class="md-nav__link">
       Overview
     </a>
   </li>
@@ -482,7 +345,127 @@
 
 
   <li class="md-nav__item">
-    <a href="../../recipients/bot/" class="md-nav__link">
+    <a href="../services/slack/" class="md-nav__link">
+      Slack
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+
+  <li class="md-nav__item">
+    <a href="../services/opsgenie/" class="md-nav__link">
+      Opsgenie
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+
+  <li class="md-nav__item">
+    <a href="../services/grafana/" class="md-nav__link">
+      Grafana
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+
+  <li class="md-nav__item">
+    <a href="../services/telegram/" class="md-nav__link">
+      Telegram
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+
+  <li class="md-nav__item">
+    <a href="../services/webhook/" class="md-nav__link">
+      Webhook
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+
+  <li class="md-nav__item">
+    <a href="../catalog/" class="md-nav__link">
+      Triggers and Templates Catalog
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+
+  <li class="md-nav__item">
+    <a href="../troubleshooting/" class="md-nav__link">
+      Troubleshooting
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+
+  
+  <li class="md-nav__item md-nav__item--nested">
+    
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7" >
+    
+    <label class="md-nav__link" for="nav-7">
+      Bots
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Bots" data-md-level="1">
+      <label class="md-nav__title" for="nav-7">
+        <span class="md-nav__icon md-icon"></span>
+        Bots
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+
+  <li class="md-nav__item">
+    <a href="../bots/overview/" class="md-nav__link">
       Bot (v0.5)
     </a>
   </li>
@@ -495,7 +478,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../recipients/slack-bot/" class="md-nav__link">
+    <a href="../bots/slack-bot/" class="md-nav__link">
       Slack bot (v0.5)
     </a>
   </li>
@@ -508,7 +491,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../recipients/opsgenie-bot/" class="md-nav__link">
+    <a href="../bots/opsgenie-bot/" class="md-nav__link">
       Opsgenie bot
     </a>
   </li>
@@ -521,7 +504,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../recipients/telegram-bot/" class="md-nav__link">
+    <a href="../bots/telegram-bot/" class="md-nav__link">
       Telegram bot
     </a>
   </li>
@@ -539,20 +522,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../troubleshooting/" class="md-nav__link">
-      Troubleshooting
-    </a>
-  </li>
-
-    
-      
-      
-      
-
-
-
-  <li class="md-nav__item">
-    <a href="../../monitoring/" class="md-nav__link">
+    <a href="../monitoring/" class="md-nav__link">
       Monitoring
     </a>
   </li>
@@ -564,10 +534,39 @@
 
 
 
+  
+  <li class="md-nav__item md-nav__item--nested">
+    
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-9" type="checkbox" id="nav-9" >
+    
+    <label class="md-nav__link" for="nav-9">
+      Upgrading
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Upgrading" data-md-level="1">
+      <label class="md-nav__title" for="nav-9">
+        <span class="md-nav__icon md-icon"></span>
+        Upgrading
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+
   <li class="md-nav__item">
-    <a href="../../built-in/" class="md-nav__link">
-      Built-in Triggers and Templates
+    <a href="../upgrading/0.x-1.0/" class="md-nav__link">
+      v0.x to v1.0
     </a>
+  </li>
+
+        
+      </ul>
+    </nav>
   </li>
 
     
@@ -592,6 +591,20 @@
       Table of contents
     </label>
     <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#conditions-bundles" class="md-nav__link">
+    Conditions Bundles
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#avoid-sending-same-notification-too-often" class="md-nav__link">
+    Avoid Sending Same Notification Too Often
+  </a>
+  
+</li>
       
         <li class="md-nav__item">
   <a href="#functions" class="md-nav__link">
@@ -632,25 +645,72 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/argoproj-labs/argocd-notifications/edit/master/docs/triggers_and_templates/functions.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/argoproj-labs/argocd-notifications/edit/master/docs/triggers.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
                 
-                  <h1>Functions</h1>
+                  <h1>Triggers</h1>
                 
-                <h2 id="functions">Functions<a class="headerlink" href="#functions" title="Permanent link">&para;</a></h2>
-<p>Both templates and triggers have access to the set of functions.</p>
-<p>Trigger example:</p>
-<div class="codehilite"><pre><span></span><code><span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">app-operation-stuck</span>
-<span class="nt">condition</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">time.Now().Sub(time.Parse(app.status.operationState.startedAt)).Minutes() &gt;= 5</span>
-<span class="nt">template</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">my-template</span>
+                <p>The trigger defines the condition when the notification should be sent. The definition includes name, condition
+and notification templates reference.</p>
+<p>The trigger is configured in <code>argocd-notifications-cm</code> ConfigMap. For example the following trigger sends a notification
+when application sync status changes to <code>Unknown</code> using <code>app-sync-status</code> template:</p>
+<div class="codehilite"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ConfigMap</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">argocd-notifications-cm</span>
+<span class="nt">data</span><span class="p">:</span>
+  <span class="nt">trigger.on-sync-status-unknown</span><span class="p">:</span> <span class="p p-Indicator">|</span>
+    <span class="no">- when: app.status.sync.status == &#39;Unknown&#39;     # trigger condition</span>
+      <span class="no">send: [app-sync-status, github-commit-status] # template names</span>
 </code></pre></div>
 
-<p>Template example:</p>
-<div class="codehilite"><pre><span></span><code><span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">my-template</span>
-<span class="nt">title</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Application {{.app.metadata.name}} sync status is {{.app.status.sync.status}}</span>
-<span class="nt">body</span><span class="p">:</span> <span class="s">&quot;Author:</span><span class="nv"> </span><span class="s">{{(call</span><span class="nv"> </span><span class="s">.repo.GetCommitMetadata</span><span class="nv"> </span><span class="s">.app.status.sync.revision).Author}}&quot;</span>
+<p>Each condition might use several templates. Typically each template is responsible for generating a service-specific notification part.
+In the example above <code>app-sync-status</code> template "knows" how to create email and slack notification and <code>github-commit-status</code> knows how to
+generate payload for Github webhook.</p>
+<h2 id="conditions-bundles">Conditions Bundles<a class="headerlink" href="#conditions-bundles" title="Permanent link">&para;</a></h2>
+<p>Triggers are typically managed by administrators and encapsulate information about when and which notification should be sent.
+The end users just need to subscribe to the trigger and specify the notification destination. In order to improve user experience
+triggers might include multiple conditions with a different set of templates for each condition. For example, the following trigger
+covers all stages of sync status operation and use a different template for different cases:</p>
+<div class="codehilite"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ConfigMap</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">argocd-notifications-cm</span>
+<span class="nt">data</span><span class="p">:</span>
+  <span class="nt">trigger.sync-operation-change</span><span class="p">:</span> <span class="p p-Indicator">|</span>
+    <span class="no">- when: app.status.operationState.phase in [&#39;Succeeded&#39;]</span>
+      <span class="no">send: [github-commit-status]</span>
+    <span class="no">- when: app.status.operationState.phase in [&#39;Running&#39;]</span>
+      <span class="no">send: [github-commit-status]</span>
+    <span class="no">- when: app.status.operationState.phase in [&#39;Error&#39;, &#39;Failed&#39;]</span>
+      <span class="no">send: [app-sync-failed, github-commit-status]</span>
+</code></pre></div>
+
+<h2 id="avoid-sending-same-notification-too-often">Avoid Sending Same Notification Too Often<a class="headerlink" href="#avoid-sending-same-notification-too-often" title="Permanent link">&para;</a></h2>
+<p>In some cases, the trigger condition might be "flapping". The example below illustrates the problem.
+The trigger is supposed to generate a notification once when Argo CD application is successfully synchronized and healthy.
+However the application health status might intermittently switch to <code>Progressing</code> and then back to <code>Healthy</code> so the trigger might unnecessary generate
+multiple notifications. The <code>oncePer</code> field configures triggers to generate the notification only when the corresponding application field changes.
+The <code>on-deployed</code> trigger from the example below sends the notification only once per observed Git revision of the deployment repository.</p>
+<div class="codehilite"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ConfigMap</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">argocd-notifications-cm</span>
+<span class="nt">data</span><span class="p">:</span>
+  <span class="c1"># Optional &#39;oncePer&#39; property ensure that notification is sent only once per specified field value</span>
+  <span class="c1"># E.g. following is triggered once per sync revision</span>
+  <span class="nt">trigger.on-deployed</span><span class="p">:</span> <span class="p p-Indicator">|</span>
+    <span class="no">when: app.status.operationState.phase in [&#39;Succeeded&#39;] and app.status.health.status == &#39;Healthy&#39;</span>
+    <span class="no">oncePer: app.status.sync.revision</span>
+    <span class="no">send: [app-sync-succeeded]</span>
+</code></pre></div>
+
+<h2 id="functions">Functions<a class="headerlink" href="#functions" title="Permanent link">&para;</a></h2>
+<p>Triggers have access to the set of built-in functions.</p>
+<p>Example:</p>
+<div class="codehilite"><pre><span></span><code><span class="nt">when</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">time.Now().Sub(time.Parse(app.status.operationState.startedAt)).Minutes() &gt;= 5</span>
 </code></pre></div>
 
 <h3 id="time"><strong>time</strong><a class="headerlink" href="#time" title="Permanent link">&para;</a></h3>
@@ -697,7 +757,7 @@ Returns an instance of Golang <a href="https://golang.org/pkg/time/#Time">Time</
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
         
-          <a href="../" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+          <a href=".." class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
             <div class="md-footer-nav__button md-icon">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
             </div>
@@ -712,13 +772,13 @@ Returns an instance of Golang <a href="https://golang.org/pkg/time/#Time">Time</
           </a>
         
         
-          <a href="../slack/" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../subscriptions/" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Slack (v0.4.0+)
+                Subscriptions
               </div>
             </div>
             <div class="md-footer-nav__button md-icon">
@@ -745,15 +805,15 @@ Returns an instance of Golang <a href="https://golang.org/pkg/time/#Time">Time</
       
     </div>
     
-      <script src="../../assets/javascripts/vendor.08c56446.min.js"></script>
-      <script src="../../assets/javascripts/bundle.6ced434e.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}</script>
+      <script src="../assets/javascripts/vendor.08c56446.min.js"></script>
+      <script src="../assets/javascripts/bundle.6ced434e.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}</script>
       
       <script>
         app = initialize({
-          base: "../..",
+          base: "..",
           features: [],
           search: Object.assign({
-            worker: "../../assets/javascripts/worker/search.8c7e0a7e.min.js"
+            worker: "../assets/javascripts/worker/search.8c7e0a7e.min.js"
           }, typeof search !== "undefined" && search)
         })
       </script>
