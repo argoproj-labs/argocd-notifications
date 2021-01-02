@@ -1,4 +1,4 @@
-(function() {
+setTimeout(function() {
     const callbackName = 'callback_' + new Date().getTime();
     window[callbackName] = function (response) {
         const div = document.createElement('div');
@@ -22,5 +22,4 @@
         'callback=' + callbackName + '&project=argocd-notifications&page=&theme=mkdocs&format=jsonp&docroot=docs&source_suffix=.md&version=' + (window['READTHEDOCS_DATA'] || { version: 'latest' }).version;
     
     document.getElementsByTagName('head')[0].appendChild(script); 
-})();
-
+}, 50);
