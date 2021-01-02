@@ -19,6 +19,8 @@ extra_css:
 markdown_extensions:
 - codehilite
 - admonition
+- pymdownx.highlight
+- pymdownx.superfences
 - markdown_include.include:
     base_path: docs
 - toc:
