@@ -1,0 +1,19 @@
+.rst-other-versions {
+    text-align: right;
+}
+
+.rst-other-versions > dl, .rst-other-versions dt, .rst-other-versions small {
+    display: none;
+}
+
+.rst-other-versions > dl:first-child {
+    display: block;
+}
+
+.rst-versions.shift-up .rst-other-versions {
+    display: block;
+}
+
+.rst-versions .rst-other-versions {
+    display: none;
+}
