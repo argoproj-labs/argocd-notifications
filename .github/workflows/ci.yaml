@@ -28,7 +28,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }} #required
           file: ./coverage.out
   publish:
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/release-1.0')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master

@@ -11,13 +11,13 @@ So you can just use them instead of reinventing new ones.
 * Install Argo CD Notifications
 
 ```
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/argocd-notifications/release-v1.0/manifests/install.yaml
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/argocd-notifications/release-1.0/manifests/install.yaml
 ```
 
 * Install Triggers and Templates from the catalog
 
 ```
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/argocd-notifications/release-v1.0/catalog/install.yaml
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/argocd-notifications/release-1.0/catalog/install.yaml
 ```
 
 * Configure Slack integration
