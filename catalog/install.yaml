@@ -1,5 +1,42 @@
 apiVersion: v1
 data:
+  template.app-deployed: |
+    body: |
+      {{if eq .serviceType "slack"}}:white_check_mark:{{end}} Application {{.app.metadata.name}} is now running new version of deployments manifests.
+    slack:
+      attachments: |
+        [{
+          "title": "{{ .app.metadata.name}}",
+          "title_link":"{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+          "color": "#18be52",
+          "fields": [
+          {
+            "title": "Sync Status",
+            "value": "{{.app.status.sync.status}}",
+            "short": true
+          },
+          {
+            "title": "Repository",
+            "value": "{{.app.spec.source.repoURL}}",
+            "short": true
+          },
+          {
+            "title": "Revision",
+            "value": "{{.app.status.sync.revision}}",
+            "short": true
+          }
+          {{range $index, $c := .app.status.conditions}}
+          {{if not $index}},{{end}}
+          {{if $index}},{{end}}
+          {
+            "title": "{{$c.type}}",
+            "value": "{{$c.message}}",
+            "short": true
+          }
+          {{end}}
+          ]
+        }]
+    title: New version of an application {{.app.metadata.name}} is up and running.
   template.app-health-degraded: |
     body: |
       {{if eq .serviceType "slack"}}:exclamation:{{end}} Application {{.app.metadata.name}} has degraded.
@@ -122,7 +159,7 @@ data:
     - description: Application is synced and healthy. Triggered once per commit.
       oncePer: app.status.sync.revision
       send:
-      - app-sync-succeeded
+      - app-deployed
       when: app.status.operationState.phase in ['Succeeded'] and app.status.health.status == 'Healthy'
   trigger.on-health-degraded: |
     - description: Application has degraded

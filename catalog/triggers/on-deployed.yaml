@@ -1,4 +1,4 @@
 - when: app.status.operationState.phase in ['Succeeded'] and app.status.health.status == 'Healthy'
   description: Application is synced and healthy. Triggered once per commit.
-  send: [app-sync-succeeded]
+  send: [app-deployed]
   oncePer: app.status.sync.revision

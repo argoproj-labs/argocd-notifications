@@ -2,7 +2,7 @@
 ## Triggers
 |          NAME          |                          DESCRIPTION                          |                      TEMPLATE                       |
 |------------------------|---------------------------------------------------------------|-----------------------------------------------------|
-| on-deployed            | Application is synced and healthy. Triggered once per commit. | [app-sync-succeeded](#app-sync-succeeded)           |
+| on-deployed            | Application is synced and healthy. Triggered once per commit. | [app-deployed](#app-deployed)                       |
 | on-health-degraded     | Application has degraded                                      | [app-health-degraded](#app-health-degraded)         |
 | on-sync-failed         | Application syncing has failed                                | [app-sync-failed](#app-sync-failed)                 |
 | on-sync-running        | Application is being synced                                   | [app-sync-running](#app-sync-running)               |
@@ -10,6 +10,14 @@
 | on-sync-succeeded      | Application syncing has succeeded                             | [app-sync-succeeded](#app-sync-succeeded)           |
 
 ## Templates
+### app-deployed
+**title**: `New version of an application {{.app.metadata.name}} is up and running.`
+
+**body**:
+```
+{{if eq .serviceType "slack"}}:white_check_mark:{{end}} Application {{.app.metadata.name}} is now running new version of deployments manifests.
+
+```
 ### app-health-degraded
 **title**: `Application {{.app.metadata.name}} has degraded.`
 
