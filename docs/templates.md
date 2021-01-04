@@ -23,7 +23,7 @@ Each template has access to the following fields:
 - `context` is user defined string map and might include any string keys and values.
 - `serviceType` holds the notification service type name. The field can be used to conditionally
 render service specific fields.
-
+- `recipient` holds the recipient name.
 
 ## Functions
 

@@ -10,6 +10,7 @@ import (
 
 const (
 	serviceTypeVarName = "serviceType"
+	recipientVarName   = "recipient"
 )
 
 //go:generate mockgen -destination=./mocks/mocks.go -package=mocks github.com/argoproj-labs/argocd-notifications/pkg API
@@ -50,6 +51,7 @@ func (n *api) Send(vars map[string]interface{}, templates []string, dest service
 		in[k] = vars[k]
 	}
 	in[serviceTypeVarName] = dest.Service
+	in[recipientVarName] = dest.Recipient
 	notification, err := n.templatesService.FormatNotification(in, templates...)
 	if err != nil {
 		return err

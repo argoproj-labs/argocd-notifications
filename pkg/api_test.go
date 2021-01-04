@@ -13,7 +13,9 @@ import (
 func getConfig(ctrl *gomock.Controller, opts ...func(service *mocks.MockNotificationService)) Config {
 	return Config{
 		Templates: map[string]services.Notification{
-			"my-template": {Body: "hello {{ .foo }}"},
+			"my-template": {
+				Body: "hello {{ .foo }} {{ .serviceType }}:{{ .recipient }}",
+			},
 		},
 		Services: map[string]ServiceFactory{
 			"slack": func() (services.NotificationService, error) {
@@ -32,7 +34,7 @@ func TestSend(t *testing.T) {
 
 	api, err := NewAPI(getConfig(ctrl, func(service *mocks.MockNotificationService) {
 		service.EXPECT().Send(services.Notification{
-			Body:    "hello world",
+			Body:    "hello world slack:my-channel",
 			Webhook: map[string]services.WebhookNotification{},
 		}, services.Destination{
 			Service:   "slack",
