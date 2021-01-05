@@ -47,11 +47,13 @@ func (s webhookService) Send(notification Notification, dest Destination) error 
 	body := notification.Body
 	method := http.MethodGet
 	urlPath := ""
-	if webhookNotification, ok := notification.Webhook[dest.Service]; ok {
-		body = webhookNotification.Body
-		method = text.Coalesce(webhookNotification.Method, method)
-		if webhookNotification.Path != "" {
-			urlPath = webhookNotification.Path
+	if notification.Webhook != nil {
+		if webhookNotification, ok := notification.Webhook[dest.Service]; ok {
+			body = webhookNotification.Body
+			method = text.Coalesce(webhookNotification.Method, method)
+			if webhookNotification.Path != "" {
+				urlPath = webhookNotification.Path
+			}
 		}
 	}
 	url := s.opts.URL

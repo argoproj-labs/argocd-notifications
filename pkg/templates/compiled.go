@@ -63,8 +63,10 @@ func (tmpl compiledTemplate) formatNotification(vars map[string]interface{}, not
 		}
 		notification.Slack.Blocks = slackBlocks.String()
 	}
-	notification.Webhook = map[string]services.WebhookNotification{}
 	for k, v := range tmpl.webhooks {
+		if notification.Webhook == nil {
+			notification.Webhook = map[string]services.WebhookNotification{}
+		}
 		var body bytes.Buffer
 		err = tmpl.webhooks[k].body.Execute(&body, vars)
 		if err != nil {
