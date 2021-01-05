@@ -28,6 +28,7 @@ markdown_extensions:
 nav:
   - Overview: index.md
   - triggers.md
+  - templates.md
   - subscriptions.md
   - Notification Services:
     - services/overview.md
