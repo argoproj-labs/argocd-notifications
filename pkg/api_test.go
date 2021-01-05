@@ -34,8 +34,7 @@ func TestSend(t *testing.T) {
 
 	api, err := NewAPI(getConfig(ctrl, func(service *mocks.MockNotificationService) {
 		service.EXPECT().Send(services.Notification{
-			Body:    "hello world slack:my-channel",
-			Webhook: map[string]services.WebhookNotification{},
+			Body: "hello world slack:my-channel",
 		}, services.Destination{
 			Service:   "slack",
 			Recipient: "my-channel",

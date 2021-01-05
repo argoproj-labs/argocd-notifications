@@ -190,11 +190,11 @@ func (c *notificationController) processApp(app *unstructured.Unstructured, logE
 				if changed, err := setAlreadyNotified(trigger, cr, to, true); err != nil {
 					return err
 				} else if !changed {
-					logEntry.Infof("%s notification already sent", trigger)
+					logEntry.Infof("Notification about condition '%s.%s' already sent to '%v'", trigger, cr.Key, to)
 					continue // move to the next recipient
 				}
 
-				logEntry.Infof("Sending %s notification", trigger)
+				logEntry.Infof("Sending notification about condition '%s.%s' to '%v'", trigger, cr.Key, to)
 				vars := expr.Spawn(app, c.cfg.ArgoCDService, map[string]interface{}{
 					"app":     app.Object,
 					"context": legacy.InjectLegacyVar(c.cfg.Context, to.Service),
