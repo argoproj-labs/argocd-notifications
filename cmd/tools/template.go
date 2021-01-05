@@ -117,10 +117,10 @@ argocd-notifications tools template get app-sync-succeeded -o=yaml
 			switch output {
 			case "", "wide":
 				w := tabwriter.NewWriter(cmdContext.stdout, 5, 0, 2, ' ', 0)
-				_, _ = fmt.Fprintf(w, "NAME\tTITLE\n")
+				_, _ = fmt.Fprintf(w, "NAME\tPREVIEW\n")
 				misc.IterateStringKeyMap(items, func(name string) {
 					template := items[name]
-					_, _ = fmt.Fprintf(w, "%s\t%s\n", name, template.Title)
+					_, _ = fmt.Fprintf(w, "%s\t%s\n", name, template.Preview())
 				})
 				_ = w.Flush()
 			case "name":

@@ -1,7 +1,9 @@
 package services
 
 import (
+	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/ghodss/yaml"
 )
@@ -11,6 +13,27 @@ type Notification struct {
 	Body    string                         `json:"body,omitempty"`
 	Slack   *SlackNotification             `json:"slack,omitempty"`
 	Webhook map[string]WebhookNotification `json:"webhook,omitempty" patchStrategy:"replace"`
+}
+
+func (n *Notification) Preview() string {
+	preview := ""
+	switch {
+	case n.Title != "":
+		preview = n.Title
+	case n.Body != "":
+		preview = n.Body
+	default:
+		if yamlData, err := json.Marshal(n); err != nil {
+			preview = "failed to generate preview"
+		} else {
+			preview = string(yamlData)
+		}
+	}
+	preview = strings.Split(preview, "\n")[0]
+	if len(preview) > 100 {
+		preview = preview[:99] + "..."
+	}
+	return preview
 }
 
 // Destination holds notification destination details
