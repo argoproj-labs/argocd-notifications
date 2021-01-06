@@ -1,7 +1,5 @@
 ## Configuration
 
-!!! note "Requires version v0.6+"
-
 The webhook notification service allows sending a generic HTTP request using the templatized request body and URL.
 Using Webhook you might trigger a Jenkins job, update Github commit status.
 
@@ -40,6 +38,15 @@ data:
         path: <optional-path-template>
         body: |
           <optional-body-template>
+```
+3 Create subscription for webhook integration:
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    notifications.argoproj.io/subscribe.sync-operation-change.<webhook-name>: ""
 ```
 
 ## Examples

@@ -5,7 +5,7 @@
 Argo CD Notifications continuously monitors Argo CD applications and provides a flexible way to notify
 users about important changes in the applications state. The project includes a bundle of useful
 built-in triggers and notification templates, integrates with various notification services such as
-☑ Slack, ☑ SMTP and plans to support Telegram, Discord, etc.
+☑ Slack, ☑ SMTP, ☑ Opsgenie, ☑ Telegram and anything else using custom webhooks.
 
 ![demo](./docs/demo.gif)
 

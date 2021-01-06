@@ -9,6 +9,7 @@ require (
 	github.com/argoproj/argo-cd v1.8.0
 	github.com/evanphx/json-patch v4.9.0+incompatible
 	github.com/ghodss/yaml v1.0.0
+	github.com/go-telegram-bot-api/telegram-bot-api v4.6.4+incompatible
 	github.com/golang/mock v1.4.4
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0 // indirect
 	github.com/huandu/xstrings v1.3.0 // indirect
@@ -22,6 +23,7 @@ require (
 	github.com/slack-go/slack v0.6.6
 	github.com/spf13/cobra v1.0.0
 	github.com/stretchr/testify v1.6.1
+	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
 	github.com/whilp/git-urls v0.0.0-20191001220047-6db9661140c0
 	gomodules.xyz/notify v0.1.0
 	k8s.io/api v0.19.2

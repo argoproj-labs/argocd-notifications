@@ -1,5 +1,3 @@
-# Bot (v0.5)
-
 The optional bot component simplifies managing subscriptions. The end users can use bot commands to manage subscriptions
 even if they don't have access to the Kubernetes API and cannot modify annotations. 
 

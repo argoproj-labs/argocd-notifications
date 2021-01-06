@@ -1,4 +1,4 @@
-# Slack bot (v0.5)
+# Slack bot
 
 The Slack bot leverages [slash commands](https://api.slack.com/interactivity/slash-commands). The bot allows slack users
 to view existing channel subscriptions and subscribe or unsubscribe channels.
