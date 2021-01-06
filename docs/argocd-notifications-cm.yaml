@@ -71,6 +71,10 @@ data:
       $opsgenie-team-id: $opsgenie-team-api-key
       ...
 
+  #  Telegram
+  service.telegram: |
+    token: $telegram-token
+
   # Context holds list of variables that can be referenced in templates
   context: |
     argocdUrl: https://cd.apps.argoproj.io/

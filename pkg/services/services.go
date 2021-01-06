@@ -81,6 +81,12 @@ func NewService(serviceType string, optsData []byte) (NotificationService, error
 			return nil, err
 		}
 		return NewWebhookService(opts), nil
+	case "telegram":
+		var opts TelegramOptions
+		if err := yaml.Unmarshal(optsData, &opts); err != nil {
+			return nil, err
+		}
+		return NewTelegramService(opts), nil
 	default:
 		return nil, fmt.Errorf("service type '%s' is not supported", serviceType)
 	}

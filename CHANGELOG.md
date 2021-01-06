@@ -4,10 +4,12 @@
 
 ### Features
 
+* feat: triggers with multiple conditions and multiple templates per condition
 * feat: support `oncePer` trigger property that allows sending notification "once per" app field value (#60)
 * feat: add support for proxy settings (#42)
 * feat: support self-signed certificates in all HTTP based integrations (#61)
 * feat: subscription support specifying message template
+* feat: support Telegram notifications (#49)
 
 ### Bug Fixes
 
