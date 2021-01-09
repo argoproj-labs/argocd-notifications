@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/argoproj-labs/argocd-notifications/controller"
 	"github.com/argoproj-labs/argocd-notifications/pkg/services"
@@ -34,6 +35,7 @@ func newControllerCommand() *cobra.Command {
 		namespace        string
 		appLabelSelector string
 		logLevel         string
+		logFormat        string
 		metricsPort      int
 		argocdRepoServer string
 	)
@@ -63,6 +65,17 @@ func newControllerCommand() *cobra.Command {
 				return err
 			}
 			log.SetLevel(level)
+
+			switch strings.ToLower(logFormat) {
+			case "json":
+				log.SetFormatter(&log.JSONFormatter{})
+			case "text":
+				if os.Getenv("FORCE_LOG_COLORS") == "1" {
+					log.SetFormatter(&log.TextFormatter{ForceColors: true})
+				}
+			default:
+				return fmt.Errorf("Unknown log format '%s'", logFormat)
+			}
 
 			argocdService, err := argocd.NewArgoCDService(k8sClient, namespace, argocdRepoServer)
 			if err != nil {
@@ -117,6 +130,7 @@ func newControllerCommand() *cobra.Command {
 	command.Flags().StringVar(&appLabelSelector, "app-label-selector", "", "App label selector.")
 	command.Flags().StringVar(&namespace, "namespace", "", "Namespace which controller handles. Current namespace if empty.")
 	command.Flags().StringVar(&logLevel, "loglevel", "info", "Set the logging level. One of: debug|info|warn|error")
+	command.Flags().StringVar(&logFormat, "logformat", "text", "Set the logging format. One of: text|json")
 	command.Flags().IntVar(&metricsPort, "metrics-port", defaultMetricsPort, "Metrics port")
 	command.Flags().StringVar(&argocdRepoServer, "argocd-repo-server", "argocd-repo-server:8081", "Argo CD repo server address")
 	return &command
