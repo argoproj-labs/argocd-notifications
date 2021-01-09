@@ -8,3 +8,7 @@ resources:
 - argocd-notifications-bot-deployment.yaml
 - argocd-notifications-bot-role.yaml
 - argocd-notifications-bot-service.yaml
+
+images:
+  - name: argoprojlabs/argocd-notifications
+    newTag: v1.0.0-rc1

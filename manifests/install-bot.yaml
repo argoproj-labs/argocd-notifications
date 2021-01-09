@@ -142,7 +142,7 @@ spec:
       - command:
         - /app/argocd-notifications
         - bot
-        image: argoprojlabs/argocd-notifications:latest
+        image: argoprojlabs/argocd-notifications:v1.0.0-rc1
         imagePullPolicy: Always
         name: argocd-notifications-bot
         workingDir: /app
@@ -167,7 +167,7 @@ spec:
       - command:
         - /app/argocd-notifications
         - controller
-        image: argoprojlabs/argocd-notifications:latest
+        image: argoprojlabs/argocd-notifications:v1.0.0-rc1
         imagePullPolicy: Always
         name: argocd-notifications-controller
         volumeMounts:
