@@ -35,10 +35,10 @@ func newTemplateNotifyCommand(cmdContext *commandContext) *cobra.Command {
 		Use: "notify NAME APPLICATION",
 		Example: `
 # Trigger notification using in-cluster config map and secret
-argocd-notifications tools template notify app-sync-succeeded guestbook --recipient slack:argocd-notifications
+argocd-notifications template notify app-sync-succeeded guestbook --recipient slack:argocd-notifications
 
 # Render notification render generated notification in console
-argocd-notifications tools template notify app-sync-succeeded guestbook
+argocd-notifications template notify app-sync-succeeded guestbook
 `,
 		Short: "Generates notification using the specified template and send it to specified recipients",
 		RunE: func(c *cobra.Command, args []string) error {
@@ -92,9 +92,9 @@ func newTemplateGetCommand(cmdContext *commandContext) *cobra.Command {
 		Use: "get",
 		Example: `
 # prints all templates
-argocd-notifications tools template get
+argocd-notifications template get
 # print YAML formatted app-sync-succeeded template definition
-argocd-notifications tools template get app-sync-succeeded -o=yaml
+argocd-notifications template get app-sync-succeeded -o=yaml
 `,
 		Short: "Prints information about configured templates",
 		RunE: func(c *cobra.Command, args []string) error {

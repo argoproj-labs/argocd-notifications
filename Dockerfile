@@ -11,12 +11,14 @@ RUN go mod download
 
 # Perform the build
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o /dist/argocd-notifications ./cmd
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o /app/argocd-notifications ./cmd
+RUN ln -s /app/argocd-notifications /app/argocd-notifications-backend
 
 FROM scratch
 
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
-COPY --from=builder /dist/argocd-notifications /app/argocd-notifications
+COPY --from=builder /app/argocd-notifications /app/argocd-notifications
+COPY --from=builder /app/argocd-notifications-backend /app/argocd-notifications-backend
 
 # User numeric user so that kubernetes can assert that the user id isn't root (0).
 # We are also using the root group (the 0 in 1000:0), it doesn't have any

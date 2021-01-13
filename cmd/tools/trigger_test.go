@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/ghodss/yaml"
@@ -23,6 +24,7 @@ import (
 
 func newTestContext(stdout io.Writer, stderr io.Writer, data map[string]string, apps ...runtime.Object) (*commandContext, func(), error) {
 	cm := v1.ConfigMap{
+		TypeMeta: metav1.TypeMeta{APIVersion: "v1", Kind: "ConfigMap"},
 		ObjectMeta: metav1.ObjectMeta{
 			Name: k8s.ConfigMapName,
 		},
@@ -47,6 +49,7 @@ func newTestContext(stdout io.Writer, stderr io.Writer, data map[string]string, 
 	ctx := &commandContext{
 		stdout:        stdout,
 		stderr:        stderr,
+		stdin:         strings.NewReader(""),
 		secretPath:    ":empty",
 		configMapPath: tmpFile.Name(),
 		getK8SClients: func() (kubernetes.Interface, dynamic.Interface, string, error) {
@@ -65,7 +68,7 @@ func TestTriggerRun(t *testing.T) {
 - when: app.metadata.name == 'guestbook'
   send: [my-template]`,
 		"template.my-template": `
-title: hello {{.app.metadata.name}}`,
+message: hello {{.app.metadata.name}}`,
 	}
 
 	var stdout bytes.Buffer
@@ -92,7 +95,7 @@ func TestTriggerGet(t *testing.T) {
 - when: 'false'
   send: [my-template]`,
 		"template.my-template": `
-title: hello {{.app.metadata.name}}`,
+message: hello {{.app.metadata.name}}`,
 	}
 
 	var stdout bytes.Buffer

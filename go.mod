@@ -7,6 +7,7 @@ require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/antonmedv/expr v1.8.9
 	github.com/argoproj/argo-cd v1.8.0
+	github.com/argoproj/gitops-engine v0.2.1
 	github.com/evanphx/json-patch v4.9.0+incompatible
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-telegram-bot-api/telegram-bot-api v4.6.4+incompatible

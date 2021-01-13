@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
         - command:
-            - /app/argocd-notifications
+            - /app/argocd-notifications-backend
             - bot
           workingDir: /app
           image: argoprojlabs/argocd-notifications:latest

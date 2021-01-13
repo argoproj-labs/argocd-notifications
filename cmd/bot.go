@@ -25,7 +25,8 @@ func newBotCommand() *cobra.Command {
 		port         int
 	)
 	var command = cobra.Command{
-		Use: "bot",
+		Use:   "bot",
+		Short: "Starts Argo CD Notifications bot",
 		RunE: func(c *cobra.Command, args []string) error {
 			restConfig, err := clientConfig.ClientConfig()
 			if err != nil {

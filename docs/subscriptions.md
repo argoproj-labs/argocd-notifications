@@ -25,7 +25,7 @@ metadata:
     notifications.argoproj.io/subscribe.on-sync-succeeded.slack: my-channel1;my-channel2
 ```
 
-## Default Subscriptions (v0.6.1)
+## Default Subscriptions
 
 The subscriptions might be configured globally in the `argocd-notifications-cm` ConfigMap using `subscriptions` field. The default subscriptions
 are applied to all applications. The trigger and applications might be configured using the

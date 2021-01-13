@@ -1,9 +1,11 @@
 package services
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"net/http"
+	texttemplate "text/template"
 
 	"github.com/opsgenie/opsgenie-go-sdk-v2/alert"
 	"github.com/opsgenie/opsgenie-go-sdk-v2/client"
@@ -15,6 +17,28 @@ import (
 type OpsgenieOptions struct {
 	ApiUrl  string            `json:"apiUrl"`
 	ApiKeys map[string]string `json:"apiKeys"`
+}
+
+type OpsgenieNotification struct {
+	Description string `json:"description"`
+}
+
+func (n *OpsgenieNotification) GetTemplater(name string, f texttemplate.FuncMap) (Templater, error) {
+	desc, err := texttemplate.New(name).Funcs(f).Parse(n.Description)
+	if err != nil {
+		return nil, err
+	}
+	return func(notification *Notification, vars map[string]interface{}) error {
+		if notification.Opsgenie == nil {
+			notification.Opsgenie = &OpsgenieNotification{}
+		}
+		var descData bytes.Buffer
+		if err := desc.Execute(&descData, vars); err != nil {
+			return err
+		}
+		notification.Opsgenie.Description = descData.String()
+		return nil
+	}, nil
 }
 
 type opsgenieService struct {
@@ -38,9 +62,14 @@ func (s *opsgenieService) Send(notification Notification, dest Destination) erro
 				httputil.NewTransport(s.opts.ApiUrl, false), log.WithField("service", "opsgenie")),
 		},
 	})
+	description := ""
+	if notification.Opsgenie != nil {
+		description = notification.Opsgenie.Description
+	}
+
 	_, err := alertClient.Create(context.TODO(), &alert.CreateAlertRequest{
-		Message:     notification.Title,
-		Description: notification.Body,
+		Message:     notification.Message,
+		Description: description,
 		Responders: []alert.Responder{
 			{
 				Type: "team",

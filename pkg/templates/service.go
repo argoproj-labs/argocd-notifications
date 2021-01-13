@@ -3,6 +3,8 @@ package templates
 import (
 	"fmt"
 
+	"github.com/Masterminds/sprig"
+
 	"github.com/argoproj-labs/argocd-notifications/pkg/services"
 )
 
@@ -11,17 +13,21 @@ type Service interface {
 }
 
 type service struct {
-	compiledTemplates map[string]*compiledTemplate
+	templaters map[string]services.Templater
 }
 
 func NewService(templates map[string]services.Notification) (*service, error) {
-	svc := &service{compiledTemplates: map[string]*compiledTemplate{}}
+	f := sprig.TxtFuncMap()
+	delete(f, "env")
+	delete(f, "expandenv")
+
+	svc := &service{templaters: map[string]services.Templater{}}
 	for name, cfg := range templates {
-		compiled, err := compileTemplate(name, cfg)
+		templater, err := cfg.GetTemplater(name, f)
 		if err != nil {
 			return nil, err
 		}
-		svc.compiledTemplates[name] = compiled
+		svc.templaters[name] = templater
 	}
 	return svc, nil
 }
@@ -29,12 +35,12 @@ func NewService(templates map[string]services.Notification) (*service, error) {
 func (s *service) FormatNotification(vars map[string]interface{}, templates ...string) (*services.Notification, error) {
 	var notification services.Notification
 	for _, templateName := range templates {
-		template, ok := s.compiledTemplates[templateName]
+		templater, ok := s.templaters[templateName]
 		if !ok {
 			return nil, fmt.Errorf("template '%s' is not supported", templateName)
 		}
 
-		if err := template.formatNotification(vars, &notification); err != nil {
+		if err := templater(&notification, vars); err != nil {
 			return nil, err
 		}
 	}

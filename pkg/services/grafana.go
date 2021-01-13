@@ -41,7 +41,7 @@ func (s *grafanaService) Send(notification Notification, dest Destination) error
 		Time:     time.Now().Unix() * 1000, // unix ts in ms
 		IsRegion: false,
 		Tags:     strings.Split(dest.Recipient, "|"),
-		Text:     notification.Title,
+		Text:     notification.Message,
 	}
 
 	client := &http.Client{

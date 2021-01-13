@@ -11,60 +11,213 @@
 
 ## Templates
 ### app-deployed
-**title**: `New version of an application {{.app.metadata.name}} is up and running.`
-
-**body**:
-```
-{{if eq .serviceType "slack"}}:white_check_mark:{{end}} Application {{.app.metadata.name}} is now running new version of deployments manifests.
+**definition**:
+```yaml
+email:
+  subject: New version of an application {{.app.metadata.name}} is up and running.
+message: |
+  {{if eq .serviceType "slack"}}:white_check_mark:{{end}} Application {{.app.metadata.name}} is now running new version of deployments manifests.
+slack:
+  attachments: |
+    [{
+      "title": "{{ .app.metadata.name}}",
+      "title_link":"{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+      "color": "#18be52",
+      "fields": [
+      {
+        "title": "Sync Status",
+        "value": "{{.app.status.sync.status}}",
+        "short": true
+      },
+      {
+        "title": "Repository",
+        "value": "{{.app.spec.source.repoURL}}",
+        "short": true
+      },
+      {
+        "title": "Revision",
+        "value": "{{.app.status.sync.revision}}",
+        "short": true
+      }
+      {{range $index, $c := .app.status.conditions}}
+      {{if not $index}},{{end}}
+      {{if $index}},{{end}}
+      {
+        "title": "{{$c.type}}",
+        "value": "{{$c.message}}",
+        "short": true
+      }
+      {{end}}
+      ]
+    }]
 
 ```
 ### app-health-degraded
-**title**: `Application {{.app.metadata.name}} has degraded.`
-
-**body**:
-```
-{{if eq .serviceType "slack"}}:exclamation:{{end}} Application {{.app.metadata.name}} has degraded.
-Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
+**definition**:
+```yaml
+email:
+  subject: Application {{.app.metadata.name}} has degraded.
+message: |
+  {{if eq .serviceType "slack"}}:exclamation:{{end}} Application {{.app.metadata.name}} has degraded.
+  Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
+slack:
+  attachments: |-
+    [{
+      "title": "{{ .app.metadata.name}}",
+      "title_link": "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+      "color": "#f4c030",
+      "fields": [
+      {
+        "title": "Sync Status",
+        "value": "{{.app.status.sync.status}}",
+        "short": true
+      },
+      {
+        "title": "Repository",
+        "value": "{{.app.spec.source.repoURL}}",
+        "short": true
+      }
+      {{range $index, $c := .app.status.conditions}}
+      {{if not $index}},{{end}}
+      {{if $index}},{{end}}
+      {
+        "title": "{{$c.type}}",
+        "value": "{{$c.message}}",
+        "short": true
+      }
+      {{end}}
+      ]
+    }]
 
 ```
 ### app-sync-failed
-**title**: `Failed to sync application {{.app.metadata.name}}.`
-
-**body**:
-```
-{{if eq .serviceType "slack"}}:exclamation:{{end}}  The sync operation of application {{.app.metadata.name}} has failed at {{.app.status.operationState.finishedAt}} with the following error: {{.app.status.operationState.message}}
-Sync operation details are available at: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}?operation=true .
+**definition**:
+```yaml
+email:
+  subject: Failed to sync application {{.app.metadata.name}}.
+message: |
+  {{if eq .serviceType "slack"}}:exclamation:{{end}}  The sync operation of application {{.app.metadata.name}} has failed at {{.app.status.operationState.finishedAt}} with the following error: {{.app.status.operationState.message}}
+  Sync operation details are available at: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}?operation=true .
+slack:
+  attachments: |-
+    [{
+      "title": "{{ .app.metadata.name}}",
+      "title_link":"{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+      "color": "#E96D76",
+      "fields": [
+      {
+        "title": "Sync Status",
+        "value": "{{.app.status.sync.status}}",
+        "short": true
+      },
+      {
+        "title": "Repository",
+        "value": "{{.app.spec.source.repoURL}}",
+        "short": true
+      }
+      {{range $index, $c := .app.status.conditions}}
+      {{if not $index}},{{end}}
+      {{if $index}},{{end}}
+      {
+        "title": "{{$c.type}}",
+        "value": "{{$c.message}}",
+        "short": true
+      }
+      {{end}}
+      ]
+    }]
 
 ```
 ### app-sync-running
-**title**: `Start syncing application {{.app.metadata.name}}.`
-
-**body**:
-```
-The sync operation of application {{.app.metadata.name}} has started at {{.app.status.operationState.startedAt}}.
-Sync operation details are available at: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}?operation=true .
+**definition**:
+```yaml
+email:
+  subject: Start syncing application {{.app.metadata.name}}.
+message: |
+  The sync operation of application {{.app.metadata.name}} has started at {{.app.status.operationState.startedAt}}.
+  Sync operation details are available at: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}?operation=true .
+slack:
+  attachments: |-
+    [{
+      "title": "{{ .app.metadata.name}}",
+      "title_link":"{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+      "color": "#0DADEA",
+      "fields": [
+      {
+        "title": "Sync Status",
+        "value": "{{.app.status.sync.status}}",
+        "short": true
+      },
+      {
+        "title": "Repository",
+        "value": "{{.app.spec.source.repoURL}}",
+        "short": true
+      }
+      {{range $index, $c := .app.status.conditions}}
+      {{if not $index}},{{end}}
+      {{if $index}},{{end}}
+      {
+        "title": "{{$c.type}}",
+        "value": "{{$c.message}}",
+        "short": true
+      }
+      {{end}}
+      ]
+    }]
 
 ```
 ### app-sync-status-unknown
-**title**: `Application {{.app.metadata.name}} sync status is 'Unknown'`
-
-**body**:
-```
-{{if eq .serviceType "slack"}}:exclamation:{{end}} Application {{.app.metadata.name}} sync is 'Unknown'.
-Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
-{{if ne .serviceType "slack"}}
-{{range $c := .app.status.conditions}}
-    * {{$c.message}}
-{{end}}
-{{end}}
+**definition**:
+```yaml
+email:
+  subject: Application {{.app.metadata.name}} sync status is 'Unknown'
+message: |
+  {{if eq .serviceType "slack"}}:exclamation:{{end}} Application {{.app.metadata.name}} sync is 'Unknown'.
+  Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
+  {{if ne .serviceType "slack"}}
+  {{range $c := .app.status.conditions}}
+      * {{$c.message}}
+  {{end}}
+  {{end}}
+slack:
+  attachments: |-
+    [{
+      "title": "{{ .app.metadata.name}}",
+      "title_link":"{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+      "color": "#E96D76",
+      "fields": [
+      {
+        "title": "Sync Status",
+        "value": "{{.app.status.sync.status}}",
+        "short": true
+      },
+      {
+        "title": "Repository",
+        "value": "{{.app.spec.source.repoURL}}",
+        "short": true
+      }
+      {{range $index, $c := .app.status.conditions}}
+      {{if not $index}},{{end}}
+      {{if $index}},{{end}}
+      {
+        "title": "{{$c.type}}",
+        "value": "{{$c.message}}",
+        "short": true
+      }
+      {{end}}
+      ]
+    }]
 
 ```
 ### app-sync-succeeded
-**title**: `Application {{.app.metadata.name}} has been successfully synced.`
-
-**body**:
-```
-{{if eq .serviceType "slack"}}:white_check_mark:{{end}} Application {{.app.metadata.name}} has been successfully synced at {{.app.status.operationState.finishedAt}}.
-Sync operation details are available at: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}?operation=true .
+**definition**:
+```yaml
+email:
+  subject: Application {{.app.metadata.name}} has been successfully synced.
+message: |
+  {{if eq .serviceType "slack"}}:white_check_mark:{{end}} Application {{.app.metadata.name}} has been successfully synced at {{.app.status.operationState.finishedAt}}.
+  Sync operation details are available at: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}?operation=true .
+slack:
+  attachments: "[{\n  \"title\": \"{{ .app.metadata.name}}\",\n  \"title_link\":\"{{.context.argocdUrl}}/applications/{{.app.metadata.name}}\",\n  \"color\": \"#18be52\",\n  \"fields\": [\n  {\n    \"title\": \"Sync Status\",\n    \"value\": \"{{.app.status.sync.status}}\",\n    \"short\": true\n  },\n  {\n    \"title\": \"Repository\",\n    \"value\": \"{{.app.spec.source.repoURL}}\",\n    \"short\": true\n  }\n  {{range $index, $c := .app.status.conditions}}\n  {{if not $index}},{{end}}\n  {{if $index}},{{end}}\n  {\n    \"title\": \"{{$c.type}}\",\n    \"value\": \"{{$c.message}}\",\n    \"short\": true\n  }\n  {{end}}\n  ]\n}]    "
 
 ```

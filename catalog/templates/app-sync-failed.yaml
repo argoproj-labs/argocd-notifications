@@ -1,7 +1,8 @@
-title: "Failed to sync application {{.app.metadata.name}}."
-body: |
+message: |
     {{if eq .serviceType "slack"}}:exclamation:{{end}}  The sync operation of application {{.app.metadata.name}} has failed at {{.app.status.operationState.finishedAt}} with the following error: {{.app.status.operationState.message}}
     Sync operation details are available at: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}?operation=true .
+email:
+    subject: Failed to sync application {{.app.metadata.name}}.
 slack:
     attachments: |
         [{
@@ -29,4 +30,4 @@ slack:
           }
           {{end}}
           ]
-        }]    
+        }]
