@@ -1,4 +1,4 @@
-## tools template get
+## argocd-notifications template get
 
 Prints information about configured templates
 
@@ -7,7 +7,7 @@ Prints information about configured templates
 Prints information about configured templates
 
 ```
-tools template get [flags]
+argocd-notifications template get [flags]
 ```
 
 ### Examples
@@ -15,9 +15,9 @@ tools template get [flags]
 ```
 
 # prints all templates
-argocd-notifications tools template get
+argocd-notifications template get
 # print YAML formatted app-sync-succeeded template definition
-argocd-notifications tools template get app-sync-succeeded -o=yaml
+argocd-notifications template get app-sync-succeeded -o=yaml
 
 ```
 
@@ -53,7 +53,7 @@ argocd-notifications tools template get app-sync-succeeded -o=yaml
       --username string                Username for basic authentication to the API server
 ```
 
-## tools template notify
+## argocd-notifications template notify
 
 Generates notification using the specified template and send it to specified recipients
 
@@ -62,7 +62,7 @@ Generates notification using the specified template and send it to specified rec
 Generates notification using the specified template and send it to specified recipients
 
 ```
-tools template notify NAME APPLICATION [flags]
+argocd-notifications template notify NAME APPLICATION [flags]
 ```
 
 ### Examples
@@ -70,10 +70,10 @@ tools template notify NAME APPLICATION [flags]
 ```
 
 # Trigger notification using in-cluster config map and secret
-argocd-notifications tools template notify app-sync-succeeded guestbook --recipient slack:argocd-notifications
+argocd-notifications template notify app-sync-succeeded guestbook --recipient slack:argocd-notifications
 
 # Render notification render generated notification in console
-argocd-notifications tools template notify app-sync-succeeded guestbook
+argocd-notifications template notify app-sync-succeeded guestbook
 
 ```
 
@@ -109,7 +109,7 @@ argocd-notifications tools template notify app-sync-succeeded guestbook
       --username string                Username for basic authentication to the API server
 ```
 
-## tools trigger get
+## argocd-notifications trigger get
 
 Prints information about configured triggers
 
@@ -118,7 +118,7 @@ Prints information about configured triggers
 Prints information about configured triggers
 
 ```
-tools trigger get [flags]
+argocd-notifications trigger get [flags]
 ```
 
 ### Examples
@@ -126,9 +126,9 @@ tools trigger get [flags]
 ```
 
 # prints all triggers
-argocd-notifications tools trigger get
+argocd-notifications trigger get
 # print YAML formatted on-sync-failed trigger definition
-argocd-notifications tools trigger get on-sync-failed -o=yaml
+argocd-notifications trigger get on-sync-failed -o=yaml
 
 ```
 
@@ -164,7 +164,7 @@ argocd-notifications tools trigger get on-sync-failed -o=yaml
       --username string                Username for basic authentication to the API server
 ```
 
-## tools trigger run
+## argocd-notifications trigger run
 
 Evaluates specified trigger condition and prints the result
 
@@ -173,7 +173,7 @@ Evaluates specified trigger condition and prints the result
 Evaluates specified trigger condition and prints the result
 
 ```
-tools trigger run NAME APPLICATION [flags]
+argocd-notifications trigger run NAME APPLICATION [flags]
 ```
 
 ### Examples
@@ -181,10 +181,10 @@ tools trigger run NAME APPLICATION [flags]
 ```
 
 # Execute trigger configured in 'argocd-notification-cm' ConfigMap
-argocd-notifications tools trigger run on-sync-status-unknown ./sample-app.yaml
+argocd-notifications trigger run on-sync-status-unknown ./sample-app.yaml
 
 # Execute trigger using argocd-notifications-cm.yaml instead of 'argocd-notification-cm' ConfigMap
-argocd-notifications tools trigger run on-sync-status-unknown ./sample-app.yaml \
+argocd-notifications trigger run on-sync-status-unknown ./sample-app.yaml \
     --config-map ./argocd-notifications-cm.yaml
 ```
 

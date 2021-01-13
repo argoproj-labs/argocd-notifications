@@ -40,7 +40,8 @@ func newControllerCommand() *cobra.Command {
 		argocdRepoServer string
 	)
 	var command = cobra.Command{
-		Use: "controller",
+		Use:   "controller",
+		Short: "Starts Argo CD Notifications controller",
 		RunE: func(c *cobra.Command, args []string) error {
 			restConfig, err := clientConfig.ClientConfig()
 			if err != nil {

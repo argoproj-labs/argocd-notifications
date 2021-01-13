@@ -2,15 +2,19 @@ package tools
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"path/filepath"
 	"sync"
 
+	"github.com/argoproj/gitops-engine/pkg/utils/kube"
 	"github.com/ghodss/yaml"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -30,6 +34,7 @@ type commandContext struct {
 	configMapPath string
 	secretPath    string
 	stdout        io.Writer
+	stdin         io.Reader
 	stderr        io.Writer
 	getK8SClients clientsSource
 	argocdService *lazyArgocdServiceInitializer
@@ -86,6 +91,30 @@ func getK8SClients(clientConfig clientcmd.ClientConfig) (kubernetes.Interface, d
 	return k8sClient, dynamicClient, ns, nil
 }
 
+func (c *commandContext) unmarshalFromFile(filePath string, name string, gk schema.GroupKind, result interface{}) error {
+	var err error
+	var data []byte
+	if filePath == "-" {
+		data, err = ioutil.ReadAll(c.stdin)
+	} else {
+		data, err = ioutil.ReadFile(c.configMapPath)
+	}
+	if err != nil {
+		return err
+	}
+	objs, err := kube.SplitYAML(data)
+	if err != nil {
+		return err
+	}
+
+	for _, obj := range objs {
+		if obj.GetName() == name && obj.GroupVersionKind().GroupKind() == gk {
+			return runtime.DefaultUnstructuredConverter.FromUnstructured(obj.Object, result)
+		}
+	}
+	return fmt.Errorf("file '%s' does not have '%s/%s/%s'", filePath, gk.Group, gk.Kind, name)
+}
+
 func (c *commandContext) getConfig() (*settings.Config, error) {
 	var configMap v1.ConfigMap
 	if c.configMapPath == "" {
@@ -99,11 +128,7 @@ func (c *commandContext) getConfig() (*settings.Config, error) {
 		}
 		configMap = *cm
 	} else {
-		data, err := ioutil.ReadFile(c.configMapPath)
-		if err != nil {
-			return nil, err
-		}
-		if err = yaml.Unmarshal(data, &configMap); err != nil {
+		if err := c.unmarshalFromFile(c.configMapPath, k8s.ConfigMapName, schema.GroupKind{Kind: "ConfigMap"}, &configMap); err != nil {
 			return nil, err
 		}
 	}
@@ -122,11 +147,7 @@ func (c *commandContext) getConfig() (*settings.Config, error) {
 		}
 		secret = *s
 	} else {
-		data, err := ioutil.ReadFile(c.secretPath)
-		if err != nil {
-			return nil, err
-		}
-		if err = yaml.Unmarshal(data, &secret); err != nil {
+		if err := c.unmarshalFromFile(c.secretPath, k8s.SecretName, schema.GroupKind{Kind: "Secret"}, &secret); err != nil {
 			return nil, err
 		}
 	}
