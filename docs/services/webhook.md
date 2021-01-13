@@ -13,7 +13,7 @@ kind: ConfigMap
 metadata:
   name: argocd-notifications-cm
 data:
-  service.<webhook-name>: |
+  service.webhook.<webhook-name>: |
     url: https://<hostname>/<optional-path>
     headers: #optional headers
     - name: <header-name>
@@ -46,7 +46,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   annotations:
-    notifications.argoproj.io/subscribe.sync-operation-change.<webhook-name>: ""
+    notifications.argoproj.io/subscribe.<trigger-name>.<webhook-name>: ""
 ```
 
 ## Examples
