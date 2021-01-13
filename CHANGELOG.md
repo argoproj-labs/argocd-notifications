@@ -20,6 +20,7 @@
 * Built-in triggers/templates replaced with triggers/templates "catalog" (#56)
 * `config.yaml` and `notifiers.yaml` configs split into multiple ConfigMap keys (#76)
 * `trigger.enabled` field is replaced with `defaultTriggers` setting
+* Replace `template.body`, `template.title` fields with `template.message` and `template.email.subject` fields
 
 ## v0.7.0 (2020-05-10)
 

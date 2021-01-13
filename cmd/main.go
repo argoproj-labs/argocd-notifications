@@ -5,14 +5,18 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/spf13/cobra"
-
 	"github.com/argoproj-labs/argocd-notifications/cmd/tools"
+	"github.com/spf13/cobra"
 )
 
 func main() {
+	binaryName := filepath.Base(os.Args[0])
+	if val := os.Getenv("ARGOCD_NOTIFICATIONS_BINARY"); val != "" {
+		binaryName = val
+	}
 	var command *cobra.Command
-	if filepath.Base(os.Args[0]) == "argocd-notifications-backend" || os.Getenv("ARGOCD_NOTIFICATIONS_BACKEND") == "true" {
+	switch binaryName {
+	case "argocd-notifications-backend":
 		command = &cobra.Command{
 			Use: "argocd-notifications-backend",
 			Run: func(c *cobra.Command, args []string) {
@@ -21,7 +25,7 @@ func main() {
 		}
 		command.AddCommand(newControllerCommand())
 		command.AddCommand(newBotCommand())
-	} else {
+	default:
 		command = tools.NewToolsCommand()
 	}
 

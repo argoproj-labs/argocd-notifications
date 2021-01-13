@@ -49,7 +49,7 @@ triggers:
 func TestMergeLegacyConfig(t *testing.T) {
 	cfg := settings.Config{
 		Config: pkg.Config{
-			Templates: map[string]services.Notification{"my-template1": {Body: "foo"}},
+			Templates: map[string]services.Notification{"my-template1": {Message: "foo"}},
 			Triggers: map[string][]triggers.Condition{
 				"my-trigger1": {{
 					When: "true",
@@ -93,8 +93,8 @@ slack:
 
 	assert.NoError(t, err)
 	assert.Equal(t, map[string]services.Notification{
-		"my-template1": {Body: "bar"},
-		"my-template2": {Body: "foo"},
+		"my-template1": {Message: "bar"},
+		"my-template2": {Message: "foo"},
 	}, cfg.Templates)
 
 	assert.Equal(t, []triggers.Condition{{

@@ -10,11 +10,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/argoproj-labs/argocd-notifications/pkg/util/misc"
-
 	"github.com/argoproj-labs/argocd-notifications/cmd/tools"
 	"github.com/argoproj-labs/argocd-notifications/pkg/services"
 	"github.com/argoproj-labs/argocd-notifications/pkg/triggers"
+	"github.com/argoproj-labs/argocd-notifications/pkg/util/misc"
 
 	"github.com/ghodss/yaml"
 	"github.com/olekukonko/tablewriter"
@@ -142,7 +141,11 @@ func generateBuiltInTriggersDocs(out io.Writer, triggers map[string][]triggers.C
 	_, _ = fmt.Fprintln(out, "## Templates")
 	misc.IterateStringKeyMap(templates, func(name string) {
 		t := templates[name]
-		_, _ = fmt.Fprintf(out, "### %s\n**title**: `%s`\n\n**body**:\n```\n%s\n```\n", name, t.Title, t.Body)
+		yamlData, err := yaml.Marshal(t)
+		if err != nil {
+			panic(err)
+		}
+		_, _ = fmt.Fprintf(out, "### %s\n**definition**:\n```yaml\n%s\n```\n", name, string(yamlData))
 	})
 }
 
