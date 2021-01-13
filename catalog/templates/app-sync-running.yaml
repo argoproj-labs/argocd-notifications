@@ -1,7 +1,8 @@
-title: "Start syncing application {{.app.metadata.name}}."
-body: |
+message: |
     The sync operation of application {{.app.metadata.name}} has started at {{.app.status.operationState.startedAt}}.
     Sync operation details are available at: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}?operation=true .
+email:
+    subject: "Start syncing application {{.app.metadata.name}}."
 slack:
     attachments: |
         [{

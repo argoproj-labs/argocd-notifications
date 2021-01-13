@@ -18,16 +18,16 @@ data:
 
   # Templates are used to generate the notification template message
   template.my-custom-template: |
-    title: Hello {{.app.metadata.name}}
-    body: |
+    message: |
       Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
 
   # Templates might have notification service specific fields. E.g. slack message might include annotations
   template.my-custom-template-slack-template: |
-    title: Application {{.app.metadata.name}} sync status is {{.app.status.sync.status}}
-    body: |
+    message: |
       Application {{.app.metadata.name}} sync is {{.app.status.sync.status}}.
       Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
+    email:
+      subject: Application {{.app.metadata.name}} sync status is {{.app.status.sync.status}}
     slack:
       attachments: |
         [{

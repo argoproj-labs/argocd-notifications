@@ -1,7 +1,8 @@
-title: "Application {{.app.metadata.name}} has been successfully synced."
-body: |
+message: |
     {{if eq .serviceType "slack"}}:white_check_mark:{{end}} Application {{.app.metadata.name}} has been successfully synced at {{.app.status.operationState.finishedAt}}.
     Sync operation details are available at: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}?operation=true .
+email:
+    subject: Application {{.app.metadata.name}} has been successfully synced.
 slack:
     attachments: |
         [{

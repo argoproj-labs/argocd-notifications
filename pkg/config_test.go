@@ -29,7 +29,7 @@ token: my-token
 func TestParseConfig_Templates(t *testing.T) {
 	cfg, err := ParseConfig(&v1.ConfigMap{Data: map[string]string{
 		"template.my-template": `
-body: hello world
+message: hello world
 `}}, emptySecret)
 
 	if !assert.NoError(t, err) {
@@ -37,7 +37,7 @@ body: hello world
 	}
 
 	assert.Equal(t, map[string]services.Notification{
-		"my-template": {Body: "hello world"},
+		"my-template": {Message: "hello world"},
 	}, cfg.Templates)
 }
 

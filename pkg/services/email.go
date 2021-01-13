@@ -1,8 +1,52 @@
 package services
 
 import (
+	"bytes"
+	texttemplate "text/template"
+
+	"github.com/argoproj-labs/argocd-notifications/pkg/util/text"
 	"gomodules.xyz/notify/smtp"
 )
+
+type EmailNotification struct {
+	Subject string `json:"subject,omitempty"`
+	Body    string `json:"body,omitempty"`
+}
+
+func (n *EmailNotification) GetTemplater(name string, f texttemplate.FuncMap) (Templater, error) {
+	subject, err := texttemplate.New(name).Funcs(f).Parse(n.Subject)
+	if err != nil {
+		return nil, err
+	}
+	body, err := texttemplate.New(name).Funcs(f).Parse(n.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return func(notification *Notification, vars map[string]interface{}) error {
+		if notification.Email == nil {
+			notification.Email = &EmailNotification{}
+		}
+		var emailSubjectData bytes.Buffer
+		if err := subject.Execute(&emailSubjectData, vars); err != nil {
+			return err
+		}
+
+		if val := emailSubjectData.String(); val != "" {
+			notification.Email.Subject = val
+		}
+
+		var emailBodyData bytes.Buffer
+		if err := body.Execute(&emailBodyData, vars); err != nil {
+			return err
+		}
+		if val := emailBodyData.String(); val != "" {
+			notification.Email.Body = val
+		}
+
+		return nil
+	}, nil
+}
 
 type EmailOptions struct {
 	Host               string `json:"host"`
@@ -22,6 +66,12 @@ func NewEmailService(opts EmailOptions) NotificationService {
 }
 
 func (s *emailService) Send(notification Notification, dest Destination) error {
+	subject := ""
+	body := notification.Message
+	if notification.Email != nil {
+		subject = notification.Email.Subject
+		body = text.Coalesce(notification.Email.Body, body)
+	}
 	return smtp.New(smtp.Options{
 		From:               s.opts.From,
 		Host:               s.opts.Host,
@@ -29,5 +79,5 @@ func (s *emailService) Send(notification Notification, dest Destination) error {
 		InsecureSkipVerify: s.opts.InsecureSkipVerify,
 		Password:           s.opts.Password,
 		Username:           s.opts.Username,
-	}).WithSubject(notification.Title).WithBody(notification.Body).To(dest.Recipient).Send()
+	}).WithSubject(subject).WithBody(body).To(dest.Recipient).Send()
 }

@@ -46,8 +46,7 @@ The message blocks and attachments can be specified in `blocks` and `attachments
 
 ```yaml
 template.app-sync-status: |
-  title: Application {{.app.metadata.name}} sync status is {{.app.status.sync.status}}
-  body: |
+  message: |
     Application {{.app.metadata.name}} sync is {{.app.status.sync.status}}.
     Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
   slack:

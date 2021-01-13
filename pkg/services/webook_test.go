@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"text/template"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -65,4 +66,35 @@ func TestWebhook_SubPath(t *testing.T) {
 	}, Destination{Recipient: "test", Service: "test"})
 	assert.NoError(t, err)
 	assert.Equal(t, "/subpath1/subpath2", receivedPath)
+}
+
+func TestGetTemplater_Webhook(t *testing.T) {
+	n := Notification{
+		Webhook: WebhookNotifications{
+			"github": {
+				Method: "POST",
+				Body:   "{{.foo}}",
+				Path:   "{{.bar}}",
+			},
+		},
+	}
+
+	templater, err := n.GetTemplater("", template.FuncMap{})
+	if !assert.NoError(t, err) {
+		return
+	}
+
+	var notification Notification
+	err = templater(&notification, map[string]interface{}{
+		"foo": "hello",
+		"bar": "world",
+	})
+
+	if !assert.NoError(t, err) {
+		return
+	}
+
+	assert.Equal(t, notification.Webhook["github"].Method, "POST")
+	assert.Equal(t, notification.Webhook["github"].Body, "hello")
+	assert.Equal(t, notification.Webhook["github"].Path, "world")
 }

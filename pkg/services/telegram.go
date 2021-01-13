@@ -19,6 +19,6 @@ func (s telegramService) Send(notification Notification, dest Destination) error
 	if err != nil {
 		return err
 	}
-	_, err = bot.Send(tgbotapi.NewMessageToChannel("@"+dest.Recipient, notification.Body))
+	_, err = bot.Send(tgbotapi.NewMessageToChannel("@"+dest.Recipient, notification.Message))
 	return err
 }

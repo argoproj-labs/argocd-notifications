@@ -1,7 +1,8 @@
-title: "Application {{.app.metadata.name}} has degraded."
-body: |
+message: |
     {{if eq .serviceType "slack"}}:exclamation:{{end}} Application {{.app.metadata.name}} has degraded.
     Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
+email:
+    subject: Application {{.app.metadata.name}} has degraded.
 slack:
     attachments: |
         [{

@@ -13,7 +13,7 @@ func TestTemplateNotifyConsole(t *testing.T) {
 	cmData := map[string]string{
 		"trigger.my-trigger": `[{when: "app.metadata.name == 'guestbook'", send: [my-template]}]`,
 		"template.my-template": `
-title: hello {{.app.metadata.name}}`,
+message: hello {{.app.metadata.name}}`,
 	}
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
@@ -32,8 +32,8 @@ title: hello {{.app.metadata.name}}`,
 
 func TestTemplateGet(t *testing.T) {
 	cmData := map[string]string{
-		"template.my-template1": `{title: hello}`,
-		"template.my-template2": `{title: hello}`,
+		"template.my-template1": `{message: hello}`,
+		"template.my-template2": `{message: hello}`,
 	}
 
 	var stdout bytes.Buffer

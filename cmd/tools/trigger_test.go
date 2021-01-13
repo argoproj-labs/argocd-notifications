@@ -68,7 +68,7 @@ func TestTriggerRun(t *testing.T) {
 - when: app.metadata.name == 'guestbook'
   send: [my-template]`,
 		"template.my-template": `
-title: hello {{.app.metadata.name}}`,
+message: hello {{.app.metadata.name}}`,
 	}
 
 	var stdout bytes.Buffer
@@ -95,7 +95,7 @@ func TestTriggerGet(t *testing.T) {
 - when: 'false'
   send: [my-template]`,
 		"template.my-template": `
-title: hello {{.app.metadata.name}}`,
+message: hello {{.app.metadata.name}}`,
 	}
 
 	var stdout bytes.Buffer

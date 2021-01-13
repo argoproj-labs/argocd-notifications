@@ -1,5 +1,4 @@
-title: "Application {{.app.metadata.name}} sync status is 'Unknown'"
-body: |
+message: |
     {{if eq .serviceType "slack"}}:exclamation:{{end}} Application {{.app.metadata.name}} sync is 'Unknown'.
     Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
     {{if ne .serviceType "slack"}}
@@ -7,6 +6,8 @@ body: |
         * {{$c.message}}
     {{end}}
     {{end}}
+email:
+    subject: Application {{.app.metadata.name}} sync status is 'Unknown'
 slack:
     attachments: |
         [{

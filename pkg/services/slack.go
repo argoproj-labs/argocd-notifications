@@ -1,12 +1,14 @@
 package services
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
 	"regexp"
+	texttemplate "text/template"
 
 	httputil "github.com/argoproj-labs/argocd-notifications/pkg/util/http"
 
@@ -17,6 +19,34 @@ import (
 type SlackNotification struct {
 	Attachments string `json:"attachments,omitempty"`
 	Blocks      string `json:"blocks,omitempty"`
+}
+
+func (n *SlackNotification) GetTemplater(name string, f texttemplate.FuncMap) (Templater, error) {
+	slackAttachments, err := texttemplate.New(name).Funcs(f).Parse(n.Attachments)
+	if err != nil {
+		return nil, err
+	}
+	slackBlocks, err := texttemplate.New(name).Funcs(f).Parse(n.Blocks)
+	if err != nil {
+		return nil, err
+	}
+	return func(notification *Notification, vars map[string]interface{}) error {
+		if notification.Slack == nil {
+			notification.Slack = &SlackNotification{}
+		}
+		var slackAttachmentsData bytes.Buffer
+		if err := slackAttachments.Execute(&slackAttachmentsData, vars); err != nil {
+			return err
+		}
+
+		notification.Slack.Attachments = slackAttachmentsData.String()
+		var slackBlocksData bytes.Buffer
+		if err := slackBlocks.Execute(&slackBlocksData, vars); err != nil {
+			return err
+		}
+		notification.Slack.Blocks = slackBlocksData.String()
+		return nil
+	}, nil
 }
 
 type SlackOptions struct {
@@ -49,7 +79,7 @@ func (s *slackService) Send(notification Notification, dest Destination) error {
 		Transport: httputil.NewLoggingRoundTripper(transport, log.WithField("service", "slack")),
 	}
 	sl := slack.New(s.opts.Token, slack.OptionHTTPClient(client), slack.OptionAPIURL(apiURL))
-	msgOptions := []slack.MsgOption{slack.MsgOptionText(notification.Body, false)}
+	msgOptions := []slack.MsgOption{slack.MsgOptionText(notification.Message, false)}
 	if s.opts.Username != "" {
 		msgOptions = append(msgOptions, slack.MsgOptionUsername(s.opts.Username))
 	}

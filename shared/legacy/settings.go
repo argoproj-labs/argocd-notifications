@@ -19,7 +19,9 @@ import (
 )
 
 type legacyTemplate struct {
-	Name string `json:"name,omitempty"`
+	Name  string `json:"name,omitempty"`
+	Title string `json:"subject,omitempty"`
+	Body  string `json:"body,omitempty"`
 	services.Notification
 }
 
@@ -86,6 +88,15 @@ func (legacy legacyConfig) merge(cfg *settings.Config) error {
 			if err := mergePatch(&t, &template.Notification); err != nil {
 				return err
 			}
+		}
+		if template.Title != "" {
+			if template.Notification.Email == nil {
+				template.Notification.Email = &services.EmailNotification{}
+			}
+			template.Notification.Email.Subject = template.Title
+		}
+		if template.Body != "" {
+			template.Notification.Message = template.Body
 		}
 		cfg.Templates[template.Name] = template.Notification
 	}

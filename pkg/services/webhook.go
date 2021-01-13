@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	texttemplate "text/template"
 
 	"github.com/argoproj-labs/argocd-notifications/pkg/util/text"
 	log "github.com/sirupsen/logrus"
@@ -17,6 +18,52 @@ type WebhookNotification struct {
 	Method string `json:"method"`
 	Body   string `json:"body"`
 	Path   string `json:"path"`
+}
+
+type WebhookNotifications map[string]WebhookNotification
+
+type compiledWebhookTemplate struct {
+	body   *texttemplate.Template
+	path   *texttemplate.Template
+	method string
+}
+
+func (n WebhookNotifications) GetTemplater(name string, f texttemplate.FuncMap) (Templater, error) {
+	webhooks := map[string]compiledWebhookTemplate{}
+	for k, v := range n {
+		body, err := texttemplate.New(name + k).Funcs(f).Parse(v.Body)
+		if err != nil {
+			return nil, err
+		}
+		path, err := texttemplate.New(name + k).Funcs(f).Parse(v.Path)
+		if err != nil {
+			return nil, err
+		}
+		webhooks[k] = compiledWebhookTemplate{body: body, method: v.Method, path: path}
+	}
+	return func(notification *Notification, vars map[string]interface{}) error {
+		for k, v := range webhooks {
+			if notification.Webhook == nil {
+				notification.Webhook = map[string]WebhookNotification{}
+			}
+			var body bytes.Buffer
+			err := webhooks[k].body.Execute(&body, vars)
+			if err != nil {
+				return err
+			}
+			var path bytes.Buffer
+			err = webhooks[k].path.Execute(&path, vars)
+			if err != nil {
+				return err
+			}
+			notification.Webhook[k] = WebhookNotification{
+				Method: v.method,
+				Body:   body.String(),
+				Path:   path.String(),
+			}
+		}
+		return nil
+	}, nil
 }
 
 type Header struct {
@@ -44,7 +91,7 @@ type webhookService struct {
 }
 
 func (s webhookService) Send(notification Notification, dest Destination) error {
-	body := notification.Body
+	body := notification.Message
 	method := http.MethodGet
 	urlPath := ""
 	if notification.Webhook != nil {
