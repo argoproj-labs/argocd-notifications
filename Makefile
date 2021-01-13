@@ -27,7 +27,13 @@ generate: manifests catalog
 
 .PHONY: build
 build:
+ifeq ($(RELEASE), true)
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o ./dist/argocd-notifications-linux-amd64 ./cmd
+	CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -ldflags="-w -s" -o ./dist/argocd-notifications-darwin-amd64 ./cmd
+	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags="-w -s" -o ./dist/argocd-notifications-windows-amd64.exe ./cmd
+else
 	CGO_ENABLED=0 go build -ldflags="-w -s" -o ./dist/argocd-notifications ./cmd
+endif
 
 .PHONY: image
 image:

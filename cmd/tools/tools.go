@@ -29,11 +29,12 @@ func NewToolsCommand() *cobra.Command {
 		cmdContext       = commandContext{
 			stdout:        os.Stdout,
 			stderr:        os.Stderr,
+			stdin:         os.Stdin,
 			argocdService: &lazyArgocdServiceInitializer{argocdRepoServer: &argocdRepoServer},
 		}
 	)
 	var command = cobra.Command{
-		Use:   "tools",
+		Use:   "argocd-notifications",
 		Short: "Set of CLI commands that helps to configure the controller",
 		Run: func(c *cobra.Command, args []string) {
 			c.HelpFunc()(c, args)
