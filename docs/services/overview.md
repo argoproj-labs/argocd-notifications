@@ -30,6 +30,7 @@ that leverages [Mattermost](https://mattermost.com/):
 
 ## Service Types
 
+* [Email](./email.md)
 * [Slack](./slack.md)
 * [Opsgenie](./opsgenie.md)
 * [Grafana](./grafana.md)
