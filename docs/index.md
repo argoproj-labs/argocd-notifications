@@ -20,32 +20,27 @@ kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/argoc
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/argocd-notifications/release-1.0/catalog/install.yaml
 ```
 
-* Configure Slack integration
+* Add Email username and password token to `argocd-notifications-secret` secret
 
 ```bash
-kubectl apply -n argocd -f - << EOF
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: argocd-notifications-cm
-data:
-  service.slack: |
-    token: $slack-token
-EOF
-```
-
-* Add Slack token to `argocd-notifications-secret` secret
-
-```bash
+export EMAIL_USER=<your-username>
+export PASSWORD=<your-password>
 kubectl apply -n argocd -f - << EOF
 apiVersion: v1
 kind: Secret
 metadata:
   name: argocd-notifications-secret
 stringData:
-  slack-token: <my-slack-token>
+  email-username: $EMAIL_USER
+  email-password: $PASSWORD
 type: Opaque
 EOF
+```
+
+* Register Email notification service
+
+```bash
+kubectl patch cm argocd-notifications-cm -n argocd --type merge -p '{"data": {"service.email.gmail": "{ username: $email-username, password: $email-password, host: smtp.gmail.com, port: 465, from: $email-username }" }}'
 ```
 
 * Subscribe to notifications by adding the `notifications.argoproj.io/subscribe.on-sync-succeeded.slack` annotation to the Argo CD application or project:
