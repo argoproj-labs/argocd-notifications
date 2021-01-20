@@ -12,4 +12,4 @@ resources:
 
 images:
   - name: argoprojlabs/argocd-notifications
-    newTag: v1.0.0-rc2
+    newTag: v1.0.1
