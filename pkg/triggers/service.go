@@ -80,7 +80,7 @@ func (svc *service) Run(triggerName string, vars map[string]interface{}) ([]Cond
 		}
 
 		if condition.OncePer != "" {
-			if oncePer, ok, err := unstructured.NestedFieldNoCopy(vars, strings.Split(condition.OncePer, ".")...); err == nil && !ok {
+			if oncePer, ok, err := unstructured.NestedFieldNoCopy(vars, strings.Split(condition.OncePer, ".")...); err == nil && ok {
 				conditionResult.OncePer = fmt.Sprintf("%v", oncePer)
 			}
 		}
