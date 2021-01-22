@@ -33,3 +33,23 @@ Returns commit metadata. The commit must belong to the application source reposi
 * `Author string` - commit author
 * `Date time.Time` - commit creation date  
 * `Tags []string` - Associated tags
+
+<hr>
+**`repo.GetAppDetails() AppDetail`**
+
+Returns application details. `AppDetail` fields:
+
+* `Type string` - AppDetail type
+* `Helm HelmAppSpec` - Helm details
+  * Fields :
+    * `Name string`
+    * `ValueFiles []string`
+    * `Parameters []*v1alpha1.HelmParameter`
+    * `Values string`
+    * `FileParameters []*v1alpha1.HelmFileParameter`
+  * Methods :
+    * `GetParameterValueByName(Name string)` Retrieve value by name in Parameters field
+    * `GetFileParameterPathByName(Name string)` Retrieve path by name in FileParameters field
+* `Ksonnet *apiclient.KsonnetAppSpec` - Ksonnet details
+* `Kustomize *apiclient.KustomizeAppSpec` - Kustomize details
+* `Directory *apiclient.DirectoryAppSpec` - Directory details
