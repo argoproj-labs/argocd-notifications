@@ -7,6 +7,7 @@ package mocks
 import (
 	context "context"
 	shared "github.com/argoproj-labs/argocd-notifications/expr/shared"
+	"github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -47,4 +48,19 @@ func (m *MockService) GetCommitMetadata(arg0 context.Context, arg1, arg2 string)
 func (mr *MockServiceMockRecorder) GetCommitMetadata(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCommitMetadata", reflect.TypeOf((*MockService)(nil).GetCommitMetadata), arg0, arg1, arg2)
+}
+
+// GetAppDetails mocks base method
+func (m *MockService) GetAppDetails(arg0 context.Context, arg1 *v1alpha1.ApplicationSource) (*shared.AppDetail, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAppDetails", arg0, arg1)
+	ret0, _ := ret[0].(*shared.AppDetail)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAppDetails indicates an expected call of GetAppDetails
+func (mr *MockServiceMockRecorder) GetAppDetails(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAppDetails", reflect.TypeOf((*MockService)(nil).GetAppDetails), arg0, arg1)
 }
