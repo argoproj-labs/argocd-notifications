@@ -7,7 +7,7 @@ package mocks
 import (
 	context "context"
 	shared "github.com/argoproj-labs/argocd-notifications/expr/shared"
-	"github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
+	v1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -35,21 +35,6 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 	return m.recorder
 }
 
-// GetCommitMetadata mocks base method
-func (m *MockService) GetCommitMetadata(arg0 context.Context, arg1, arg2 string) (*shared.CommitMetadata, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetCommitMetadata", arg0, arg1, arg2)
-	ret0, _ := ret[0].(*shared.CommitMetadata)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetCommitMetadata indicates an expected call of GetCommitMetadata
-func (mr *MockServiceMockRecorder) GetCommitMetadata(arg0, arg1, arg2 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCommitMetadata", reflect.TypeOf((*MockService)(nil).GetCommitMetadata), arg0, arg1, arg2)
-}
-
 // GetAppDetails mocks base method
 func (m *MockService) GetAppDetails(arg0 context.Context, arg1 *v1alpha1.ApplicationSource) (*shared.AppDetail, error) {
 	m.ctrl.T.Helper()
@@ -63,4 +48,19 @@ func (m *MockService) GetAppDetails(arg0 context.Context, arg1 *v1alpha1.Applica
 func (mr *MockServiceMockRecorder) GetAppDetails(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAppDetails", reflect.TypeOf((*MockService)(nil).GetAppDetails), arg0, arg1)
+}
+
+// GetCommitMetadata mocks base method
+func (m *MockService) GetCommitMetadata(arg0 context.Context, arg1, arg2 string) (*shared.CommitMetadata, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCommitMetadata", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*shared.CommitMetadata)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCommitMetadata indicates an expected call of GetCommitMetadata
+func (mr *MockServiceMockRecorder) GetCommitMetadata(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCommitMetadata", reflect.TypeOf((*MockService)(nil).GetCommitMetadata), arg0, arg1, arg2)
 }

@@ -3,11 +3,12 @@ package tools
 import (
 	"context"
 	"fmt"
-	"github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	"io"
 	"io/ioutil"
 	"path/filepath"
 	"sync"
+
+	"github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 
 	"github.com/argoproj/gitops-engine/pkg/utils/kube"
 	"github.com/ghodss/yaml"

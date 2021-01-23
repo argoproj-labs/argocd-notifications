@@ -2,6 +2,7 @@ package argocd
 
 import (
 	"context"
+
 	"github.com/argoproj-labs/argocd-notifications/expr/shared"
 	"github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	"github.com/argoproj/argo-cd/reposerver/apiclient"
