@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
+
 	"github.com/argoproj/gitops-engine/pkg/utils/kube"
 	"github.com/ghodss/yaml"
 	v1 "k8s.io/api/core/v1"
@@ -69,6 +71,17 @@ func (svc *lazyArgocdServiceInitializer) GetCommitMetadata(ctx context.Context, 
 		return nil, err
 	}
 	return svc.argocdService.GetCommitMetadata(ctx, repoURL, commitSHA)
+}
+
+func (svc *lazyArgocdServiceInitializer) GetAppDetails(ctx context.Context, appSource *v1alpha1.ApplicationSource) (*shared.AppDetail, error) {
+	var err error
+	svc.init.Do(func() {
+		err = svc.initArgoCDService()
+	})
+	if err != nil {
+		return nil, err
+	}
+	return svc.argocdService.GetAppDetails(ctx, appSource)
 }
 
 func getK8SClients(clientConfig clientcmd.ClientConfig) (kubernetes.Interface, dynamic.Interface, string, error) {

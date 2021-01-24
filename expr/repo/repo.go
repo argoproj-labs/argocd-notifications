@@ -2,21 +2,48 @@ package repo
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"regexp"
 	"strings"
 
-	giturls "github.com/whilp/git-urls"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 
 	"github.com/argoproj-labs/argocd-notifications/expr/shared"
 	"github.com/argoproj-labs/argocd-notifications/pkg/util/text"
 	"github.com/argoproj-labs/argocd-notifications/shared/argocd"
+	giturls "github.com/whilp/git-urls"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
 var (
 	gitSuffix = regexp.MustCompile(`\.git$`)
 )
+
+func getApplicationSource(obj *unstructured.Unstructured) (*v1alpha1.ApplicationSource, error) {
+	data, err := json.Marshal(obj)
+	if err != nil {
+		return nil, err
+	}
+	application := &v1alpha1.Application{}
+	err = json.Unmarshal(data, application)
+	if err != nil {
+		return nil, err
+	}
+	return &application.Spec.Source, nil
+}
+
+func getAppDetails(app *unstructured.Unstructured, argocdService argocd.Service) (*shared.AppDetail, error) {
+	appSource, err := getApplicationSource(app)
+	if err != nil {
+		return nil, err
+	}
+	appDetail, err := argocdService.GetAppDetails(context.Background(), appSource)
+	if err != nil {
+		return nil, err
+	}
+	return appDetail, nil
+}
 
 func getCommitMetadata(commitSHA string, app *unstructured.Unstructured, argocdService argocd.Service) (*shared.CommitMetadata, error) {
 	repoURL, ok, err := unstructured.NestedString(app.Object, "spec", "source", "repoURL")
@@ -68,6 +95,14 @@ func NewExprs(argocdService argocd.Service, app *unstructured.Unstructured) map[
 			}
 
 			return *meta
+		},
+		"GetAppDetails": func() interface{} {
+			appDetails, err := getAppDetails(app, argocdService)
+			if err != nil {
+				panic(err)
+			}
+
+			return *appDetails
 		},
 	}
 }
