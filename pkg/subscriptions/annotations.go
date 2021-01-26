@@ -38,7 +38,7 @@ func (a Annotations) iterate(callback func(trigger string, service string, recip
 		parts := strings.Split(k[len(prefix):], ".")
 		trigger := parts[0]
 		service := ""
-		if len(parts) >= 1 {
+		if len(parts) >= 2 {
 			service = parts[1]
 		} else {
 			service = parts[0]

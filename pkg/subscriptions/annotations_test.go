@@ -36,6 +36,15 @@ func TestIterate(t *testing.T) {
 			recipients: []string{"my-channel"},
 			key:        "notifications.argoproj.io/subscribe..slack",
 		},
+		{
+			annotations: map[string]string{
+				"notifications.argoproj.io/subscribe.slack": "my-channel",
+			},
+			trigger:    "",
+			service:    "slack",
+			recipients: []string{"my-channel"},
+			key:        "notifications.argoproj.io/subscribe.slack",
+		},
 	}
 
 	for _, tt := range tests {
