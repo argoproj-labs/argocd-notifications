@@ -10,6 +10,54 @@ import (
 	"github.com/argoproj-labs/argocd-notifications/pkg"
 )
 
+func TestIterate(t *testing.T) {
+	tests := []struct {
+		annotations map[string]string
+		trigger     string
+		service     string
+		recipients  []string
+		key         string
+	}{
+		{
+			annotations: map[string]string{
+				"notifications.argoproj.io/subscribe.my-trigger.slack": "my-channel",
+			},
+			trigger:    "my-trigger",
+			service:    "slack",
+			recipients: []string{"my-channel"},
+			key:        "notifications.argoproj.io/subscribe.my-trigger.slack",
+		},
+		{
+			annotations: map[string]string{
+				"notifications.argoproj.io/subscribe..slack": "my-channel",
+			},
+			trigger:    "",
+			service:    "slack",
+			recipients: []string{"my-channel"},
+			key:        "notifications.argoproj.io/subscribe..slack",
+		},
+		{
+			annotations: map[string]string{
+				"notifications.argoproj.io/subscribe.slack": "my-channel",
+			},
+			trigger:    "",
+			service:    "slack",
+			recipients: []string{"my-channel"},
+			key:        "notifications.argoproj.io/subscribe.slack",
+		},
+	}
+
+	for _, tt := range tests {
+		a := Annotations(tt.annotations)
+		a.iterate(func(trigger, service string, recipients []string, key string) {
+			assert.Equal(t, tt.trigger, trigger)
+			assert.Equal(t, tt.service, service)
+			assert.Equal(t, tt.recipients, recipients)
+			assert.Equal(t, tt.key, key)
+		})
+	}
+}
+
 func TestGetAll(t *testing.T) {
 	a := Annotations(map[string]string{
 		"notifications.argoproj.io/subscribe.my-trigger.slack": "my-channel",
