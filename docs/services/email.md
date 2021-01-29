@@ -28,6 +28,20 @@ data:
     from: $email-username
 ```
 
+Without authentication:
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-notifications-cm
+data:
+  service.email.example: |
+    host: smtp.example.com
+    port: 587
+    from: $email-username
+```
+
 ## Template
 
 Notification templates support specifying subject for email notifications:
