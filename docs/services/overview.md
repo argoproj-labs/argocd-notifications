@@ -1,5 +1,5 @@
 The notification services represent integration with services such as slack, email or custom webhook. Services are configured in `argocd-notifications-cm` ConfigMap
-using `service.<type>.(<optiona-name>)` keys and might referense sensitive data from `argocd-notifications-secret` Secret. Following example demonstrates slack
+using `service.<type>.(<custom-name>)` keys and might referense sensitive data from `argocd-notifications-secret` Secret. Following example demonstrates slack
 service configuration:
 
 ```yaml
@@ -28,6 +28,14 @@ that leverages [Mattermost](https://mattermost.com/):
     token: $slack-token
 ```
 
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    notifications.argoproj.io/subscribe.on-sync-succeeded.mattermost: my-channel
+```
+
 ## Service Types
 
 * [Email](./email.md)
@@ -36,4 +44,3 @@ that leverages [Mattermost](https://mattermost.com/):
 * [Grafana](./grafana.md)
 * [Webhook](./webhook.md)
 * [Telegram](./telegram.md)
-  
