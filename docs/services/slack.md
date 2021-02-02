@@ -32,7 +32,7 @@ kind: Secret
 metadata:
   name: argocd-notifications-secret
 stringData:
-  token: <auth-token>
+  slack-token: <auth-token>
 ```
 
 ## Templates
