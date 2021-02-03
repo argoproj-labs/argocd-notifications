@@ -63,6 +63,8 @@ type CfgOpts = func(*Config, *v1.ConfigMap, *v1.Secret) error
 
 // NewConfig retrieves configured templates and triggers from the provided config map
 func NewConfig(configMap *v1.ConfigMap, secret *v1.Secret, argocdService argocd.Service, opts ...CfgOpts) (*Config, error) {
+	// read all the keys in format of templates.%s and triggers.%s
+	// to create config
 	c, err := pkg.ParseConfig(configMap, secret)
 	if err != nil {
 		return nil, err
@@ -74,46 +76,36 @@ func NewConfig(configMap *v1.ConfigMap, secret *v1.Secret, argocdService argocd.
 		},
 		ArgoCDService: argocdService,
 	}
-	// read all the keys in format of templates.%s and triggers.%s
-	// to create config
-	for k, v := range configMap.Data {
-		switch {
-		case k == "subscriptions":
-			var subscriptions DefaultSubscriptions
-			if err := yaml.Unmarshal([]byte(v), &subscriptions); err != nil {
-				return nil, err
-			}
-			cfg.Subscriptions = append(cfg.Subscriptions, subscriptions...)
-		case k == "context":
-			ctx := map[string]string{}
-			if err := yaml.Unmarshal([]byte(v), &ctx); err != nil {
-				return nil, err
-			}
-			for k, v := range ctx {
-				cfg.Context[k] = v
-			}
-		case k == "defaultTriggers":
-			var defaultTriggers []string
-			if err := yaml.Unmarshal([]byte(v), &defaultTriggers); err != nil {
-				return nil, err
-			}
-			for i := range defaultTriggers {
-				cfg.DefaultTriggers = append(cfg.DefaultTriggers, defaultTriggers[i])
-			}
-		}
-	}
 
-	for i := range opts {
-		if err := opts[i](&cfg, configMap, secret); err != nil {
+	if subscriptionYaml, ok := configMap.Data["subscriptions"]; ok {
+		if err := yaml.Unmarshal([]byte(subscriptionYaml), &cfg.Subscriptions); err != nil {
 			return nil, err
 		}
 	}
-	api, err := pkg.NewAPI(*c)
-	if err != nil {
-		return nil, err
+
+	if contextYaml, ok := configMap.Data["context"]; ok {
+		if err := yaml.Unmarshal([]byte(contextYaml), &cfg.Context); err != nil {
+			return nil, err
+		}
 	}
-	cfg.API = api
-	return &cfg, nil
+
+	if defaultTriggersYaml, ok := configMap.Data["defaultTriggers"]; ok {
+		if err := yaml.Unmarshal([]byte(defaultTriggersYaml), &cfg.DefaultTriggers); err != nil {
+			return nil, err
+		}
+	}
+
+	for _, fn := range opts {
+		if err := fn(&cfg, configMap, secret); err != nil {
+			return nil, err
+		}
+	}
+
+	if cfg.API, err = pkg.NewAPI(*c); err != nil {
+		return nil, err
+	} else {
+		return &cfg, nil
+	}
 }
 
 func WatchConfig(
