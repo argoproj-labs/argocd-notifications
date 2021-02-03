@@ -4,7 +4,6 @@ strict: true
 google_analytics:
 - 'UA-105170809-5'
 - 'auto'
-
 theme:
   name: material
   palette:
@@ -13,9 +12,9 @@ theme:
     text: 'Work Sans'
   logo: 'assets/logo.png'
 extra_javascript:
-  - assets/versions.js
+- assets/versions.js
 extra_css:
-  - assets/versions.css
+- assets/versions.css
 markdown_extensions:
 - codehilite
 - admonition
