@@ -117,7 +117,7 @@ data:
         [{
           "title": "{{ .app.metadata.name}}",
           "title_link":"{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
-          "color": "#0DADEA",
+          "color": {{if eq .app.status.sync.status "OutOfSync"}}"#F4C030"{{else}}"#0DADEA"{{end}},
           "fields": [
           {
             "title": "Sync Status",
