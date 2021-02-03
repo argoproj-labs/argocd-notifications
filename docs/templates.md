@@ -24,11 +24,30 @@ Each template has access to the following fields:
 render service specific fields.
 - `recipient` holds the recipient name.
 
+## Defining user-defined `context`
+
+It is possible to define some shared context between all notification templates by setting a top-level
+YAML document of key-value pairs, which can then be used within templates, like so:
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-notifications-cm
+data:
+  context: |
+    region: east
+    environmentName: staging
+
+  template.a-slack-template-with-context: |
+    message: "Something happened in {{ .context.environmentName }} in the {{ .context.region }} data center!"
+```
+
 ## Notification Service Specific Fields
 
 The `message` field of the template definition allows creating a basic notification for any notification service. You can leverage notification service-specific
 fields to create complex notifications. For example using service-specific you can add blocks and attachments for Slack, subject for Email or URL path, and body for Webhook.
-See corresponding service [documentation](./services/overview.md) for more information.
+See corresponding service [documentation](./services/overview.md) for more information.
 
 ## Functions
 
