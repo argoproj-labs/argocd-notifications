@@ -33,12 +33,11 @@ setTimeout(function() {
   }, 0);
   
   // VERSION WARNINGS
-  window.addEventListener("DOMContentLoaded", function() {
-    if ((window['READTHEDOCS_DATA']).version !== "latest") {
-      document.querySelector("div[data-md-component=announce]").innerHTML = "<div id='announce-msg'>You are viewing the docs for a previous version of Argo CD, <a href='https://argocd-notifications.readthedocs.io/en/latest/'>click here to go to the latest version.</a></div>"
+window.addEventListener("DOMContentLoaded", function() {
+    if ((window['READTHEDOCS_DATA']).version === "latest") {
+      document.querySelector("div[data-md-component=announce]").innerHTML = "<div id='announce-msg'>You are viewing the docs for an unreleased version of Argo CD, <a href='https://argocd-notifications.readthedocs.io/en/stable/'>click here to go to the latest stable version.</a></div>"
     }
-  
-    // if ((window['READTHEDOCS_DATA']).version === "latest") {
-    //   document.querySelector("div[data-md-component=announce]").innerHTML = "<div id='announce-msg'>Yay you're on the latest version of docs!</div>"
-    // }
+    else if ((window['READTHEDOCS_DATA']).version !== "stable") {
+      document.querySelector("div[data-md-component=announce]").innerHTML = "<div id='announce-msg'>You are viewing the docs for a previous version of Argo CD, <a href='https://argocd-notifications.readthedocs.io/en/stable/'>click here to go to the latest stable version.</a></div>"
+    }
   }); 
