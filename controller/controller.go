@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"reflect"
 	"runtime/debug"
+	"strings"
 	"time"
 
 	"github.com/argoproj-labs/argocd-notifications/expr"
@@ -61,13 +62,13 @@ func NewController(
 		cache.ResourceEventHandlerFuncs{
 			AddFunc: func(obj interface{}) {
 				key, err := cache.MetaNamespaceKeyFunc(obj)
-				if err == nil {
+				if err == nil && hasSubscriptionAnnotation(obj) {
 					queue.Add(key)
 				}
 			},
 			UpdateFunc: func(old, new interface{}) {
 				key, err := cache.MetaNamespaceKeyFunc(new)
-				if err == nil {
+				if err == nil && hasSubscriptionAnnotation(new) {
 					queue.Add(key)
 				}
 			},
@@ -83,6 +84,21 @@ func NewController(
 		cfg:             cfg,
 		metricsRegistry: metricsRegistry,
 	}, nil
+}
+
+func hasSubscriptionAnnotation(obj interface{}) bool {
+	objUnstructured, ok := obj.(*unstructured.Unstructured)
+	if ok {
+		annotations, ok, err := unstructured.NestedMap(objUnstructured.Object, "metadata", "annotations")
+		if ok && err == nil {
+			for key, _ := range annotations {
+				if strings.Contains(key, subscriptions.AnnotationPrefix) {
+					return true
+				}
+			}
+		}
+	}
+	return false
 }
 
 func newInformer(resClient dynamic.ResourceInterface, selector string) cache.SharedIndexInformer {
