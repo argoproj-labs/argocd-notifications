@@ -344,6 +344,10 @@ func (c *notificationController) processQueueItem() (processNext bool) {
 	appCopy := app.DeepCopy()
 	logEntry := log.WithField("app", key)
 	logEntry.Info("Start processing")
+	subscriptions := c.getSubscriptions(appCopy)
+	if len(subscriptions) == 0 {
+		return
+	}
 	if refreshed := c.isAppSyncStatusRefreshed(appCopy, logEntry); !refreshed {
 		logEntry.Info("Processing skipped, sync status out of date")
 		return
