@@ -168,12 +168,7 @@ func (c *notificationController) processApp(app *unstructured.Unstructured, logE
 		return changed, nil
 	}
 
-	subscriptions := c.getSubscriptions(app)
-	if len(subscriptions) == 0 {
-		return nil
-	}
-
-	for trigger, destinations := range subscriptions {
+	for trigger, destinations := range c.getSubscriptions(app) {
 
 		res, err := c.cfg.API.RunTrigger(trigger, expr.Spawn(app, c.cfg.ArgoCDService, map[string]interface{}{"app": app.Object}))
 		if err != nil {
