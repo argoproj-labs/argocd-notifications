@@ -91,47 +91,72 @@ type webhookService struct {
 }
 
 func (s webhookService) Send(notification Notification, dest Destination) error {
-	body := notification.Message
-	method := http.MethodGet
-	urlPath := ""
-	if notification.Webhook != nil {
-		if webhookNotification, ok := notification.Webhook[dest.Service]; ok {
-			body = webhookNotification.Body
-			method = text.Coalesce(webhookNotification.Method, method)
-			if webhookNotification.Path != "" {
-				urlPath = webhookNotification.Path
-			}
-		}
-	}
-	url := s.opts.URL
-	if urlPath != "" {
-		url = strings.TrimRight(s.opts.URL, "/") + "/" + strings.TrimLeft(urlPath, "/")
-	}
-	req, err := http.NewRequest(method, url, bytes.NewBufferString(body))
-	if err != nil {
-		return err
-	}
-	for _, h := range s.opts.Headers {
-		req.Header.Set(h.Name, h.Value)
-	}
-	if s.opts.BasicAuth != nil {
-		req.SetBasicAuth(s.opts.BasicAuth.Username, s.opts.BasicAuth.Password)
+	request := request{
+		body:        notification.Message,
+		method:      http.MethodGet,
+		url:         s.opts.URL,
+		destService: dest.Service,
 	}
 
-	client := http.Client{
-		Transport: httputil.NewLoggingRoundTripper(
-			httputil.NewTransport(url, false), log.WithField("service", dest.Service)),
+	if webhookNotification, ok := notification.Webhook[dest.Service]; ok {
+		request.applyOverridesFrom(webhookNotification)
 	}
-	resp, err := client.Do(req)
+
+	resp, err := request.execute(&s)
 	if err != nil {
 		return err
 	}
+
 	if !(resp.StatusCode >= 200 && resp.StatusCode <= 299) {
 		data, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			data = []byte(fmt.Sprintf("unable to read response data: %v", err))
 		}
-		return fmt.Errorf("request to %s has failed with error code %d : %s", url, resp.StatusCode, string(data))
+		return fmt.Errorf("request to %s has failed with error code %d : %s", request, resp.StatusCode, string(data))
 	}
 	return nil
+}
+
+type request struct {
+	body        string
+	method      string
+	url         string
+	destService string
+}
+
+func (r *request) applyOverridesFrom(notification WebhookNotification) {
+	r.body = notification.Body
+	r.method = text.Coalesce(notification.Method, r.method)
+	if notification.Path != "" {
+		r.url = strings.TrimRight(r.url, "/") + "/" + strings.TrimLeft(notification.Path, "/")
+	}
+}
+
+func (r *request) intoHttpRequest(service *webhookService) (*http.Request, error) {
+	req, err := http.NewRequest(r.method, r.url, bytes.NewBufferString(r.body))
+	if err != nil {
+		return nil, err
+	}
+	for _, header := range service.opts.Headers {
+		req.Header.Set(header.Name, header.Value)
+	}
+	if service.opts.BasicAuth != nil {
+		req.SetBasicAuth(service.opts.BasicAuth.Username, service.opts.BasicAuth.Password)
+	}
+	return req, nil
+}
+
+func (r *request) execute(service *webhookService) (*http.Response, error) {
+	req, err := r.intoHttpRequest(service)
+	if err != nil {
+		return nil, err
+	}
+
+	client := http.Client{
+		Transport: httputil.NewLoggingRoundTripper(
+			httputil.NewTransport(r.url, false),
+			log.WithField("service", r.destService)),
+	}
+
+	return client.Do(req)
 }
