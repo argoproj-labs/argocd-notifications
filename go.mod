@@ -8,10 +8,12 @@ require (
 	github.com/antonmedv/expr v1.8.9
 	github.com/argoproj/argo-cd v1.8.0
 	github.com/argoproj/gitops-engine v0.2.1
+	github.com/bradleyfalzon/ghinstallation v1.1.1
 	github.com/evanphx/json-patch v4.9.0+incompatible
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-telegram-bot-api/telegram-bot-api v4.6.4+incompatible
 	github.com/golang/mock v1.4.4
+	github.com/google/go-github/v33 v33.0.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0 // indirect
 	github.com/huandu/xstrings v1.3.0 // indirect
 	github.com/imdario/mergo v0.3.8 // indirect
