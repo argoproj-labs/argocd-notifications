@@ -352,7 +352,9 @@ func (c *notificationController) processQueueItem() (processNext bool) {
 		logEntry.Errorf("Failed to process: %v", err)
 		return
 	}
-	if !reflect.DeepEqual(app.GetAnnotations(), appCopy.GetAnnotations()) {
+
+	if !(app.GetAnnotations() == nil && len(appCopy.GetAnnotations()) == 0) &&
+		!reflect.DeepEqual(app.GetAnnotations(), appCopy.GetAnnotations()) {
 		annotationsPatch := make(map[string]interface{})
 		for k, v := range appCopy.GetAnnotations() {
 			annotationsPatch[k] = v
