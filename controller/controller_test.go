@@ -254,3 +254,65 @@ var testsAppSyncStatusRefreshed = map[string]struct {
 		},
 	}, result: false},
 }
+
+func TestAnnotationIsTheSame(t *testing.T) {
+	t.Run("same", func(t *testing.T) {
+		app1 := NewApp("test", WithAnnotations(map[string]string{
+			subscriptions.SubscribeAnnotationKey("my-trigger", "mock"): "recipient",
+		}))
+		app2 := NewApp("test", WithAnnotations(map[string]string{
+			subscriptions.SubscribeAnnotationKey("my-trigger", "mock"): "recipient",
+		}))
+		assert.True(t, isTheSame(app1.GetAnnotations(), app2.GetAnnotations()))
+	})
+
+	t.Run("same-nil-nil", func(t *testing.T) {
+		app1 := NewApp("test", WithAnnotations(nil))
+		app2 := NewApp("test", WithAnnotations(nil))
+		assert.True(t, isTheSame(app1.GetAnnotations(), app2.GetAnnotations()))
+	})
+
+	t.Run("same-nil-emptyMap", func(t *testing.T) {
+		app1 := NewApp("test", WithAnnotations(nil))
+		app2 := NewApp("test", WithAnnotations(map[string]string{}))
+		assert.True(t, isTheSame(app1.GetAnnotations(), app2.GetAnnotations()))
+	})
+
+	t.Run("same-emptyMap-nil", func(t *testing.T) {
+		app1 := NewApp("test", WithAnnotations(map[string]string{}))
+		app2 := NewApp("test", WithAnnotations(nil))
+		assert.True(t, isTheSame(app1.GetAnnotations(), app2.GetAnnotations()))
+	})
+
+	t.Run("same-emptyMap-emptyMap", func(t *testing.T) {
+		app1 := NewApp("test", WithAnnotations(map[string]string{}))
+		app2 := NewApp("test", WithAnnotations(map[string]string{}))
+		assert.True(t, isTheSame(app1.GetAnnotations(), app2.GetAnnotations()))
+	})
+
+	t.Run("notSame-nil-map", func(t *testing.T) {
+		app1 := NewApp("test", WithAnnotations(nil))
+		app2 := NewApp("test", WithAnnotations(map[string]string{
+			subscriptions.SubscribeAnnotationKey("my-trigger", "mock"): "recipient",
+		}))
+		assert.False(t, isTheSame(app1.GetAnnotations(), app2.GetAnnotations()))
+	})
+
+	t.Run("notSame-map-nil", func(t *testing.T) {
+		app1 := NewApp("test", WithAnnotations(map[string]string{
+			subscriptions.SubscribeAnnotationKey("my-trigger", "mock"): "recipient",
+		}))
+		app2 := NewApp("test", WithAnnotations(nil))
+		assert.False(t, isTheSame(app1.GetAnnotations(), app2.GetAnnotations()))
+	})
+
+	t.Run("notSame-map-map", func(t *testing.T) {
+		app1 := NewApp("test", WithAnnotations(map[string]string{
+			subscriptions.SubscribeAnnotationKey("my-trigger", "mock"): "recipient",
+		}))
+		app2 := NewApp("test", WithAnnotations(map[string]string{
+			subscriptions.SubscribeAnnotationKey("my-trigger", "mock"): "recipient2",
+		}))
+		assert.False(t, isTheSame(app1.GetAnnotations(), app2.GetAnnotations()))
+	})
+}
