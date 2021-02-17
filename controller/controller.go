@@ -348,7 +348,8 @@ func (c *notificationController) processQueueItem() (processNext bool) {
 		logEntry.Errorf("Failed to process: %v", err)
 		return
 	}
-	if !reflect.DeepEqual(app.GetAnnotations(), appCopy.GetAnnotations()) {
+
+	if !isTheSame(app.GetAnnotations(), appCopy.GetAnnotations()) {
 		annotationsPatch := make(map[string]interface{})
 		for k, v := range appCopy.GetAnnotations() {
 			annotationsPatch[k] = v
@@ -375,4 +376,27 @@ func (c *notificationController) processQueueItem() (processNext bool) {
 	logEntry.Info("Processing completed")
 
 	return
+}
+
+func isTheSame(appAnnotations, appCopyAnnotations map[string]string) bool {
+	if appAnnotations == nil {
+		if appCopyAnnotations == nil {
+			return true
+		}
+		if len(appCopyAnnotations) == 0 {
+			return true
+		} else {
+			return false
+		}
+	}
+
+	if appCopyAnnotations == nil {
+		if len(appAnnotations) == 0 {
+			return true
+		} else {
+			return false
+		}
+	}
+
+	return reflect.DeepEqual(appAnnotations, appCopyAnnotations)
 }
