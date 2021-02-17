@@ -339,10 +339,6 @@ func (c *notificationController) processQueueItem() (processNext bool) {
 	appCopy := app.DeepCopy()
 	logEntry := log.WithField("app", key)
 	logEntry.Info("Start processing")
-	subscriptions := c.getSubscriptions(appCopy)
-	if len(subscriptions) == 0 {
-		return
-	}
 	if refreshed := c.isAppSyncStatusRefreshed(appCopy, logEntry); !refreshed {
 		logEntry.Info("Processing skipped, sync status out of date")
 		return
@@ -353,8 +349,7 @@ func (c *notificationController) processQueueItem() (processNext bool) {
 		return
 	}
 
-	if !(app.GetAnnotations() == nil && len(appCopy.GetAnnotations()) == 0) &&
-		!reflect.DeepEqual(app.GetAnnotations(), appCopy.GetAnnotations()) {
+	if !isTheSame(app.GetAnnotations(), appCopy.GetAnnotations()) {
 		annotationsPatch := make(map[string]interface{})
 		for k, v := range appCopy.GetAnnotations() {
 			annotationsPatch[k] = v
@@ -381,4 +376,27 @@ func (c *notificationController) processQueueItem() (processNext bool) {
 	logEntry.Info("Processing completed")
 
 	return
+}
+
+func isTheSame(appAnnotations, appCopyAnnotations map[string]string) bool {
+	if appAnnotations == nil {
+		if appCopyAnnotations == nil {
+			return true
+		}
+		if len(appCopyAnnotations) == 0 {
+			return true
+		} else {
+			return false
+		}
+	}
+
+	if appCopyAnnotations == nil {
+		if len(appAnnotations) == 0 {
+			return true
+		} else {
+			return false
+		}
+	}
+
+	return reflect.DeepEqual(appAnnotations, appCopyAnnotations)
 }
