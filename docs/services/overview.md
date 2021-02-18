@@ -44,3 +44,4 @@ metadata:
 * [Grafana](./grafana.md)
 * [Webhook](./webhook.md)
 * [Telegram](./telegram.md)
+* [Teams](./teams.md)
