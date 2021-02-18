@@ -32,6 +32,7 @@ nav:
   - Notification Services:
     - services/overview.md
     - services/email.md
+    - services/github.md
     - services/slack.md
     - services/opsgenie.md
     - services/grafana.md

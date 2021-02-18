@@ -1,0 +1,55 @@
+# GitHub
+
+## Parameters
+
+The GitHub notification service changes commit status using [GitHub Apps](https://docs.github.com/en/developers/apps) and requires specifying the following settings:
+
+* `appID` - the app id
+* `installationID` - the app installation id
+* `privateKey` - the app private key
+* `enterpriseBaseURL` - optional URL, e.g. https://git.example.com/
+
+## Configuration
+
+1. Create a GitHub Apps using https://github.com/settings/apps/new
+1. Change repository permissions to enable write commit statuses
+![2](https://user-images.githubusercontent.com/18019529/108397381-3ca57980-725b-11eb-8d17-5b8992dc009e.png)
+1. Generate a private key, and download it automatically
+![3](https://user-images.githubusercontent.com/18019529/108397926-d4a36300-725b-11eb-83fe-74795c8c3e03.png)
+1. Install app to account
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-notifications-cm
+data:
+  service.github: |
+    appID: <app-id>
+    installationID: <installation-id>
+    privateKey: $github-privateKey
+```
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: argocd-notifications-secret
+stringData:
+  github-privateKey: |
+    -----BEGIN RSA PRIVATE KEY-----
+    (snip)
+    -----END RSA PRIVATE KEY-----
+```
+
+## Templates
+
+```yaml
+template.app-deployed: |
+  message: |
+    Application {{.app.metadata.name}} is now running new version of deployments manifests.
+  github:
+    state: success
+    label: "continuous-delivery/{{.app.metadata.name}}"
+    targetURL: "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}?operation=true"
+```
