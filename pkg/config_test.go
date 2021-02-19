@@ -107,6 +107,21 @@ func TestReplaceServiceConfigSecret(t *testing.T) {
 				},
 			},
 		},
+		{
+			config: map[string]interface{}{
+				"appID":          12345,
+				"privateKey":     "$github-privateKey",
+				"installationID": 67890,
+			},
+			secret: map[string][]byte{
+				"github-privateKey": []byte("privateKey"),
+			},
+			want: map[string]interface{}{
+				"appID":          12345,
+				"privateKey":     "privateKey",
+				"installationID": 67890,
+			},
+		},
 	}
 
 	for _, tt := range tests {

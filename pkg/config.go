@@ -80,6 +80,8 @@ func replaceServiceConfigSecret(data map[string]interface{}, secretValues map[st
 				list[i] = replaceServiceConfigSecret(item, secretValues)
 			}
 			result[k] = list
+		default:
+			result[k] = v
 		}
 	}
 
