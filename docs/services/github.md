@@ -42,6 +42,14 @@ stringData:
     -----END RSA PRIVATE KEY-----
 ```
 
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    notifications.argoproj.io/subscribe.<trigger-name>.github: ""
+```
+
 ## Templates
 
 ```yaml
