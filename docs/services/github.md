@@ -52,6 +52,10 @@ metadata:
 
 ## Templates
 
+![](https://user-images.githubusercontent.com/18019529/108520497-168ce180-730e-11eb-93cb-b0b91f99bdc5.png)
+
+If the message is set to 140 characters or more, it will be truncate.
+
 ```yaml
 template.app-deployed: |
   message: |
