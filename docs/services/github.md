@@ -12,11 +12,13 @@ The GitHub notification service changes commit status using [GitHub Apps](https:
 ## Configuration
 
 1. Create a GitHub Apps using https://github.com/settings/apps/new
-1. Change repository permissions to enable write commit statuses
+2. Change repository permissions to enable write commit statuses
 ![2](https://user-images.githubusercontent.com/18019529/108397381-3ca57980-725b-11eb-8d17-5b8992dc009e.png)
-1. Generate a private key, and download it automatically
+3. Generate a private key, and download it automatically
 ![3](https://user-images.githubusercontent.com/18019529/108397926-d4a36300-725b-11eb-83fe-74795c8c3e03.png)
-1. Install app to account
+4. Install app to account
+5. Store privateKey in `argocd-notifications-secret` Secret and configure GitHub integration
+in `argocd-notifications-cm` ConfigMap
 
 ```yaml
 apiVersion: v1
@@ -41,6 +43,8 @@ stringData:
     (snip)
     -----END RSA PRIVATE KEY-----
 ```
+
+6. Create subscription for your GitHub integration
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
