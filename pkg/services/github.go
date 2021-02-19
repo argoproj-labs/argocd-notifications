@@ -8,6 +8,7 @@ import (
 	"strings"
 	texttemplate "text/template"
 
+	"github.com/argoproj/argo-cd/util/text"
 	"github.com/bradleyfalzon/ghinstallation"
 	"github.com/google/go-github/v33/github"
 	log "github.com/sirupsen/logrus"
@@ -143,6 +144,8 @@ func (g gitHubService) Send(notification Notification, _ Destination) error {
 	}
 
 	u := strings.Split(repo.FullNameByRepoURL(notification.GitHub.repoURL), "/")
+	// maximum is 140 characters
+	description := text.Trunc(notification.Message, 140)
 	_, _, err := g.client.Repositories.CreateStatus(
 		context.Background(),
 		u[0],
@@ -150,7 +153,7 @@ func (g gitHubService) Send(notification Notification, _ Destination) error {
 		notification.GitHub.revision,
 		&github.RepoStatus{
 			State:       &notification.GitHub.State,
-			Description: &notification.Message,
+			Description: &description,
 			Context:     &notification.GitHub.Label,
 			TargetURL:   &notification.GitHub.TargetURL,
 		},
