@@ -3,9 +3,11 @@ package controller
 import (
 	"context"
 	"encoding/json"
+
 	"github.com/argoproj-labs/argocd-notifications/pkg/services"
 	"github.com/argoproj-labs/argocd-notifications/pkg/subscriptions"
 	"github.com/argoproj-labs/argocd-notifications/pkg/triggers"
+
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/client-go/dynamic"
