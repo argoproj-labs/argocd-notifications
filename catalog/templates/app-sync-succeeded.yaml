@@ -30,4 +30,45 @@ slack:
           }
           {{end}}
           ]
-        }]    
+        }]
+teams:
+    title: Application {{.app.metadata.name}} has been successfully synced
+    facts: |
+        [{
+          "name": "Sync Status",
+          "value": "{{.app.status.sync.status}}"
+        },
+        {
+          "name": "Synced at",
+          "value": "{{.app.status.operationState.finishedAt}}"
+        },
+        {
+          "name": "Repository",
+          "value": "{{.app.spec.source.repoURL}}"
+        }
+        {{range $index, $c := .app.status.conditions}}
+          {{if not $index}},{{end}}
+          {{if $index}},{{end}}
+          {
+            "name": "{{$c.type}}",
+            "value": "{{$c.message}}",
+          }
+        {{end}}
+        ]
+    potentialAction: |
+        [{
+          "@type":"OpenUri",
+          "name":"Operation Details",
+          "targets":[{
+            "os":"default",
+            "uri":"{{.context.argocdUrl}}/applications/{{.app.metadata.name}}?operation=true"
+          }]
+        },
+        {
+          "@type":"OpenUri",
+          "name":"Open Repository",
+          "targets":[{
+            "os":"default",
+            "uri":"{{.app.spec.source.repoURL | call .repo.RepoURLToHTTPS}}"
+          }]
+        }]

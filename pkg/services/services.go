@@ -14,6 +14,7 @@ type Notification struct {
 	Message  string                `json:"message,omitempty"`
 	Email    *EmailNotification    `json:"email,omitempty"`
 	Slack    *SlackNotification    `json:"slack,omitempty"`
+	Teams    *TeamsNotification    `json:"teams,omitempty"`
 	Webhook  WebhookNotifications  `json:"webhook,omitempty"`
 	Opsgenie *OpsgenieNotification `json:"opsgenie,omitempty"`
 }
@@ -38,6 +39,10 @@ func (n *Notification) GetTemplater(name string, f texttemplate.FuncMap) (Templa
 
 	if n.Opsgenie != nil {
 		sources = append(sources, n.Opsgenie)
+	}
+
+	if n.Teams != nil {
+		sources = append(sources, n.Teams)
 	}
 
 	return n.getTemplater(name, f, sources)
@@ -88,6 +93,12 @@ func NewService(serviceType string, optsData []byte) (NotificationService, error
 			return nil, err
 		}
 		return NewTelegramService(opts), nil
+	case "teams":
+		var opts TeamsOptions
+		if err := yaml.Unmarshal(optsData, &opts); err != nil {
+			return nil, err
+		}
+		return NewTeamsService(opts), nil
 	default:
 		return nil, fmt.Errorf("service type '%s' is not supported", serviceType)
 	}
