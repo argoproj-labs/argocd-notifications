@@ -1,8 +1,13 @@
-FROM golang:1.15.3 as builder
+FROM --platform=$BUILDPLATFORM golang:1.15.3 as builder
 
 RUN apt-get update && apt-get install ca-certificates
 
 WORKDIR /src
+
+ARG TARGETOS
+ARG TARGETARCH
+ARG TARGETPLATFORM
+ARG BUILDPLATFORM
 
 COPY go.mod /src/go.mod
 COPY go.sum /src/go.sum
@@ -11,7 +16,7 @@ RUN go mod download
 
 # Perform the build
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o /app/argocd-notifications ./cmd
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -ldflags="-w -s" -o /app/argocd-notifications ./cmd
 RUN ln -s /app/argocd-notifications /app/argocd-notifications-backend
 
 FROM scratch

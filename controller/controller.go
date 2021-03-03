@@ -32,12 +32,7 @@ import (
 )
 
 const (
-	resyncPeriod           = 60 * time.Second
-	notifiedHistoryMaxSize = 100
-)
-
-var (
-	notifiedAnnotationKey = "notified." + subscriptions.AnnotationPrefix
+	resyncPeriod = 60 * time.Second
 )
 
 type NotificationController interface {
@@ -145,28 +140,7 @@ func ensureAnnotations(obj *unstructured.Unstructured) {
 }
 
 func (c *notificationController) processApp(app *unstructured.Unstructured, logEntry *log.Entry) error {
-	refreshed := false
-	ensureAnnotations(app)
-
-	state := triggers.NewState(app.GetAnnotations()[notifiedAnnotationKey])
-	// changes state of specified trigger/destination and returns if state has changed or not
-	setAlreadyNotified := func(trigger string, result triggers.ConditionResult, dest services.Destination, isNotified bool) (bool, error) {
-		changed := state.SetAlreadyNotified(trigger, result, dest, isNotified)
-		// if state changes reload application
-		if changed && !refreshed {
-			refreshedApp, err := c.appClient.Get(context.Background(), app.GetName(), v1.GetOptions{})
-			if err != nil {
-				return false, err
-			}
-			ensureAnnotations(refreshedApp)
-			app.GetAnnotations()[notifiedAnnotationKey] = refreshedApp.GetAnnotations()[notifiedAnnotationKey]
-
-			state = triggers.NewState(app.GetAnnotations()[notifiedAnnotationKey])
-			refreshed = true
-			return state.SetAlreadyNotified(trigger, result, dest, isNotified), nil
-		}
-		return changed, nil
-	}
+	appState := NewAppState(app, c.appClient)
 
 	for trigger, destinations := range c.getSubscriptions(app) {
 
@@ -179,7 +153,7 @@ func (c *notificationController) processApp(app *unstructured.Unstructured, logE
 		for _, cr := range res {
 			if !cr.Triggered {
 				for _, to := range destinations {
-					if _, err := setAlreadyNotified(trigger, cr, to, false); err != nil {
+					if _, err := appState.ClearAlreadyNotified(trigger, cr, to); err != nil {
 						return err
 					}
 				}
@@ -187,48 +161,49 @@ func (c *notificationController) processApp(app *unstructured.Unstructured, logE
 			}
 
 			for _, to := range destinations {
-				if changed, err := setAlreadyNotified(trigger, cr, to, true); err != nil {
+				if err := c.sendNotification(app, logEntry, appState, trigger, cr, to); err != nil {
 					return err
-				} else if !changed {
-					logEntry.Infof("Notification about condition '%s.%s' already sent to '%v'", trigger, cr.Key, to)
-					continue // move to the next recipient
-				}
-
-				logEntry.Infof("Sending notification about condition '%s.%s' to '%v'", trigger, cr.Key, to)
-				vars := expr.Spawn(app, c.cfg.ArgoCDService, map[string]interface{}{
-					"app":     app.Object,
-					"context": legacy.InjectLegacyVar(c.cfg.Context, to.Service),
-				})
-
-				if err := c.cfg.API.Send(vars, cr.Templates, to); err != nil {
-					logEntry.Errorf("Failed to notify recipient %s defined in app %s/%s: %v",
-						to, app.GetNamespace(), app.GetName(), err)
-					_ = state.SetAlreadyNotified(trigger, cr, to, false)
-					c.metricsRegistry.IncDeliveriesCounter(trigger, to.Service, false)
-				} else {
-					logEntry.Debugf("Notification %s was sent", to.Recipient)
-					c.metricsRegistry.IncDeliveriesCounter(trigger, to.Service, true)
 				}
 			}
 		}
 	}
 
-	state.Truncate(notifiedHistoryMaxSize)
+	return appState.Persist()
+}
 
-	annotations := app.GetAnnotations()
+func (c *notificationController) sendNotification(
+	app *unstructured.Unstructured,
+	logEntry *log.Entry,
+	appState *AppNotificationState,
+	trigger string,
+	cr triggers.ConditionResult,
+	to services.Destination,
+) error {
+	if changed, err := appState.SetAlreadyNotified(trigger, cr, to); err != nil {
+		return err
+	} else if !changed {
+		logEntry.Infof("Notification about condition '%s.%s' already sent to '%v'", trigger, cr.Key, to)
 
-	if len(state) == 0 {
-		delete(annotations, notifiedAnnotationKey)
+		return nil
 	} else {
-		stateJson, err := json.Marshal(state)
-		if err != nil {
-			return err
-		}
-		annotations[notifiedAnnotationKey] = string(stateJson)
-	}
+		logEntry.Infof("Sending notification about condition '%s.%s' to '%v'", trigger, cr.Key, to)
+		vars := expr.Spawn(app, c.cfg.ArgoCDService, map[string]interface{}{
+			"app":     app.Object,
+			"context": legacy.InjectLegacyVar(c.cfg.Context, to.Service),
+		})
 
-	app.SetAnnotations(annotations)
-	return nil
+		if err := c.cfg.API.Send(vars, cr.Templates, to); err != nil {
+			logEntry.Errorf("Failed to notify recipient %s defined in app %s/%s: %v",
+				to, app.GetNamespace(), app.GetName(), err)
+			appState.ClearAlreadyNotifiedCache(trigger, cr, to)
+			c.metricsRegistry.IncDeliveriesCounter(trigger, to.Service, false)
+		} else {
+			logEntry.Debugf("Notification %s was sent", to.Recipient)
+			c.metricsRegistry.IncDeliveriesCounter(trigger, to.Service, true)
+		}
+
+		return nil
+	}
 }
 
 func (c *notificationController) getAppProj(app *unstructured.Unstructured) *unstructured.Unstructured {
@@ -348,7 +323,8 @@ func (c *notificationController) processQueueItem() (processNext bool) {
 		logEntry.Errorf("Failed to process: %v", err)
 		return
 	}
-	if !reflect.DeepEqual(app.GetAnnotations(), appCopy.GetAnnotations()) {
+
+	if !isTheSame(app.GetAnnotations(), appCopy.GetAnnotations()) {
 		annotationsPatch := make(map[string]interface{})
 		for k, v := range appCopy.GetAnnotations() {
 			annotationsPatch[k] = v
@@ -375,4 +351,27 @@ func (c *notificationController) processQueueItem() (processNext bool) {
 	logEntry.Info("Processing completed")
 
 	return
+}
+
+func isTheSame(appAnnotations, appCopyAnnotations map[string]string) bool {
+	if appAnnotations == nil {
+		if appCopyAnnotations == nil {
+			return true
+		}
+		if len(appCopyAnnotations) == 0 {
+			return true
+		} else {
+			return false
+		}
+	}
+
+	if appCopyAnnotations == nil {
+		if len(appAnnotations) == 0 {
+			return true
+		} else {
+			return false
+		}
+	}
+
+	return reflect.DeepEqual(appAnnotations, appCopyAnnotations)
 }
