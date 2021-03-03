@@ -52,12 +52,18 @@ jobs:
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
       -
-        name: Login to Registry
+        name: Login to GitHub Container Registry
         uses: docker/login-action@v1 
         with:
-          registry: docker.pkg.github.com
-          username: ${{ secrets.USERNAME }}
-          password: ${{ secrets.TOKEN }}
+          registry: ghcr.io
+          username: ${{ secrets.GH_USERNAME }}
+          password: ${{ secrets.GH_PAT }}
+      -
+        name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
       -
         name: Build and push
         id: docker_build
@@ -65,7 +71,11 @@ jobs:
         with:
           platforms: linux/amd64,linux/arm64,linux/arm
           push: true
-          tags: docker.pkg.github.com/argoproj-labs/argocd-notifications/argocd-notifications:${{ env.IMAGE_TAG }}
+          tags: |
+            argoproj-labs/argocd-notifications:${{ env.IMAGE_TAG }}
+            argoproj-labs/argocd-notifications:latest
+            ghcr.io/argoproj-labs/argocd-notifications:${{ env.IMAGE_TAG }}
+            ghcr.io/argoproj-labs/argocd-notifications:latest
           file: ./Dockerfile
           build-args: |
               IMAGE_TAG=${{ env.IMAGE_TAG }}
