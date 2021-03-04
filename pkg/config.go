@@ -60,6 +60,34 @@ func replaceStringSecret(val string, secretValues map[string][]byte) string {
 	})
 }
 
+func replaceServiceConfigSecret(data map[string]interface{}, secretValues map[string][]byte) map[string]interface{} {
+	result := map[string]interface{}{}
+	for k, v := range data {
+		switch v := v.(type) {
+		case string:
+			result[k] = replaceStringSecret(v, secretValues)
+		case []string:
+			list := make([]string, len(v))
+			for i, item := range v {
+				list[i] = replaceStringSecret(item, secretValues)
+			}
+			result[k] = list
+		case map[string]interface{}:
+			result[k] = replaceServiceConfigSecret(v, secretValues)
+		case []map[string]interface{}:
+			list := make([]map[string]interface{}, len(v))
+			for i, item := range v {
+				list[i] = replaceServiceConfigSecret(item, secretValues)
+			}
+			result[k] = list
+		default:
+			result[k] = v
+		}
+	}
+
+	return result
+}
+
 // ParseConfig retrieves Config from given ConfigMap and Secret
 func ParseConfig(configMap *v1.ConfigMap, secret *v1.Secret) (*Config, error) {
 	cfg := Config{map[string]ServiceFactory{}, map[string][]triggers.Condition{}, map[string]services.Notification{}}
@@ -74,7 +102,6 @@ func ParseConfig(configMap *v1.ConfigMap, secret *v1.Secret) (*Config, error) {
 			}
 			cfg.Templates[name] = template
 		case strings.HasPrefix(k, "service."):
-			v = replaceStringSecret(v, secret.Data)
 			name := ""
 			serviceType := ""
 			parts := strings.Split(k, ".")
@@ -86,7 +113,17 @@ func ParseConfig(configMap *v1.ConfigMap, secret *v1.Secret) (*Config, error) {
 				return nil, fmt.Errorf("invalid service key; expected 'service.<type>(.<name>)' but got '%s'", k)
 			}
 
-			optsData := []byte(v)
+			serviceConfig := map[string]interface{}{}
+			if err := yaml.Unmarshal([]byte(v), &serviceConfig); err != nil {
+				return nil, fmt.Errorf("failed to unmarshal service %s: %v", serviceType, err)
+			}
+
+			serviceConfig = replaceServiceConfigSecret(serviceConfig, secret.Data)
+			optsData, err := yaml.Marshal(serviceConfig)
+			if err != nil {
+				return nil, fmt.Errorf("failed to marshal service %s: %v", serviceType, err)
+			}
+
 			cfg.Services[name] = func() (services.NotificationService, error) {
 				return services.NewService(serviceType, optsData)
 			}

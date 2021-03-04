@@ -60,7 +60,7 @@ func getCommitMetadata(commitSHA string, app *unstructured.Unstructured, argocdS
 	return meta, nil
 }
 
-func fullNameByRepoURL(rawURL string) string {
+func FullNameByRepoURL(rawURL string) string {
 	parsed, err := giturls.Parse(rawURL)
 	if err != nil {
 		panic(err)
@@ -87,7 +87,7 @@ func repoURLToHTTPS(rawURL string) string {
 func NewExprs(argocdService argocd.Service, app *unstructured.Unstructured) map[string]interface{} {
 	return map[string]interface{}{
 		"RepoURLToHTTPS":    repoURLToHTTPS,
-		"FullNameByRepoURL": fullNameByRepoURL,
+		"FullNameByRepoURL": FullNameByRepoURL,
 		"GetCommitMetadata": func(commitSHA string) interface{} {
 			meta, err := getCommitMetadata(commitSHA, app, argocdService)
 			if err != nil {

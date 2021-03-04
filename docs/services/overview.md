@@ -39,6 +39,7 @@ metadata:
 ## Service Types
 
 * [Email](./email.md)
+* [GitHub](./github.md)
 * [Slack](./slack.md)
 * [Opsgenie](./opsgenie.md)
 * [Grafana](./grafana.md)

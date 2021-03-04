@@ -31,7 +31,7 @@ func TestParseFullName(t *testing.T) {
 		"git@gitlab.com:argoproj/argo-cd.git":             "argoproj/argo-cd",
 		"https://gitlab.com/argoproj/argo-cd.git":         "argoproj/argo-cd",
 	} {
-		actual := fullNameByRepoURL(in)
+		actual := FullNameByRepoURL(in)
 		assert.Equal(t, actual, expected)
 	}
 }

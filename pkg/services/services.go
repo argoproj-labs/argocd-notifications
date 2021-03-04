@@ -17,6 +17,7 @@ type Notification struct {
 	Teams    *TeamsNotification    `json:"teams,omitempty"`
 	Webhook  WebhookNotifications  `json:"webhook,omitempty"`
 	Opsgenie *OpsgenieNotification `json:"opsgenie,omitempty"`
+	GitHub   *GitHubNotification   `json:"github,omitempty"`
 }
 
 // Destination holds notification destination details
@@ -39,6 +40,9 @@ func (n *Notification) GetTemplater(name string, f texttemplate.FuncMap) (Templa
 
 	if n.Opsgenie != nil {
 		sources = append(sources, n.Opsgenie)
+	}
+	if n.GitHub != nil {
+		sources = append(sources, n.GitHub)
 	}
 
 	if n.Teams != nil {
@@ -93,6 +97,12 @@ func NewService(serviceType string, optsData []byte) (NotificationService, error
 			return nil, err
 		}
 		return NewTelegramService(opts), nil
+	case "github":
+		var opts GitHubOptions
+		if err := yaml.Unmarshal(optsData, &opts); err != nil {
+			return nil, err
+		}
+		return NewGitHubService(opts)
 	case "teams":
 		var opts TeamsOptions
 		if err := yaml.Unmarshal(optsData, &opts); err != nil {
