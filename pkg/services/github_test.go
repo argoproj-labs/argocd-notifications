@@ -10,9 +10,11 @@ import (
 func TestGetTemplater_GitHub(t *testing.T) {
 	n := Notification{
 		GitHub: &GitHubNotification{
-			State:     "{{.context.state}}",
-			Label:     "continuous-delivery/{{.app.metadata.name}}",
-			TargetURL: "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+			Status: &GitHubStatus{
+				State:     "{{.context.state}}",
+				Label:     "continuous-delivery/{{.app.metadata.name}}",
+				TargetURL: "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+			},
 		},
 	}
 	templater, err := n.GetTemplater("", template.FuncMap{})
@@ -50,7 +52,7 @@ func TestGetTemplater_GitHub(t *testing.T) {
 
 	assert.Equal(t, "https://github.com/argoproj-labs/argocd-notifications.git", notification.GitHub.repoURL)
 	assert.Equal(t, "0123456789", notification.GitHub.revision)
-	assert.Equal(t, "success", notification.GitHub.State)
-	assert.Equal(t, "continuous-delivery/argocd-notifications", notification.GitHub.Label)
-	assert.Equal(t, "https://example.com/applications/argocd-notifications", notification.GitHub.TargetURL)
+	assert.Equal(t, "success", notification.GitHub.Status.State)
+	assert.Equal(t, "continuous-delivery/argocd-notifications", notification.GitHub.Status.Label)
+	assert.Equal(t, "https://example.com/applications/argocd-notifications", notification.GitHub.Status.TargetURL)
 }
