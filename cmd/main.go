@@ -5,9 +5,17 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/argoproj-labs/argocd-notifications/cmd/tools"
+	argocert "github.com/argoproj/argo-cd/util/cert"
 	"github.com/spf13/cobra"
+
+	"github.com/argoproj-labs/argocd-notifications/cmd/tools"
+	"github.com/argoproj-labs/argocd-notifications/pkg/util/http"
 )
+
+func init() {
+	// resolve certificates using injected "argocd-tls-certs-cm" ConfigMap
+	http.SetCertResolver(argocert.GetCertificateForConnect)
+}
 
 func main() {
 	binaryName := filepath.Base(os.Args[0])

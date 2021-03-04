@@ -2,11 +2,16 @@ package http
 
 import (
 	"crypto/tls"
+	"crypto/x509"
 	"net/http"
 	"net/url"
-
-	"github.com/argoproj/argo-cd/util/cert"
 )
+
+var certResolver func(serverName string) ([]string, error)
+
+func SetCertResolver(resolver func(serverName string) ([]string, error)) {
+	certResolver = resolver
+}
 
 func NewTransport(rawURL string, insecureSkipVerify bool) *http.Transport {
 	transport := &http.Transport{
@@ -16,19 +21,27 @@ func NewTransport(rawURL string, insecureSkipVerify bool) *http.Transport {
 		transport.TLSClientConfig = &tls.Config{
 			InsecureSkipVerify: true,
 		}
-	} else {
+	} else if certResolver != nil {
 		parsedURL, err := url.Parse(rawURL)
 		if err != nil {
 			return transport
 		}
-		serverCertificatePem, err := cert.GetCertificateForConnect(parsedURL.Host)
+		serverCertificatePem, err := certResolver(parsedURL.Host)
 		if err != nil {
 			return transport
 		} else if len(serverCertificatePem) > 0 {
 			transport.TLSClientConfig = &tls.Config{
-				RootCAs: cert.GetCertPoolFromPEMData(serverCertificatePem),
+				RootCAs: getCertPoolFromPEMData(serverCertificatePem),
 			}
 		}
 	}
 	return transport
+}
+
+func getCertPoolFromPEMData(pemData []string) *x509.CertPool {
+	certPool := x509.NewCertPool()
+	for _, pem := range pemData {
+		certPool.AppendCertsFromPEM([]byte(pem))
+	}
+	return certPool
 }
