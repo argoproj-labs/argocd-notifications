@@ -1,0 +1,73 @@
+name: Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/cache@v1
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - uses: actions/setup-go@v1
+        with:
+          go-version: '1.15.3'
+      - run: make test
+      - uses: golangci/golangci-lint-action@v2
+        with:
+          version: v1.29
+          args: --timeout 5m
+        env:
+          GOROOT: ""
+      - uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }} #required
+          file: ./coverage.out
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - 
+        name: Checkout repo
+        uses: actions/checkout@master
+      - 
+        name: Build image tag
+        run: echo "IMAGE_TAG=v$(cat ./VERSION)" >> $GITHUB_ENV 
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      -
+        name: Login to GitHub Container Registry
+        uses: docker/login-action@v1 
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.GH_USERNAME }}
+          password: ${{ secrets.GH_PAT }}
+      -
+        name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      -
+        name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          platforms: linux/amd64,linux/arm64,linux/arm
+          push: true
+          tags: |
+            argoproj-labs/argocd-notifications:${{ env.IMAGE_TAG }}
+            argoproj-labs/argocd-notifications:latest
+            ghcr.io/argoproj-labs/argocd-notifications:${{ env.IMAGE_TAG }}
+            ghcr.io/argoproj-labs/argocd-notifications:latest
+          file: ./Dockerfile
+          build-args: |
+              IMAGE_TAG=${{ env.IMAGE_TAG }}
