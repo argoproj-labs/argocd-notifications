@@ -1,4 +1,4 @@
-package subscriptions
+package controller
 
 import (
 	"testing"
@@ -48,7 +48,7 @@ func TestIterate(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		a := Annotations(tt.annotations)
+		a := Subscriptions(tt.annotations)
 		a.iterate(func(trigger, service string, recipients []string, key string) {
 			assert.Equal(t, tt.trigger, trigger)
 			assert.Equal(t, tt.service, service)
@@ -59,7 +59,7 @@ func TestIterate(t *testing.T) {
 }
 
 func TestGetAll(t *testing.T) {
-	a := Annotations(map[string]string{
+	a := Subscriptions(map[string]string{
 		"notifications.argoproj.io/subscribe.my-trigger.slack": "my-channel",
 	})
 	subscriptions := a.GetAll()
@@ -72,14 +72,14 @@ func TestGetAll(t *testing.T) {
 }
 
 func TestSubscribe(t *testing.T) {
-	a := Annotations(map[string]string{})
+	a := Subscriptions(map[string]string{})
 	a.Subscribe("my-trigger", "slack", "my-channel1")
 
 	assert.Equal(t, a["notifications.argoproj.io/subscribe.my-trigger.slack"], "my-channel1")
 }
 
 func TestSubscribe_AddSecondRecipient(t *testing.T) {
-	a := Annotations(map[string]string{
+	a := Subscriptions(map[string]string{
 		"notifications.argoproj.io/subscribe.my-trigger.slack": "my-channel1",
 	})
 	a.Subscribe("my-trigger", "slack", "my-channel2")
@@ -88,7 +88,7 @@ func TestSubscribe_AddSecondRecipient(t *testing.T) {
 }
 
 func TestUnsubscribe(t *testing.T) {
-	a := Annotations(map[string]string{
+	a := Subscriptions(map[string]string{
 		"notifications.argoproj.io/subscribe.my-trigger.slack": "my-channel1;my-channel2",
 	})
 	a.Unsubscribe("my-trigger", "slack", "my-channel1")

@@ -1,4 +1,4 @@
-package subscriptions
+package controller
 
 import (
 	"fmt"
@@ -27,9 +27,9 @@ func SubscribeAnnotationKey(trigger string, service string) string {
 	return fmt.Sprintf("%s/subscribe.%s.%s", AnnotationPrefix, trigger, service)
 }
 
-type Annotations map[string]string
+type Subscriptions map[string]string
 
-func (a Annotations) iterate(callback func(trigger string, service string, recipients []string, key string)) {
+func (a Subscriptions) iterate(callback func(trigger string, service string, recipients []string, key string)) {
 	prefix := AnnotationPrefix + "/subscribe."
 	for k, v := range a {
 		if !strings.HasPrefix(k, prefix) {
@@ -54,7 +54,7 @@ func (a Annotations) iterate(callback func(trigger string, service string, recip
 	}
 }
 
-func (a Annotations) Subscribe(trigger string, service string, recipients ...string) {
+func (a Subscriptions) Subscribe(trigger string, service string, recipients ...string) {
 	annotationKey := SubscribeAnnotationKey(trigger, service)
 	r := parseRecipients(a[annotationKey])
 	set := map[string]bool{}
@@ -70,7 +70,7 @@ func (a Annotations) Subscribe(trigger string, service string, recipients ...str
 	a[annotationKey] = strings.Join(r, ";")
 }
 
-func (a Annotations) Unsubscribe(trigger string, service string, recipient string) {
+func (a Subscriptions) Unsubscribe(trigger string, service string, recipient string) {
 	a.iterate(func(t string, s string, r []string, k string) {
 		if trigger != t || s != service {
 			return
@@ -89,7 +89,7 @@ func (a Annotations) Unsubscribe(trigger string, service string, recipient strin
 	})
 }
 
-func (a Annotations) Has(service string, recipient string) bool {
+func (a Subscriptions) Has(service string, recipient string) bool {
 	has := false
 	a.iterate(func(t string, s string, r []string, k string) {
 		if s != service {
@@ -105,7 +105,7 @@ func (a Annotations) Has(service string, recipient string) bool {
 	return has
 }
 
-func (a Annotations) GetAll(defaultTriggers ...string) pkg.Subscriptions {
+func (a Subscriptions) GetAll(defaultTriggers ...string) pkg.Subscriptions {
 	subscriptions := pkg.Subscriptions{}
 	a.iterate(func(trigger string, service string, recipients []string, v string) {
 		for _, recipient := range recipients {

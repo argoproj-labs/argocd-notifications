@@ -11,8 +11,8 @@ import (
 
 	"github.com/argoproj-labs/argocd-notifications/expr"
 	"github.com/argoproj-labs/argocd-notifications/pkg"
+	"github.com/argoproj-labs/argocd-notifications/pkg/controller"
 	"github.com/argoproj-labs/argocd-notifications/pkg/services"
-	"github.com/argoproj-labs/argocd-notifications/pkg/subscriptions"
 	"github.com/argoproj-labs/argocd-notifications/pkg/triggers"
 	"github.com/argoproj-labs/argocd-notifications/shared/k8s"
 	"github.com/argoproj-labs/argocd-notifications/shared/legacy"
@@ -133,14 +133,8 @@ func (c *notificationController) Run(ctx context.Context, processors int) {
 	log.Warn("Controller has stopped.")
 }
 
-func ensureAnnotations(obj *unstructured.Unstructured) {
-	if obj.GetAnnotations() == nil {
-		obj.SetAnnotations(map[string]string{})
-	}
-}
-
 func (c *notificationController) processApp(app *unstructured.Unstructured, logEntry *log.Entry) error {
-	appState := NewAppState(app, c.appClient)
+	appState := controller.NewStateFromRes(app)
 
 	for trigger, destinations := range c.getSubscriptions(app) {
 
@@ -153,9 +147,7 @@ func (c *notificationController) processApp(app *unstructured.Unstructured, logE
 		for _, cr := range res {
 			if !cr.Triggered {
 				for _, to := range destinations {
-					if _, err := appState.ClearAlreadyNotified(trigger, cr, to); err != nil {
-						return err
-					}
+					appState.SetAlreadyNotified(trigger, cr, to, false)
 				}
 				continue
 			}
@@ -168,22 +160,19 @@ func (c *notificationController) processApp(app *unstructured.Unstructured, logE
 		}
 	}
 
-	return appState.Persist()
+	return appState.Persist(app)
 }
 
 func (c *notificationController) sendNotification(
 	app *unstructured.Unstructured,
 	logEntry *log.Entry,
-	appState *AppNotificationState,
+	appState controller.NotificationsState,
 	trigger string,
 	cr triggers.ConditionResult,
 	to services.Destination,
 ) error {
-	if changed, err := appState.SetAlreadyNotified(trigger, cr, to); err != nil {
-		return err
-	} else if !changed {
+	if changed := appState.SetAlreadyNotified(trigger, cr, to, true); !changed {
 		logEntry.Infof("Notification about condition '%s.%s' already sent to '%v'", trigger, cr.Key, to)
-
 		return nil
 	} else {
 		logEntry.Infof("Sending notification about condition '%s.%s' to '%v'", trigger, cr.Key, to)
@@ -195,7 +184,7 @@ func (c *notificationController) sendNotification(
 		if err := c.cfg.API.Send(vars, cr.Templates, to); err != nil {
 			logEntry.Errorf("Failed to notify recipient %s defined in app %s/%s: %v",
 				to, app.GetNamespace(), app.GetName(), err)
-			appState.ClearAlreadyNotifiedCache(trigger, cr, to)
+			appState.SetAlreadyNotified(trigger, cr, to, false)
 			c.metricsRegistry.IncDeliveriesCounter(trigger, to.Service, false)
 		} else {
 			logEntry.Debugf("Notification %s was sent", to.Recipient)
@@ -219,18 +208,20 @@ func (c *notificationController) getAppProj(app *unstructured.Unstructured) *uns
 	if !ok {
 		return nil
 	}
-	ensureAnnotations(proj)
+	if proj.GetAnnotations() == nil {
+		proj.SetAnnotations(map[string]string{})
+	}
 	return proj
 }
 
 func (c *notificationController) getSubscriptions(app *unstructured.Unstructured) pkg.Subscriptions {
 	res := c.cfg.GetGlobalSubscriptions(app.GetLabels())
 
-	res.Merge(subscriptions.Annotations(app.GetAnnotations()).GetAll(c.cfg.DefaultTriggers...))
+	res.Merge(controller.Subscriptions(app.GetAnnotations()).GetAll(c.cfg.DefaultTriggers...))
 	res.Merge(legacy.GetSubscriptions(app.GetAnnotations(), c.cfg.DefaultTriggers...))
 
 	if proj := c.getAppProj(app); proj != nil {
-		res.Merge(subscriptions.Annotations(proj.GetAnnotations()).GetAll(c.cfg.DefaultTriggers...))
+		res.Merge(controller.Subscriptions(proj.GetAnnotations()).GetAll(c.cfg.DefaultTriggers...))
 		res.Merge(legacy.GetSubscriptions(proj.GetAnnotations(), c.cfg.DefaultTriggers...))
 	}
 
@@ -324,7 +315,7 @@ func (c *notificationController) processQueueItem() (processNext bool) {
 		return
 	}
 
-	if !isTheSame(app.GetAnnotations(), appCopy.GetAnnotations()) {
+	if !mapsEqual(app.GetAnnotations(), appCopy.GetAnnotations()) {
 		annotationsPatch := make(map[string]interface{})
 		for k, v := range appCopy.GetAnnotations() {
 			annotationsPatch[k] = v
@@ -342,10 +333,13 @@ func (c *notificationController) processQueueItem() (processNext bool) {
 			logEntry.Errorf("Failed to marshal app patch: %v", err)
 			return
 		}
-		_, err = c.appClient.Patch(context.Background(), app.GetName(), types.MergePatchType, patchData, v1.PatchOptions{})
+		app, err = c.appClient.Patch(context.Background(), app.GetName(), types.MergePatchType, patchData, v1.PatchOptions{})
 		if err != nil {
 			logEntry.Errorf("Failed to patch app: %v", err)
 			return
+		}
+		if err := c.appInformer.GetStore().Update(app); err != nil {
+			logEntry.Warnf("Failed to store update app in informer: %v", err)
 		}
 	}
 	logEntry.Info("Processing completed")
@@ -353,25 +347,14 @@ func (c *notificationController) processQueueItem() (processNext bool) {
 	return
 }
 
-func isTheSame(appAnnotations, appCopyAnnotations map[string]string) bool {
-	if appAnnotations == nil {
-		if appCopyAnnotations == nil {
-			return true
-		}
-		if len(appCopyAnnotations) == 0 {
-			return true
-		} else {
-			return false
-		}
+func mapsEqual(first, second map[string]string) bool {
+	if first == nil {
+		first = map[string]string{}
 	}
 
-	if appCopyAnnotations == nil {
-		if len(appAnnotations) == 0 {
-			return true
-		} else {
-			return false
-		}
+	if second == nil {
+		second = map[string]string{}
 	}
 
-	return reflect.DeepEqual(appAnnotations, appCopyAnnotations)
+	return reflect.DeepEqual(first, second)
 }

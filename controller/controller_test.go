@@ -17,9 +17,9 @@ import (
 	kubetesting "k8s.io/client-go/testing"
 
 	"github.com/argoproj-labs/argocd-notifications/pkg"
+	"github.com/argoproj-labs/argocd-notifications/pkg/controller"
 	"github.com/argoproj-labs/argocd-notifications/pkg/mocks"
 	"github.com/argoproj-labs/argocd-notifications/pkg/services"
-	"github.com/argoproj-labs/argocd-notifications/pkg/subscriptions"
 	"github.com/argoproj-labs/argocd-notifications/pkg/triggers"
 	"github.com/argoproj-labs/argocd-notifications/shared/legacy"
 	"github.com/argoproj-labs/argocd-notifications/shared/settings"
@@ -61,7 +61,7 @@ func TestSendsNotificationIfTriggered(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 	app := NewApp("test", WithAnnotations(map[string]string{
-		subscriptions.SubscribeAnnotationKey("my-trigger", "mock"): "recipient",
+		controller.SubscribeAnnotationKey("my-trigger", "mock"): "recipient",
 	}))
 
 	ctrl, api, err := newController(t, ctx, fake.NewSimpleDynamicClient(runtime.NewScheme(), app))
@@ -78,8 +78,8 @@ func TestSendsNotificationIfTriggered(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	state := triggers.NewState(app.GetAnnotations()[notifiedAnnotationKey])
-	assert.NotNil(t, state[triggers.StateItemKey("mock", triggers.ConditionResult{}, services.Destination{Service: "mock", Recipient: "recipient"})])
+	state := controller.NewState(app.GetAnnotations()[controller.NotifiedAnnotationKey])
+	assert.NotNil(t, state[controller.StateItemKey("mock", triggers.ConditionResult{}, services.Destination{Service: "mock", Recipient: "recipient"})])
 	assert.Equal(t, app.Object, receivedVars["app"])
 	assert.Equal(t, legacy.InjectLegacyVar(ctrl.cfg.Context, "mock"), receivedVars["context"])
 }
@@ -88,7 +88,7 @@ func TestSendsNotificationIfProjectTriggered(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 	appProj := NewProject("default", WithAnnotations(map[string]string{
-		subscriptions.SubscribeAnnotationKey("my-trigger", "mock"): "recipient",
+		controller.SubscribeAnnotationKey("my-trigger", "mock"): "recipient",
 	}))
 	app := NewApp("test", WithProject("default"))
 
@@ -106,8 +106,8 @@ func TestSendsNotificationIfProjectTriggered(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	state := triggers.NewState(app.GetAnnotations()[notifiedAnnotationKey])
-	assert.NotNil(t, state[triggers.StateItemKey("mock", triggers.ConditionResult{}, services.Destination{Service: "mock", Recipient: "recipient"})])
+	state := controller.NewState(app.GetAnnotations()[controller.NotifiedAnnotationKey])
+	assert.NotNil(t, state[controller.StateItemKey("mock", triggers.ConditionResult{}, services.Destination{Service: "mock", Recipient: "recipient"})])
 	assert.Equal(t, app.Object, receivedVars["app"])
 	assert.Equal(t, legacy.InjectLegacyVar(ctrl.cfg.Context, "mock"), receivedVars["context"])
 }
@@ -115,11 +115,11 @@ func TestSendsNotificationIfProjectTriggered(t *testing.T) {
 func TestDoesNotSendNotificationIfAnnotationPresent(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
-	state := triggers.State{}
+	state := controller.NotificationsState{}
 	_ = state.SetAlreadyNotified("my-trigger", triggers.ConditionResult{}, services.Destination{Service: "mock", Recipient: "recipient"}, true)
 	app := NewApp("test", WithAnnotations(map[string]string{
-		subscriptions.SubscribeAnnotationKey("my-trigger", "mock"): "recipient",
-		notifiedAnnotationKey: mustToJson(state),
+		controller.SubscribeAnnotationKey("my-trigger", "mock"): "recipient",
+		controller.NotifiedAnnotationKey:                        mustToJson(state),
 	}))
 	ctrl, api, err := newController(t, ctx, fake.NewSimpleDynamicClient(runtime.NewScheme(), app))
 	assert.NoError(t, err)
@@ -135,11 +135,11 @@ func TestRemovesAnnotationIfNoTrigger(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 
-	state := triggers.State{}
+	state := controller.NotificationsState{}
 	_ = state.SetAlreadyNotified("my-trigger", triggers.ConditionResult{}, services.Destination{Service: "mock", Recipient: "recipient"}, true)
 	app := NewApp("test", WithAnnotations(map[string]string{
-		subscriptions.SubscribeAnnotationKey("my-trigger", "mock"): "recipient",
-		notifiedAnnotationKey: mustToJson(state),
+		controller.SubscribeAnnotationKey("my-trigger", "mock"): "recipient",
+		controller.NotifiedAnnotationKey:                        mustToJson(state),
 	}))
 	ctrl, api, err := newController(t, ctx, fake.NewSimpleDynamicClient(runtime.NewScheme(), app))
 	assert.NoError(t, err)
@@ -149,7 +149,7 @@ func TestRemovesAnnotationIfNoTrigger(t *testing.T) {
 	err = ctrl.processApp(app, logEntry)
 
 	assert.NoError(t, err)
-	state = triggers.NewState(app.GetAnnotations()[notifiedAnnotationKey])
+	state = controller.NewState(app.GetAnnotations()[controller.NotifiedAnnotationKey])
 	assert.Empty(t, state)
 }
 
@@ -157,12 +157,12 @@ func TestUpdatedAnnotationsSavedAsPatch(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 
-	state := triggers.State{}
+	state := controller.NotificationsState{}
 	_ = state.SetAlreadyNotified("my-trigger", triggers.ConditionResult{}, services.Destination{Service: "mock", Recipient: "recipient"}, true)
 
 	app := NewApp("test", WithAnnotations(map[string]string{
-		subscriptions.SubscribeAnnotationKey("my-trigger", "mock"): "recipient",
-		notifiedAnnotationKey: mustToJson(state),
+		controller.SubscribeAnnotationKey("my-trigger", "mock"): "recipient",
+		controller.NotifiedAnnotationKey:                        mustToJson(state),
 	}))
 
 	patchCh := make(chan []byte)
@@ -185,7 +185,7 @@ func TestUpdatedAnnotationsSavedAsPatch(t *testing.T) {
 		patch := map[string]interface{}{}
 		err = json.Unmarshal(patchData, &patch)
 		assert.NoError(t, err)
-		val, ok, err := unstructured.NestedFieldNoCopy(patch, "metadata", "annotations", notifiedAnnotationKey)
+		val, ok, err := unstructured.NestedFieldNoCopy(patch, "metadata", "annotations", controller.NotifiedAnnotationKey)
 		assert.NoError(t, err)
 		assert.True(t, ok)
 		assert.Nil(t, val)
@@ -258,61 +258,61 @@ var testsAppSyncStatusRefreshed = map[string]struct {
 func TestAnnotationIsTheSame(t *testing.T) {
 	t.Run("same", func(t *testing.T) {
 		app1 := NewApp("test", WithAnnotations(map[string]string{
-			subscriptions.SubscribeAnnotationKey("my-trigger", "mock"): "recipient",
+			controller.SubscribeAnnotationKey("my-trigger", "mock"): "recipient",
 		}))
 		app2 := NewApp("test", WithAnnotations(map[string]string{
-			subscriptions.SubscribeAnnotationKey("my-trigger", "mock"): "recipient",
+			controller.SubscribeAnnotationKey("my-trigger", "mock"): "recipient",
 		}))
-		assert.True(t, isTheSame(app1.GetAnnotations(), app2.GetAnnotations()))
+		assert.True(t, mapsEqual(app1.GetAnnotations(), app2.GetAnnotations()))
 	})
 
 	t.Run("same-nil-nil", func(t *testing.T) {
 		app1 := NewApp("test", WithAnnotations(nil))
 		app2 := NewApp("test", WithAnnotations(nil))
-		assert.True(t, isTheSame(app1.GetAnnotations(), app2.GetAnnotations()))
+		assert.True(t, mapsEqual(app1.GetAnnotations(), app2.GetAnnotations()))
 	})
 
 	t.Run("same-nil-emptyMap", func(t *testing.T) {
 		app1 := NewApp("test", WithAnnotations(nil))
 		app2 := NewApp("test", WithAnnotations(map[string]string{}))
-		assert.True(t, isTheSame(app1.GetAnnotations(), app2.GetAnnotations()))
+		assert.True(t, mapsEqual(app1.GetAnnotations(), app2.GetAnnotations()))
 	})
 
 	t.Run("same-emptyMap-nil", func(t *testing.T) {
 		app1 := NewApp("test", WithAnnotations(map[string]string{}))
 		app2 := NewApp("test", WithAnnotations(nil))
-		assert.True(t, isTheSame(app1.GetAnnotations(), app2.GetAnnotations()))
+		assert.True(t, mapsEqual(app1.GetAnnotations(), app2.GetAnnotations()))
 	})
 
 	t.Run("same-emptyMap-emptyMap", func(t *testing.T) {
 		app1 := NewApp("test", WithAnnotations(map[string]string{}))
 		app2 := NewApp("test", WithAnnotations(map[string]string{}))
-		assert.True(t, isTheSame(app1.GetAnnotations(), app2.GetAnnotations()))
+		assert.True(t, mapsEqual(app1.GetAnnotations(), app2.GetAnnotations()))
 	})
 
 	t.Run("notSame-nil-map", func(t *testing.T) {
 		app1 := NewApp("test", WithAnnotations(nil))
 		app2 := NewApp("test", WithAnnotations(map[string]string{
-			subscriptions.SubscribeAnnotationKey("my-trigger", "mock"): "recipient",
+			controller.SubscribeAnnotationKey("my-trigger", "mock"): "recipient",
 		}))
-		assert.False(t, isTheSame(app1.GetAnnotations(), app2.GetAnnotations()))
+		assert.False(t, mapsEqual(app1.GetAnnotations(), app2.GetAnnotations()))
 	})
 
 	t.Run("notSame-map-nil", func(t *testing.T) {
 		app1 := NewApp("test", WithAnnotations(map[string]string{
-			subscriptions.SubscribeAnnotationKey("my-trigger", "mock"): "recipient",
+			controller.SubscribeAnnotationKey("my-trigger", "mock"): "recipient",
 		}))
 		app2 := NewApp("test", WithAnnotations(nil))
-		assert.False(t, isTheSame(app1.GetAnnotations(), app2.GetAnnotations()))
+		assert.False(t, mapsEqual(app1.GetAnnotations(), app2.GetAnnotations()))
 	})
 
 	t.Run("notSame-map-map", func(t *testing.T) {
 		app1 := NewApp("test", WithAnnotations(map[string]string{
-			subscriptions.SubscribeAnnotationKey("my-trigger", "mock"): "recipient",
+			controller.SubscribeAnnotationKey("my-trigger", "mock"): "recipient",
 		}))
 		app2 := NewApp("test", WithAnnotations(map[string]string{
-			subscriptions.SubscribeAnnotationKey("my-trigger", "mock"): "recipient2",
+			controller.SubscribeAnnotationKey("my-trigger", "mock"): "recipient2",
 		}))
-		assert.False(t, isTheSame(app1.GetAnnotations(), app2.GetAnnotations()))
+		assert.False(t, mapsEqual(app1.GetAnnotations(), app2.GetAnnotations()))
 	})
 }
