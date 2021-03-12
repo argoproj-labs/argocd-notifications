@@ -65,9 +65,7 @@ jobs:
           push: true
           tags: |
             argoproj-labs/argocd-notifications:${{ env.IMAGE_TAG }}
-            argoproj-labs/argocd-notifications:latest
             ghcr.io/argoproj-labs/argocd-notifications:${{ env.IMAGE_TAG }}
-            ghcr.io/argoproj-labs/argocd-notifications:latest
           file: ./Dockerfile
           build-args: |
               IMAGE_TAG=${{ env.IMAGE_TAG }}
