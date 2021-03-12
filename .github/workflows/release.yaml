@@ -64,7 +64,7 @@ jobs:
           platforms: linux/amd64,linux/arm64,linux/arm
           push: true
           tags: |
-            argoproj-labs/argocd-notifications:${{ env.IMAGE_TAG }}
+            argoprojlabs/argocd-notifications:${{ env.IMAGE_TAG }}
             ghcr.io/argoproj-labs/argocd-notifications:${{ env.IMAGE_TAG }}
           file: ./Dockerfile
           build-args: |
