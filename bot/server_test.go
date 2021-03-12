@@ -3,7 +3,8 @@ package bot
 import (
 	"testing"
 
-	"github.com/argoproj-labs/argocd-notifications/pkg/subscriptions"
+	"github.com/argoproj-labs/argocd-notifications/pkg/controller"
+
 	. "github.com/argoproj-labs/argocd-notifications/testing"
 
 	"github.com/stretchr/testify/assert"
@@ -27,7 +28,7 @@ func TestListRecipients_NoSubscriptions(t *testing.T) {
 func TestListSubscriptions_HasAppSubscription(t *testing.T) {
 	client := fake.NewSimpleDynamicClient(runtime.NewScheme(),
 		NewApp("foo"),
-		NewApp("bar", WithAnnotations(map[string]string{subscriptions.SubscribeAnnotationKey("my-trigger", "slack"): "general"})))
+		NewApp("bar", WithAnnotations(map[string]string{controller.SubscribeAnnotationKey("my-trigger", "slack"): "general"})))
 	s := NewServer(client, TestNamespace)
 
 	response, err := s.listSubscriptions("slack", "general")
@@ -40,7 +41,7 @@ func TestListSubscriptions_HasAppSubscription(t *testing.T) {
 func TestListSubscriptions_HasAppProjSubscription(t *testing.T) {
 	client := fake.NewSimpleDynamicClient(runtime.NewScheme(),
 		NewApp("foo"),
-		NewProject("bar", WithAnnotations(map[string]string{subscriptions.SubscribeAnnotationKey("my-trigger", "slack"): "general"})))
+		NewProject("bar", WithAnnotations(map[string]string{controller.SubscribeAnnotationKey("my-trigger", "slack"): "general"})))
 	s := NewServer(client, TestNamespace)
 
 	response, err := s.listSubscriptions("slack", "general")
@@ -52,7 +53,7 @@ func TestListSubscriptions_HasAppProjSubscription(t *testing.T) {
 
 func TestUpdateSubscription_SubscribeToApp(t *testing.T) {
 	client := fake.NewSimpleDynamicClient(runtime.NewScheme(), NewApp("foo", WithAnnotations(map[string]string{
-		subscriptions.SubscribeAnnotationKey("my-trigger", "slack"): "channel1",
+		controller.SubscribeAnnotationKey("my-trigger", "slack"): "channel1",
 	})))
 
 	var patches []map[string]interface{}
@@ -65,13 +66,13 @@ func TestUpdateSubscription_SubscribeToApp(t *testing.T) {
 	assert.Equal(t, "subscription updated", resp)
 	assert.Len(t, patches, 1)
 
-	val, _, _ := unstructured.NestedString(patches[0], "metadata", "annotations", subscriptions.SubscribeAnnotationKey("my-trigger", "slack"))
+	val, _, _ := unstructured.NestedString(patches[0], "metadata", "annotations", controller.SubscribeAnnotationKey("my-trigger", "slack"))
 	assert.Equal(t, val, "channel1;channel2")
 }
 
 func TestUpdateSubscription_SubscribeToAppTrigger(t *testing.T) {
 	client := fake.NewSimpleDynamicClient(runtime.NewScheme(), NewApp("foo", WithAnnotations(map[string]string{
-		subscriptions.SubscribeAnnotationKey("my-trigger", "slack"): "channel1",
+		controller.SubscribeAnnotationKey("my-trigger", "slack"): "channel1",
 	})))
 
 	var patches []map[string]interface{}
@@ -85,7 +86,7 @@ func TestUpdateSubscription_SubscribeToAppTrigger(t *testing.T) {
 	assert.Len(t, patches, 1)
 
 	patch := patches[0]
-	val, _, _ := unstructured.NestedString(patch, "metadata", "annotations", subscriptions.SubscribeAnnotationKey("on-sync-failed", "slack"))
+	val, _, _ := unstructured.NestedString(patch, "metadata", "annotations", controller.SubscribeAnnotationKey("on-sync-failed", "slack"))
 	assert.Equal(t, "channel2", val)
 }
 
