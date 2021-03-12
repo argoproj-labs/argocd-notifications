@@ -11,7 +11,20 @@
 1. Once installation is completed copy the OAuth token. 
 ![5](https://user-images.githubusercontent.com/426437/73604312-4d495b80-4543-11ea-832b-a9d9d5e4bc29.png)
 
-1. Finally use the OAuth token to configure the slack integration in the `argocd-notifications-secret` secret: 
+1. Create a public or private channel, for this example `my_channel`
+1. Add your bot to this channel **otherwise it won't work**
+9. Store token in argocd_notifications-secret Secret
+ 
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: argocd-notifications-secret
+stringData:
+  slack-token: <auth-token>
+```
+
+10. Finally use the OAuth token to configure the Slack integration in the `argocd-notifications-secret` secret: 
 
 ```yaml
 apiVersion: v1
@@ -26,13 +39,14 @@ data:
     icon: <override-icon> # optional icon for the message (supports both emoij and url notation)
 ```
 
+1. Create a subscription for your Slack integration:
+
 ```yaml
-apiVersion: v1
-kind: Secret
+apiVersion: argoproj.io/v1alpha1
+kind: Application
 metadata:
-  name: argocd-notifications-secret
-stringData:
-  slack-token: <auth-token>
+  annotations:
+    notifications.argoproj.io/subscribe.on-sync-succeeded.slack: my_channel
 ```
 
 ## Templates
