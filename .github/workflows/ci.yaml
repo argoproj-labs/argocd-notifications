@@ -33,7 +33,6 @@ jobs:
           GOROOT: ""
       - uses: codecov/codecov-action@v1
         with:
-          token: ${{ secrets.CODECOV_TOKEN }} #required
           file: ./coverage.out
   publish:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'

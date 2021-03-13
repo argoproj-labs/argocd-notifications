@@ -26,7 +26,6 @@ jobs:
           GOROOT: ""
       - uses: codecov/codecov-action@v1
         with:
-          token: ${{ secrets.CODECOV_TOKEN }} #required
           file: ./coverage.out
   publish:
     runs-on: ubuntu-latest
