@@ -14,9 +14,9 @@ data:
     token: $telegram-token
 ```
 
-3. Create new Telegram [channel](https://telegram.org/blog/channels), this channel should be [public to have a username](https://telegram.org/faq_channels?ln=f#q-how-are-public-and-private-channels-different).
+3. Create new Telegram [channel](https://telegram.org/blog/channels).
 4. Add your bot as an administrator.
-5. Use this channel `username` in the subscription for your Telegram integration:
+5. Use this channel `username` (public channel) or `chatID` (private channel) in the subscription for your Telegram integration:
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -24,4 +24,12 @@ kind: Application
 metadata:
   annotations:
     notifications.argoproj.io/subscribe.on-sync-succeeded.telegram: username
+```
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    notifications.argoproj.io/subscribe.on-sync-succeeded.telegram: -1000000000000
 ```
