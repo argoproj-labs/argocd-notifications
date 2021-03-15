@@ -1,6 +1,11 @@
 package services
 
-import tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+import (
+	"strconv"
+	"strings"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+)
 
 type TelegramOptions struct {
 	Token string `json:"token"`
@@ -19,6 +24,23 @@ func (s telegramService) Send(notification Notification, dest Destination) error
 	if err != nil {
 		return err
 	}
-	_, err = bot.Send(tgbotapi.NewMessageToChannel("@"+dest.Recipient, notification.Message))
-	return err
+
+	if strings.HasPrefix(dest.Recipient, "-") {
+		chatID, err := strconv.ParseInt(dest.Recipient, 10, 64)
+		if err != nil {
+			return err
+		}
+
+		_, err = bot.Send(tgbotapi.NewMessage(chatID, notification.Message))
+		if err != nil {
+			return err
+		}
+	} else {
+		_, err := bot.Send(tgbotapi.NewMessageToChannel("@"+dest.Recipient, notification.Message))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
