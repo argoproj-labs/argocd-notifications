@@ -18,14 +18,13 @@ service configuration using `$<secret-key>` format. For example `$slack-token` r
 
 ## Custom Names
 
-Service custom names allow configuring two instances of the same service type. For example, in addition to slack, you might register slack compatible service
-that leverages [Mattermost](https://mattermost.com/):
+Service custom names allow configuring two instances of the same service type.
 
 ```yaml
-  #  Slack based notifier with name mattermost
-  service.slack.mattermost: |
-    apiURL: https://my-mattermost-url.com/api
-    token: $slack-token
+  service.slack.workspace1: |
+    token: $slack-token-workspace1
+  service.slack.workspace2: |
+    token: $slack-token-workspace2
 ```
 
 ```yaml
@@ -33,7 +32,8 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   annotations:
-    notifications.argoproj.io/subscribe.on-sync-succeeded.mattermost: my-channel
+    notifications.argoproj.io/subscribe.on-sync-succeeded.workspace1: my-channel
+    notifications.argoproj.io/subscribe.on-sync-succeeded.workspace2: my-channel
 ```
 
 ## Service Types
@@ -41,6 +41,7 @@ metadata:
 * [Email](./email.md)
 * [GitHub](./github.md)
 * [Slack](./slack.md)
+* [Mattermost](./mattermost.md)
 * [Opsgenie](./opsgenie.md)
 * [Grafana](./grafana.md)
 * [Webhook](./webhook.md)

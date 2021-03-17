@@ -33,7 +33,7 @@ metadata:
   name: argocd-notifications-cm
 data:
   service.slack: |
-    apiURL: <url>                 # optional URL, e.g. https://my-mattermost-url.com/api
+    apiURL: <url>                 # optional URL, e.g. https://example.com/api
     token: $slack-token
     username: <override-username> # optional username
     icon: <override-icon> # optional icon for the message (supports both emoij and url notation)
