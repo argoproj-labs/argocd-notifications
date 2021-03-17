@@ -117,7 +117,7 @@ installationID: 67890
 
 	secrets := v1.Secret{
 		Data: map[string][]byte{
-			"github-privateKey":  []byte("A\nValue\nOn\nMultiple\nLines"),
+			"github-privateKey": []byte("A\nValue\nOn\nMultiple\nLines"),
 		},
 	}
 
