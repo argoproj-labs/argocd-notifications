@@ -145,6 +145,8 @@ func (c *notificationController) processApp(app *unstructured.Unstructured, logE
 		logEntry.Infof("Trigger %s result: %v", trigger, res)
 
 		for _, cr := range res {
+			c.metricsRegistry.IncTriggerEvaluationsCounter(trigger, cr.Triggered)
+
 			if !cr.Triggered {
 				for _, to := range destinations {
 					appState.SetAlreadyNotified(trigger, cr, to, false)
