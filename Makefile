@@ -21,8 +21,12 @@ manifests:
 	kustomize build manifests/controller > manifests/install.yaml
 	kustomize build manifests/bot > manifests/install-bot.yaml
 
+.PHONY: tools
+tools:
+	go install github.com/golang/mock/mockgen@v1.5.0
+
 .PHONY: generate
-generate: manifests catalog
+generate: manifests catalog tools
 	go generate ./...
 
 .PHONY: build
