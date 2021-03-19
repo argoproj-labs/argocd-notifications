@@ -11,13 +11,14 @@ import (
 )
 
 type Notification struct {
-	Message  string                `json:"message,omitempty"`
-	Email    *EmailNotification    `json:"email,omitempty"`
-	Slack    *SlackNotification    `json:"slack,omitempty"`
-	Teams    *TeamsNotification    `json:"teams,omitempty"`
-	Webhook  WebhookNotifications  `json:"webhook,omitempty"`
-	Opsgenie *OpsgenieNotification `json:"opsgenie,omitempty"`
-	GitHub   *GitHubNotification   `json:"github,omitempty"`
+	Message    string                  `json:"message,omitempty"`
+	Email      *EmailNotification      `json:"email,omitempty"`
+	Slack      *SlackNotification      `json:"slack,omitempty"`
+	Mattermost *MattermostNotification `json:"mattermost,omitempty"`
+	Teams      *TeamsNotification      `json:"teams,omitempty"`
+	Webhook    WebhookNotifications    `json:"webhook,omitempty"`
+	Opsgenie   *OpsgenieNotification   `json:"opsgenie,omitempty"`
+	GitHub     *GitHubNotification     `json:"github,omitempty"`
 }
 
 // Destination holds notification destination details
@@ -30,6 +31,9 @@ func (n *Notification) GetTemplater(name string, f texttemplate.FuncMap) (Templa
 	var sources []TemplaterSource
 	if n.Slack != nil {
 		sources = append(sources, n.Slack)
+	}
+	if n.Mattermost != nil {
+		sources = append(sources, n.Mattermost)
 	}
 	if n.Email != nil {
 		sources = append(sources, n.Email)
@@ -73,6 +77,12 @@ func NewService(serviceType string, optsData []byte) (NotificationService, error
 			return nil, err
 		}
 		return NewSlackService(opts), nil
+	case "mattermost":
+		var opts MattermostOptions
+		if err := yaml.Unmarshal(optsData, &opts); err != nil {
+			return nil, err
+		}
+		return NewMattermostService(opts), nil
 	case "grafana":
 		var opts GrafanaOptions
 		if err := yaml.Unmarshal(optsData, &opts); err != nil {
