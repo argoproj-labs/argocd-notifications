@@ -5,35 +5,36 @@
 package mocks
 
 import (
+	reflect "reflect"
+
 	services "github.com/argoproj-labs/argocd-notifications/pkg/services"
 	gomock "github.com/golang/mock/gomock"
-	reflect "reflect"
 )
 
-// MockNotificationService is a mock of NotificationService interface
+// MockNotificationService is a mock of NotificationService interface.
 type MockNotificationService struct {
 	ctrl     *gomock.Controller
 	recorder *MockNotificationServiceMockRecorder
 }
 
-// MockNotificationServiceMockRecorder is the mock recorder for MockNotificationService
+// MockNotificationServiceMockRecorder is the mock recorder for MockNotificationService.
 type MockNotificationServiceMockRecorder struct {
 	mock *MockNotificationService
 }
 
-// NewMockNotificationService creates a new mock instance
+// NewMockNotificationService creates a new mock instance.
 func NewMockNotificationService(ctrl *gomock.Controller) *MockNotificationService {
 	mock := &MockNotificationService{ctrl: ctrl}
 	mock.recorder = &MockNotificationServiceMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockNotificationService) EXPECT() *MockNotificationServiceMockRecorder {
 	return m.recorder
 }
 
-// Send mocks base method
+// Send mocks base method.
 func (m *MockNotificationService) Send(arg0 services.Notification, arg1 services.Destination) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Send", arg0, arg1)
@@ -41,7 +42,7 @@ func (m *MockNotificationService) Send(arg0 services.Notification, arg1 services
 	return ret0
 }
 
-// Send indicates an expected call of Send
+// Send indicates an expected call of Send.
 func (mr *MockNotificationServiceMockRecorder) Send(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Send", reflect.TypeOf((*MockNotificationService)(nil).Send), arg0, arg1)

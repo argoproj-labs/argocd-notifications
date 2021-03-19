@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM golang:1.15.3 as builder
+FROM --platform=$BUILDPLATFORM golang:1.16.2 as builder
 
 RUN apt-get update && apt-get install ca-certificates
 

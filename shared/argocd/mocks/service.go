@@ -6,36 +6,37 @@ package mocks
 
 import (
 	context "context"
+	reflect "reflect"
+
 	shared "github.com/argoproj-labs/argocd-notifications/expr/shared"
 	v1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	gomock "github.com/golang/mock/gomock"
-	reflect "reflect"
 )
 
-// MockService is a mock of Service interface
+// MockService is a mock of Service interface.
 type MockService struct {
 	ctrl     *gomock.Controller
 	recorder *MockServiceMockRecorder
 }
 
-// MockServiceMockRecorder is the mock recorder for MockService
+// MockServiceMockRecorder is the mock recorder for MockService.
 type MockServiceMockRecorder struct {
 	mock *MockService
 }
 
-// NewMockService creates a new mock instance
+// NewMockService creates a new mock instance.
 func NewMockService(ctrl *gomock.Controller) *MockService {
 	mock := &MockService{ctrl: ctrl}
 	mock.recorder = &MockServiceMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockService) EXPECT() *MockServiceMockRecorder {
 	return m.recorder
 }
 
-// GetAppDetails mocks base method
+// GetAppDetails mocks base method.
 func (m *MockService) GetAppDetails(arg0 context.Context, arg1 *v1alpha1.ApplicationSource) (*shared.AppDetail, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAppDetails", arg0, arg1)
@@ -44,13 +45,13 @@ func (m *MockService) GetAppDetails(arg0 context.Context, arg1 *v1alpha1.Applica
 	return ret0, ret1
 }
 
-// GetAppDetails indicates an expected call of GetAppDetails
+// GetAppDetails indicates an expected call of GetAppDetails.
 func (mr *MockServiceMockRecorder) GetAppDetails(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAppDetails", reflect.TypeOf((*MockService)(nil).GetAppDetails), arg0, arg1)
 }
 
-// GetCommitMetadata mocks base method
+// GetCommitMetadata mocks base method.
 func (m *MockService) GetCommitMetadata(arg0 context.Context, arg1, arg2 string) (*shared.CommitMetadata, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetCommitMetadata", arg0, arg1, arg2)
@@ -59,7 +60,7 @@ func (m *MockService) GetCommitMetadata(arg0 context.Context, arg1, arg2 string)
 	return ret0, ret1
 }
 
-// GetCommitMetadata indicates an expected call of GetCommitMetadata
+// GetCommitMetadata indicates an expected call of GetCommitMetadata.
 func (mr *MockServiceMockRecorder) GetCommitMetadata(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCommitMetadata", reflect.TypeOf((*MockService)(nil).GetCommitMetadata), arg0, arg1, arg2)
