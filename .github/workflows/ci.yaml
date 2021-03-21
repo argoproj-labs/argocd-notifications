@@ -14,42 +14,15 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
-      - uses: actions/cache@v1
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-      - uses: actions/setup-go@v1
-        with:
-          go-version: '1.16.2'
-      - name: Add ~/go/bin to PATH
-        run: |
-          echo "/home/runner/go/bin" >> $GITHUB_PATH
-      - name: Validate code generation
-        run: |
-          set -xo pipefail
-          go mod download && go mod tidy && make generate
-          git diff --exit-code -- .
-      - run: make test
-      - uses: golangci/golangci-lint-action@v2
-        with:
-          version: v1.38.0
-          args: --timeout 5m
-        env:
-          GOROOT: ""
-      - uses: codecov/codecov-action@v1
-        with:
-          file: ./coverage.out
+      -
+        name: Checkout repo
+        uses: actions/checkout@master
+      - uses: ./.github/workflows/build
   publish:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
-      - 
-        name: Checkout repo
-        uses: actions/checkout@master
-      - 
+      -
         name: Build image tag
         run: echo "IMAGE_TAG=$(cat ./VERSION)-${GITHUB_SHA::8}" >> $GITHUB_ENV 
       -
