@@ -34,6 +34,7 @@ nav:
     - services/email.md
     - services/github.md
     - services/slack.md
+    - services/mattermost.md
     - services/opsgenie.md
     - services/grafana.md
     - services/telegram.md
