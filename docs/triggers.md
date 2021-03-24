@@ -64,6 +64,31 @@ data:
     send: [app-sync-succeeded]
 ```
 
+## Default Triggers
+
+You can use `defaultTriggers` field instead of specifying individual triggers to the annotations.
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-notifications-cm
+data:
+  # Holds list of triggers that are used by default if trigger is not specified explicitly in the subscription
+  defaultTriggers:
+    - on-sync-status-unknown
+```
+
+Specify the annotations as follows to use `defaultTriggers`.
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    notifications.argoproj.io/subscribe.slack: my-channel
+```
+
 ## Functions
 
 Triggers have access to the set of built-in functions.
