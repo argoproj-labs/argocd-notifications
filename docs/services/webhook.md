@@ -113,3 +113,24 @@ data:
 
 type: Opaque
 ```
+
+### Send form-data
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-notifications-cm
+data:
+  service.webhook.form: |
+    url: https://form.example.com
+    headers:
+    - name: Content-Type
+      value: application/x-www-form-urlencoded
+
+  template.form-data: |
+    webhook:
+      form:
+        method: POST
+        body: key1=value1&key2=value2
+```
