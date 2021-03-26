@@ -37,7 +37,7 @@ data:
         }]
 
   # Holds list of triggers that are used by default if trigger is not specified explicitly in the subscription
-  defaultTriggers:
+  defaultTriggers: |
     - on-sync-status-unknown
 
   # Notification services are used to deliver message.
