@@ -66,3 +66,37 @@ helm install argo/argocd-notifications --generate-name \
 ```
 
 For more information or to contribute, check out the [argoproj/argo-helm repository](https://github.com/argoproj/argo-helm/tree/master/charts/argocd-notifications).
+
+## Kustomize Getting Started
+
+argocd-notification manifests can also be installed using [Kustomize](https://kustomize.io/). To install
+argocd-notifications, we recommended saving a tagged release of the `install.yaml`:
+
+```shell
+curl -o argocd-notifications-v1.0.2-install.yaml https://github.com/argoproj-labs/argocd-notifications/blob/v1.0.2/manifests/install.yaml
+```
+
+The tagged release should then be included in a `kustomization.yaml`:
+```yaml
+namespace: argocd
+resources:
+- argocd-notifications-v1.0.2-install.yaml
+```
+
+If you would like to also install Triggers and Templates from the Catalog, we recommend
+saving a tagged release of the catalog `install.yaml`:
+
+```shell
+curl -o argocd-notifications-catalog-v1.0.2-install.yaml https://github.com/argoproj-labs/argocd-notifications/blob/v1.0.2/catalog/install.yaml
+```
+
+The tagged release should then be patched into the base argocd-notifications install
+manifest in your `kustomization.yaml`:
+
+```yaml
+namespace: argocd
+resources:
+- argocd-notifications-v1.0.2-install.yaml
+patchesStrategicMerge:
+- argocd-notifications-catalog-v1.0.2-install.yaml
+```
