@@ -75,7 +75,7 @@ metadata:
   name: argocd-notifications-cm
 data:
   # Holds list of triggers that are used by default if trigger is not specified explicitly in the subscription
-  defaultTriggers:
+  defaultTriggers: |
     - on-sync-status-unknown
 ```
 
