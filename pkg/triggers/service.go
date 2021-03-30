@@ -4,9 +4,6 @@ import (
 	"crypto/sha1"
 	"encoding/base64"
 	"fmt"
-	"strings"
-
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
 	"github.com/antonmedv/expr"
 	"github.com/antonmedv/expr/vm"
@@ -34,11 +31,16 @@ type Service interface {
 
 type service struct {
 	compiledConditions map[string]*vm.Program
+	compiledOncePer    map[string]*vm.Program
 	triggers           map[string][]Condition
 }
 
 func NewService(triggers map[string][]Condition) (*service, error) {
-	svc := service{map[string]*vm.Program{}, triggers}
+	svc := service{
+		compiledConditions: map[string]*vm.Program{},
+		compiledOncePer:    map[string]*vm.Program{},
+		triggers:           triggers,
+	}
 	for _, t := range triggers {
 		for _, condition := range t {
 			prog, err := expr.Compile(condition.When)
@@ -46,6 +48,14 @@ func NewService(triggers map[string][]Condition) (*service, error) {
 				return nil, err
 			}
 			svc.compiledConditions[condition.When] = prog
+
+			if condition.OncePer != "" {
+				prog, err := expr.Compile(condition.OncePer)
+				if err != nil {
+					return nil, err
+				}
+				svc.compiledOncePer[condition.OncePer] = prog
+			}
 		}
 	}
 	return &svc, nil
@@ -64,26 +74,24 @@ func (svc *service) Run(triggerName string, vars map[string]interface{}) ([]Cond
 	}
 	var res []ConditionResult
 	for i, condition := range t {
-		prog, ok := svc.compiledConditions[condition.When]
-		if !ok {
-			return nil, fmt.Errorf("trigger configiration has changed after initialization")
-		}
 		conditionResult := ConditionResult{
 			Templates: condition.Send,
 			Key:       fmt.Sprintf("[%d].%s", i, hash(condition.When)),
 		}
-		// ignore execution error and treat and false result
-		val, err := expr.Run(prog, vars)
-		if err == nil {
+
+		if prog, ok := svc.compiledConditions[condition.When]; !ok {
+			return nil, fmt.Errorf("trigger configiration has changed after initialization")
+		} else if val, err := expr.Run(prog, vars); err == nil { // ignore execution error and treat and false result
 			boolRes, ok := val.(bool)
 			conditionResult.Triggered = ok && boolRes
 		}
 
-		if condition.OncePer != "" {
-			if oncePer, ok, err := unstructured.NestedFieldNoCopy(vars, strings.Split(condition.OncePer, ".")...); err == nil && ok {
-				conditionResult.OncePer = fmt.Sprintf("%v", oncePer)
+		if prog, ok := svc.compiledOncePer[condition.OncePer]; ok {
+			if val, err := expr.Run(prog, vars); err == nil { // ignore execution error and treat and false result
+				conditionResult.OncePer = fmt.Sprintf("%v", val)
 			}
 		}
+
 		res = append(res, conditionResult)
 	}
 
