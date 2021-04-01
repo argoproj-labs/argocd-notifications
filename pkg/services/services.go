@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 	texttemplate "text/template"
+	_ "time/tzdata"
 
 	"github.com/ghodss/yaml"
 )
