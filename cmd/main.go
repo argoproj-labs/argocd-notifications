@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	argocert "github.com/argoproj/argo-cd/util/cert"
+	argocert "github.com/argoproj/argo-cd/v2/util/cert"
 	"github.com/spf13/cobra"
 
 	"github.com/argoproj-labs/argocd-notifications/cmd/tools"

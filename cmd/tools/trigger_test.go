@@ -14,7 +14,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/dynamic"
-	dynamicfake "k8s.io/client-go/dynamic/fake"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/fake"
 
@@ -53,7 +52,7 @@ func newTestContext(stdout io.Writer, stderr io.Writer, data map[string]string, 
 		secretPath:    ":empty",
 		configMapPath: tmpFile.Name(),
 		getK8SClients: func() (kubernetes.Interface, dynamic.Interface, string, error) {
-			dynamicClient := dynamicfake.NewSimpleDynamicClient(runtime.NewScheme(), apps...)
+			dynamicClient := testingutil.NewFakeClient(apps...)
 			return fake.NewSimpleClientset(), dynamicClient, "default", nil
 		},
 	}

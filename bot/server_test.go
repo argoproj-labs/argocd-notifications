@@ -9,13 +9,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/dynamic/fake"
 	"k8s.io/utils/pointer"
 )
 
 func TestListRecipients_NoSubscriptions(t *testing.T) {
-	client := fake.NewSimpleDynamicClient(runtime.NewScheme())
+	client := NewFakeClient()
 	s := NewServer(client, TestNamespace)
 
 	response, err := s.listSubscriptions("slack", "general")
@@ -26,7 +24,7 @@ func TestListRecipients_NoSubscriptions(t *testing.T) {
 }
 
 func TestListSubscriptions_HasAppSubscription(t *testing.T) {
-	client := fake.NewSimpleDynamicClient(runtime.NewScheme(),
+	client := NewFakeClient(
 		NewApp("foo"),
 		NewApp("bar", WithAnnotations(map[string]string{controller.SubscribeAnnotationKey("my-trigger", "slack"): "general"})))
 	s := NewServer(client, TestNamespace)
@@ -39,7 +37,7 @@ func TestListSubscriptions_HasAppSubscription(t *testing.T) {
 }
 
 func TestListSubscriptions_HasAppProjSubscription(t *testing.T) {
-	client := fake.NewSimpleDynamicClient(runtime.NewScheme(),
+	client := NewFakeClient(
 		NewApp("foo"),
 		NewProject("bar", WithAnnotations(map[string]string{controller.SubscribeAnnotationKey("my-trigger", "slack"): "general"})))
 	s := NewServer(client, TestNamespace)
@@ -52,7 +50,7 @@ func TestListSubscriptions_HasAppProjSubscription(t *testing.T) {
 }
 
 func TestUpdateSubscription_SubscribeToApp(t *testing.T) {
-	client := fake.NewSimpleDynamicClient(runtime.NewScheme(), NewApp("foo", WithAnnotations(map[string]string{
+	client := NewFakeClient(NewApp("foo", WithAnnotations(map[string]string{
 		controller.SubscribeAnnotationKey("my-trigger", "slack"): "channel1",
 	})))
 
@@ -71,7 +69,7 @@ func TestUpdateSubscription_SubscribeToApp(t *testing.T) {
 }
 
 func TestUpdateSubscription_SubscribeToAppTrigger(t *testing.T) {
-	client := fake.NewSimpleDynamicClient(runtime.NewScheme(), NewApp("foo", WithAnnotations(map[string]string{
+	client := NewFakeClient(NewApp("foo", WithAnnotations(map[string]string{
 		controller.SubscribeAnnotationKey("my-trigger", "slack"): "channel1",
 	})))
 
