@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
+	"github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
 
 	"github.com/argoproj-labs/argocd-notifications/expr/shared"
 	"github.com/argoproj-labs/argocd-notifications/pkg/util/text"

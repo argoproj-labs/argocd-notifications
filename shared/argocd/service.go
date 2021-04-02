@@ -4,10 +4,10 @@ import (
 	"context"
 
 	"github.com/argoproj-labs/argocd-notifications/expr/shared"
-	"github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
-	"github.com/argoproj/argo-cd/reposerver/apiclient"
-	"github.com/argoproj/argo-cd/util/db"
-	"github.com/argoproj/argo-cd/util/settings"
+	"github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
+	"github.com/argoproj/argo-cd/v2/reposerver/apiclient"
+	"github.com/argoproj/argo-cd/v2/util/db"
+	"github.com/argoproj/argo-cd/v2/util/settings"
 	log "github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
 )
@@ -22,7 +22,7 @@ type Service interface {
 func NewArgoCDService(clientset kubernetes.Interface, namespace string, repoServerAddress string) (*argoCDService, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	settingsMgr := settings.NewSettingsManager(ctx, clientset, namespace)
-	repoClientset := apiclient.NewRepoServerClientset(repoServerAddress, 5)
+	repoClientset := apiclient.NewRepoServerClientset(repoServerAddress, 5, apiclient.TLSConfiguration{})
 	closer, repoClient, err := repoClientset.NewRepoServerClient()
 	if err != nil {
 		cancel()

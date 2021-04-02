@@ -13,7 +13,6 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/dynamic/fake"
 	kubetesting "k8s.io/client-go/testing"
 
 	"github.com/argoproj-labs/argocd-notifications/pkg"
@@ -64,7 +63,7 @@ func TestSendsNotificationIfTriggered(t *testing.T) {
 		controller.SubscribeAnnotationKey("my-trigger", "mock"): "recipient",
 	}))
 
-	ctrl, api, err := newController(t, ctx, fake.NewSimpleDynamicClient(runtime.NewScheme(), app))
+	ctrl, api, err := newController(t, ctx, NewFakeClient(app))
 	assert.NoError(t, err)
 
 	receivedVars := map[string]interface{}{}
@@ -92,7 +91,7 @@ func TestSendsNotificationIfProjectTriggered(t *testing.T) {
 	}))
 	app := NewApp("test", WithProject("default"))
 
-	ctrl, api, err := newController(t, ctx, fake.NewSimpleDynamicClient(runtime.NewScheme(), app, appProj))
+	ctrl, api, err := newController(t, ctx, NewFakeClient(app, appProj))
 	assert.NoError(t, err)
 
 	receivedVars := map[string]interface{}{}
@@ -121,7 +120,7 @@ func TestDoesNotSendNotificationIfAnnotationPresent(t *testing.T) {
 		controller.SubscribeAnnotationKey("my-trigger", "mock"): "recipient",
 		controller.NotifiedAnnotationKey:                        mustToJson(state),
 	}))
-	ctrl, api, err := newController(t, ctx, fake.NewSimpleDynamicClient(runtime.NewScheme(), app))
+	ctrl, api, err := newController(t, ctx, NewFakeClient(app))
 	assert.NoError(t, err)
 
 	api.EXPECT().RunTrigger("my-trigger", gomock.Any()).Return([]triggers.ConditionResult{{Triggered: true, Templates: []string{"test"}}}, nil)
@@ -141,7 +140,7 @@ func TestRemovesAnnotationIfNoTrigger(t *testing.T) {
 		controller.SubscribeAnnotationKey("my-trigger", "mock"): "recipient",
 		controller.NotifiedAnnotationKey:                        mustToJson(state),
 	}))
-	ctrl, api, err := newController(t, ctx, fake.NewSimpleDynamicClient(runtime.NewScheme(), app))
+	ctrl, api, err := newController(t, ctx, NewFakeClient(app))
 	assert.NoError(t, err)
 
 	api.EXPECT().RunTrigger("my-trigger", gomock.Any()).Return([]triggers.ConditionResult{{Triggered: false}}, nil)
@@ -167,7 +166,7 @@ func TestUpdatedAnnotationsSavedAsPatch(t *testing.T) {
 
 	patchCh := make(chan []byte)
 
-	client := fake.NewSimpleDynamicClient(runtime.NewScheme(), app)
+	client := NewFakeClient(app)
 	client.PrependReactor("patch", "*", func(action kubetesting.Action) (handled bool, ret runtime.Object, err error) {
 		patchCh <- action.(kubetesting.PatchAction).GetPatch()
 		return true, nil, nil
@@ -195,7 +194,7 @@ func TestUpdatedAnnotationsSavedAsPatch(t *testing.T) {
 func TestAppSyncStatusRefreshed(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
-	ctrl, _, err := newController(t, ctx, fake.NewSimpleDynamicClient(runtime.NewScheme()))
+	ctrl, _, err := newController(t, ctx, NewFakeClient())
 	assert.NoError(t, err)
 
 	for name, tc := range testsAppSyncStatusRefreshed {

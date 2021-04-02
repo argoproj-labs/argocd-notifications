@@ -2,10 +2,6 @@
 
 Prints information about configured templates
 
-### Synopsis
-
-Prints information about configured templates
-
 ```
 argocd-notifications template get [flags]
 ```
@@ -54,10 +50,6 @@ argocd-notifications template get app-sync-succeeded -o=yaml
 ```
 
 ## argocd-notifications template notify
-
-Generates notification using the specified template and send it to specified recipients
-
-### Synopsis
 
 Generates notification using the specified template and send it to specified recipients
 
@@ -113,10 +105,6 @@ argocd-notifications template notify app-sync-succeeded guestbook
 
 Prints information about configured triggers
 
-### Synopsis
-
-Prints information about configured triggers
-
 ```
 argocd-notifications trigger get [flags]
 ```
@@ -165,10 +153,6 @@ argocd-notifications trigger get on-sync-failed -o=yaml
 ```
 
 ## argocd-notifications trigger run
-
-Evaluates specified trigger condition and prints the result
-
-### Synopsis
 
 Evaluates specified trigger condition and prints the result
 

@@ -9,7 +9,7 @@ import (
 	reflect "reflect"
 
 	shared "github.com/argoproj-labs/argocd-notifications/expr/shared"
-	v1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
+	v1alpha1 "github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
 	gomock "github.com/golang/mock/gomock"
 )
 

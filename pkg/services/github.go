@@ -8,7 +8,7 @@ import (
 	"strings"
 	texttemplate "text/template"
 
-	"github.com/argoproj/argo-cd/util/text"
+	"github.com/argoproj/argo-cd/v2/util/text"
 	"github.com/bradleyfalzon/ghinstallation"
 	"github.com/google/go-github/v33/github"
 	log "github.com/sirupsen/logrus"
