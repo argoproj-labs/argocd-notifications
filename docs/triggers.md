@@ -64,6 +64,22 @@ data:
     send: [app-sync-succeeded]
 ```
 
+### oncePer
+
+The `oncePer` filed is supported like as follows.
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    example.com/version: v0.1
+```
+
+```yaml
+oncePer: app.metadata.annotations["example.com/version"]
+```
+
 ## Default Triggers
 
 You can use `defaultTriggers` field instead of specifying individual triggers to the annotations.
