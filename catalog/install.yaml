@@ -1,5 +1,17 @@
 apiVersion: v1
 data:
+  template.app-created: |
+    email:
+      subject: Application {{.app.metadata.name}} has been created.
+    message: Application {{.app.metadata.name}} has been created.
+    teams:
+      title: Application {{.app.metadata.name}} has been created.
+  template.app-deleted: |
+    email:
+      subject: Application {{.app.metadata.name}} has been deleted.
+    message: Application {{.app.metadata.name}} has been deleted.
+    teams:
+      title: Application {{.app.metadata.name}} has been deleted.
   template.app-deployed: |
     email:
       subject: New version of an application {{.app.metadata.name}} is up and running.
@@ -451,6 +463,18 @@ data:
           }]
         }]
       title: Application {{.app.metadata.name}} has been successfully synced
+  trigger.on-created: |
+    - description: Application is created.
+      oncePer: app.metadata.name
+      send:
+      - app-created
+      when: "true"
+  trigger.on-deleted: |
+    - description: Application is deleted.
+      oncePer: app.metadata.name
+      send:
+      - app-deleted
+      when: app.metadata.deletionTimestamp != nil
   trigger.on-deployed: |
     - description: Application is synced and healthy. Triggered once per commit.
       oncePer: app.status.operationState.syncResult.revision
