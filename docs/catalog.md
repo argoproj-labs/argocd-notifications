@@ -2,6 +2,8 @@
 ## Triggers
 |          NAME          |                          DESCRIPTION                          |                      TEMPLATE                       |
 |------------------------|---------------------------------------------------------------|-----------------------------------------------------|
+| on-created             | Application is created.                                       | [app-created](#app-created)                         |
+| on-deleted             | Application is deleted.                                       | [app-deleted](#app-deleted)                         |
 | on-deployed            | Application is synced and healthy. Triggered once per commit. | [app-deployed](#app-deployed)                       |
 | on-health-degraded     | Application has degraded                                      | [app-health-degraded](#app-health-degraded)         |
 | on-sync-failed         | Application syncing has failed                                | [app-sync-failed](#app-sync-failed)                 |
@@ -10,6 +12,26 @@
 | on-sync-succeeded      | Application syncing has succeeded                             | [app-sync-succeeded](#app-sync-succeeded)           |
 
 ## Templates
+### app-created
+**definition**:
+```yaml
+email:
+  subject: Application {{.app.metadata.name}} has been created.
+message: Application {{.app.metadata.name}} has been created.
+teams:
+  title: Application {{.app.metadata.name}} has been created.
+
+```
+### app-deleted
+**definition**:
+```yaml
+email:
+  subject: Application {{.app.metadata.name}} has been deleted.
+message: Application {{.app.metadata.name}} has been deleted.
+teams:
+  title: Application {{.app.metadata.name}} has been deleted.
+
+```
 ### app-deployed
 **definition**:
 ```yaml
