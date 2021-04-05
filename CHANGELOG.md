@@ -1,6 +1,34 @@
 # Changelog
 
-## v1.0.0 (Unreleased)
+## v1.1.0 (Unreleased)
+
+### Features
+
+* feat: ArgoCD Notifications for Created, Deleted status (#231)
+* feat: improve oncePer evaluate (#228)
+* feat: support change timezone (#226)
+* feat: support mattermost integration (#212)
+* feat: support telegram private channel (#207)
+* feat: GitHub App integration (#180)
+* feat: MS Teams integration (#181)
+
+### Bug Fixes
+
+* fix: merging secrets into service config not working (fixes #208)
+* fix: update cached informer object instead of reloading app to avoid duplicated notifications (#204)
+* fix: static configmap and secret binding (#136)
+
+## v1.0.2 (2020-02-17)
+
+* fix: revision changes only if someone run sync operation or changes are detected (#157)
+* fix: if app has no subscriptions, then nothing to process (#174)
+* fix:improve annotation iterate (#159)
+
+## v1.0.1 (2020-01-20)
+
+* fix: the on-deployed trigger sends multiple notifications (#154)
+
+## v1.0.0 (2020-01-19)
 
 ### Features
 
