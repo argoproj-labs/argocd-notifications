@@ -105,7 +105,7 @@ kind: ConfigMap
 metadata:
   name: argocd-notifications-cm
 data:
-  service.webhook.github: |
+  service.webhook.jenkins: |
     url: http://<jenkins-host>/job/<job-name>/build?token=<job-secret>
     basicAuth:
       username: <username>
