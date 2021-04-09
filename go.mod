@@ -28,6 +28,7 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
 	github.com/whilp/git-urls v0.0.0-20191001220047-6db9661140c0
+	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba // indirect
 	gomodules.xyz/notify v0.1.0
 	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c
 	k8s.io/api v0.20.4
