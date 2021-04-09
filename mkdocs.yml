@@ -37,6 +37,7 @@ nav:
     - services/mattermost.md
     - services/opsgenie.md
     - services/grafana.md
+    - services/teams.md
     - services/telegram.md
     - services/webhook.md
   - catalog.md
