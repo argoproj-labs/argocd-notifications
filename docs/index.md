@@ -73,7 +73,7 @@ argocd-notification manifests can also be installed using [Kustomize](https://ku
 argocd-notifications, we recommended saving a tagged release of the `install.yaml`:
 
 ```shell
-curl -o argocd-notifications-v1.1.0-install.yaml https://github.com/argoproj-labs/argocd-notifications/blob/v1.1.0/manifests/install.yaml
+curl -o argocd-notifications-v1.1.0-install.yaml https://raw.githubusercontent.com/argoproj-labs/argocd-notifications/v1.1.0/manifests/install.yaml
 ```
 
 The tagged release should then be included in a `kustomization.yaml`:
@@ -87,7 +87,7 @@ If you would like to also install Triggers and Templates from the Catalog, we re
 saving a tagged release of the catalog `install.yaml`:
 
 ```shell
-curl -o argocd-notifications-catalog-v1.1.0-install.yaml https://github.com/argoproj-labs/argocd-notifications/blob/v1.1.0/catalog/install.yaml
+curl -o argocd-notifications-catalog-v1.1.0-install.yaml https://raw.githubusercontent.com/argoproj-labs/argocd-notifications/v1.1.0/catalog/install.yaml
 ```
 
 The tagged release should then be patched into the base argocd-notifications install
