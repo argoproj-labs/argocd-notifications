@@ -8,6 +8,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/argoproj-labs/argocd-notifications/expr"
 	"github.com/argoproj-labs/argocd-notifications/pkg/services"
 	"github.com/argoproj-labs/argocd-notifications/pkg/util/misc"
 	"github.com/argoproj-labs/argocd-notifications/shared/legacy"
@@ -69,7 +70,10 @@ argocd-notifications template notify app-sync-succeeded guestbook
 				if len(parts) > 1 {
 					dest.Recipient = parts[1]
 				}
-				vars := map[string]interface{}{"app": app.Object, "context": legacy.InjectLegacyVar(config.Context, dest.Service)}
+				vars := expr.Spawn(app, cmdContext.argocdService, map[string]interface{}{
+					"app":     app.Object,
+					"context": legacy.InjectLegacyVar(config.Context, dest.Service),
+				})
 				if err := config.API.Send(vars, []string{name}, dest); err != nil {
 					_, _ = fmt.Fprintf(cmdContext.stderr, "failed to notify '%s': %v\n", recipient, err)
 					return nil
