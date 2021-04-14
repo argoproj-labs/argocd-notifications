@@ -16,14 +16,20 @@ rules:
   - patch
 - apiGroups:
   - ""
+  resources:
+  - configmaps
+  - secrets
+  verbs:
+  - list
+  - watch
+- apiGroups:
+  - ""
   resourceNames:
   - argocd-notifications-cm
   resources:
   - configmaps
   verbs:
   - get
-  - list
-  - watch
 - apiGroups:
   - ""
   resourceNames:
@@ -32,5 +38,3 @@ rules:
   - secrets
   verbs:
   - get
-  - list
-  - watch
