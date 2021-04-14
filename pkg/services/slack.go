@@ -14,7 +14,11 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
+	"golang.org/x/time/rate"
 )
+
+// No rate limit unless Slack requests it (allows for Slack to control bursting)
+var rateLimiter = rate.NewLimiter(rate.Inf, 1)
 
 type SlackNotification struct {
 	Attachments string `json:"attachments,omitempty"`
@@ -110,7 +114,26 @@ func (s *slackService) Send(notification Notification, dest Destination) error {
 		msgOptions = append(msgOptions, slack.MsgOptionAttachments(attachments...), slack.MsgOptionBlocks(blocks.BlockSet...))
 	}
 
-	_, _, err := sl.PostMessageContext(context.TODO(), dest.Recipient, msgOptions...)
+	ctx := context.TODO()
+	var err error
+	for {
+		err = rateLimiter.Wait(ctx)
+		if err != nil {
+			break
+		}
+		_, _, err = sl.PostMessageContext(ctx, dest.Recipient, msgOptions...)
+		if err != nil {
+			if rateLimitedError, ok := err.(*slack.RateLimitedError); ok {
+				rateLimiter.SetLimit(rate.Every(rateLimitedError.RetryAfter))
+			} else {
+				break
+			}
+		} else {
+			// No error, so remove rate limit
+			rateLimiter.SetLimit(rate.Inf)
+			break
+		}
+	}
 	return err
 }
 
