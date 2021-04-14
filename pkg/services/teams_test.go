@@ -20,6 +20,7 @@ func TestGetTemplater_Teams(t *testing.T) {
 			Facts:           "facts {{.value}}",
 			Sections:        "sections {{.value}}",
 			PotentialAction: "actions {{.value}}",
+			ThemeColor:      "theme color {{.value}}",
 		},
 	}
 
@@ -47,6 +48,7 @@ func TestGetTemplater_Teams(t *testing.T) {
 	assert.Equal(t, notification.Teams.Sections, "sections value")
 	assert.Equal(t, notification.Teams.Facts, "facts value")
 	assert.Equal(t, notification.Teams.PotentialAction, "actions value")
+	assert.Equal(t, notification.Teams.ThemeColor, "theme color value")
 }
 
 func TestTeams_DefaultMessage(t *testing.T) {
@@ -150,6 +152,7 @@ func TestTeams_MessageFields(t *testing.T) {
 			Sections:        "[{\"sections\": true}]",
 			PotentialAction: "[{\"actions\": true}]",
 			Title:           "Title",
+			ThemeColor:      "#000080",
 		},
 	}
 
@@ -164,6 +167,7 @@ func TestTeams_MessageFields(t *testing.T) {
 
 	assert.Contains(t, receivedBody.Text, notification.Teams.Text)
 	assert.Contains(t, receivedBody.Title, notification.Teams.Title)
+	assert.Contains(t, receivedBody.ThemeColor, notification.Teams.ThemeColor)
 	assert.Contains(t, receivedBody.PotentialAction, teamsAction{"actions": true})
 	assert.Contains(t, receivedBody.Sections, teamsSection{"sections": true})
 	assert.EqualValues(t, receivedBody.Sections[len(receivedBody.Sections)-1]["facts"],
