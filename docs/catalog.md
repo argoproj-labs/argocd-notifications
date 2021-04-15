@@ -112,7 +112,7 @@ teams:
         "uri":"{{.app.spec.source.repoURL | call .repo.RepoURLToHTTPS}}"
       }]
     }]
-  themeColor: '#000080'
+  themeColor: "#000080"
   title: New version of an application {{.app.metadata.name}} is up and running.
 
 ```
@@ -188,7 +188,7 @@ teams:
         "uri":"{{.app.spec.source.repoURL | call .repo.RepoURLToHTTPS}}"
       }]
     }]
-  themeColor: '#FF0000'
+  themeColor: "#FF0000"
   title: Application {{.app.metadata.name}} has degraded.
 
 ```
@@ -268,7 +268,7 @@ teams:
         "uri":"{{.app.spec.source.repoURL | call .repo.RepoURLToHTTPS}}"
       }]
     }]
-  themeColor: '#FF0000'
+  themeColor: "#FF0000"
   title: Failed to sync application {{.app.metadata.name}}.
 
 ```
@@ -507,7 +507,7 @@ teams:
         "uri":"{{.app.spec.source.repoURL | call .repo.RepoURLToHTTPS}}"
       }]
     }]
-  themeColor: '#000080'
+  themeColor: "#000080"
   title: Application {{.app.metadata.name}} has been successfully synced
 
 ```
