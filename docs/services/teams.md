@@ -21,7 +21,7 @@ metadata:
   name: argocd-notifications-cm
 data:
   service.teams: |
-    recipientUrls: 
+    recipientUrls:
       channelName: $channel-teams-url
 ```
 
@@ -96,4 +96,16 @@ template.app-sync-succeeded: |
         "name": "Repository",
         "value": "{{.app.spec.source.repoURL}}"
       }]
+```
+
+### theme color field
+
+You can set theme color as hex string for the message.
+
+![](https://user-images.githubusercontent.com/1164159/114864810-0718a900-9e24-11eb-8127-8d95da9544c1.png)
+
+```yaml
+template.app-sync-succeeded: |
+  teams:
+    themeColor: "#000080"
 ```
