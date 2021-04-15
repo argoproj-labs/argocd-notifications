@@ -16,6 +16,7 @@ type TeamsNotification struct {
 	Template        string `json:"template,omitempty"`
 	Title           string `json:"title,omitempty"`
 	Text            string `json:"text,omitempty"`
+	ThemeColor      string `json:"themeColor,omitempty"`
 	Facts           string `json:"facts,omitempty"`
 	Sections        string `json:"sections,omitempty"`
 	PotentialAction string `json:"potentialAction,omitempty"`
@@ -35,6 +36,11 @@ func (n *TeamsNotification) GetTemplater(name string, f texttemplate.FuncMap) (T
 	text, err := texttemplate.New(name).Funcs(f).Parse(n.Text)
 	if err != nil {
 		return nil, fmt.Errorf("error in '%s' teams.text : %w", name, err)
+	}
+
+	themeColor, err := texttemplate.New(name).Funcs(f).Parse(n.ThemeColor)
+	if err != nil {
+		return nil, fmt.Errorf("error in '%s' teams.themeColor: %w", name, err)
 	}
 
 	facts, err := texttemplate.New(name).Funcs(f).Parse(n.Facts)
@@ -79,6 +85,14 @@ func (n *TeamsNotification) GetTemplater(name string, f texttemplate.FuncMap) (T
 		}
 		if val := textBuff.String(); val != "" {
 			notification.Teams.Text = val
+		}
+
+		var themeColorBuff bytes.Buffer
+		if err := themeColor.Execute(&themeColorBuff, vars); err != nil {
+			return err
+		}
+		if val := themeColorBuff.String(); val != "" {
+			notification.Teams.ThemeColor = val
 		}
 
 		var factsData bytes.Buffer
@@ -177,6 +191,10 @@ func teamsNotificationToMessage(n Notification) (*teamsMessage, error) {
 		message.Text = n.Teams.Text
 	}
 
+	if n.Teams.ThemeColor != "" {
+		message.ThemeColor = n.Teams.ThemeColor
+	}
+
 	if n.Teams.Sections != "" {
 		unmarshalledSections := make([]teamsSection, 2)
 		err := json.Unmarshal([]byte(n.Teams.Sections), &unmarshalledSections)
@@ -234,6 +252,7 @@ type teamsMessage struct {
 	Context         string         `json:"context"`
 	Title           string         `json:"title"`
 	Text            string         `json:"text"`
+	ThemeColor      string         `json:"themeColor,omitempty"`
 	PotentialAction []teamsAction  `json:"potentialAction,omitempty"`
 	Sections        []teamsSection `json:"sections,omitempty"`
 }

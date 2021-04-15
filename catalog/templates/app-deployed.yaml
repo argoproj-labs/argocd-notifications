@@ -36,6 +36,7 @@ slack:
           ]
         }]
 teams:
+    themeColor: "#000080"
     title: New version of an application {{.app.metadata.name}} is up and running.
     facts: |
         [{

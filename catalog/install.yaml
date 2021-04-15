@@ -90,6 +90,7 @@ data:
             "uri":"{{.app.spec.source.repoURL | call .repo.RepoURLToHTTPS}}"
           }]
         }]
+      themeColor: '#000080'
       title: New version of an application {{.app.metadata.name}} is up and running.
   template.app-health-degraded: |
     email:
@@ -161,6 +162,7 @@ data:
             "uri":"{{.app.spec.source.repoURL | call .repo.RepoURLToHTTPS}}"
           }]
         }]
+      themeColor: '#FF0000'
       title: Application {{.app.metadata.name}} has degraded.
   template.app-sync-failed: |
     email:
@@ -236,6 +238,7 @@ data:
             "uri":"{{.app.spec.source.repoURL | call .repo.RepoURLToHTTPS}}"
           }]
         }]
+      themeColor: '#FF0000'
       title: Failed to sync application {{.app.metadata.name}}.
   template.app-sync-running: |
     email:
@@ -462,6 +465,7 @@ data:
             "uri":"{{.app.spec.source.repoURL | call .repo.RepoURLToHTTPS}}"
           }]
         }]
+      themeColor: '#000080'
       title: Application {{.app.metadata.name}} has been successfully synced
   trigger.on-created: |
     - description: Application is created.
