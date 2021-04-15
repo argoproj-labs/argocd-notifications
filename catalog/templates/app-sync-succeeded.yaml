@@ -32,6 +32,7 @@ slack:
           ]
         }]
 teams:
+    themeColor: "#000080"
     title: Application {{.app.metadata.name}} has been successfully synced
     facts: |
         [{

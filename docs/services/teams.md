@@ -21,7 +21,7 @@ metadata:
   name: argocd-notifications-cm
 data:
   service.teams: |
-    recipientUrls: 
+    recipientUrls:
       channelName: $channel-teams-url
 ```
 
@@ -48,11 +48,12 @@ metadata:
 
 ![](https://user-images.githubusercontent.com/18019529/114271500-9d2b8880-9a4c-11eb-85c1-f6935f0431d5.png)
 
-Notification templates can be customized to leverage teams message sections, facts and potentialAction [feature](https://docs.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/connectors-using).
+Notification templates can be customized to leverage teams message sections, facts, themeColor, and potentialAction [feature](https://docs.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/connectors-using).
 
 ```yaml
 template.app-sync-succeeded: |
   teams:
+    themeColor: "#000080"
     sections: |
       [{
         "facts": [
@@ -95,4 +96,16 @@ template.app-sync-succeeded: |
         "name": "Repository",
         "value": "{{.app.spec.source.repoURL}}"
       }]
+```
+
+### theme color field
+
+You can set theme color as hex string for the message.
+
+![](https://user-images.githubusercontent.com/1164159/114864810-0718a900-9e24-11eb-8127-8d95da9544c1.png)
+
+```yaml
+template.app-sync-succeeded: |
+  teams:
+    themeColor: "#000080"
 ```
