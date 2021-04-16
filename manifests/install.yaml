@@ -102,7 +102,7 @@ spec:
       - command:
         - /app/argocd-notifications-backend
         - controller
-        image: argoprojlabs/argocd-notifications:v1.1.0
+        image: argoprojlabs/argocd-notifications:v1.1.1
         imagePullPolicy: Always
         name: argocd-notifications-controller
         volumeMounts:
