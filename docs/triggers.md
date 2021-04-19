@@ -93,9 +93,13 @@ data:
   # Holds list of triggers that are used by default if trigger is not specified explicitly in the subscription
   defaultTriggers: |
     - on-sync-status-unknown
+
+  defaultTriggers.mattermost: |
+    - on-sync-running
+    - on-sync-succeeded
 ```
 
-Specify the annotations as follows to use `defaultTriggers`.
+Specify the annotations as follows to use `defaultTriggers`. In this example, `slack` sends when `on-sync-status-unknown`, and `mattermost` sends when `on-sync-running` and `on-sync-succeeded`.
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -103,6 +107,7 @@ kind: Application
 metadata:
   annotations:
     notifications.argoproj.io/subscribe.slack: my-channel
+    notifications.argoproj.io/subscribe.mattermost: my-mattermost-channel
 ```
 
 ## Functions

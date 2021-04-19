@@ -60,15 +60,32 @@ func TestIterate(t *testing.T) {
 
 func TestGetAll(t *testing.T) {
 	tests := []struct {
-		subscriptions  Subscriptions
-		defaultTrigger []string
-		result         pkg.Subscriptions
+		subscriptions         Subscriptions
+		defaultTrigger        []string
+		serviceDefaultTrigger map[string][]string
+		result                pkg.Subscriptions
 	}{
 		{
 			subscriptions: Subscriptions(map[string]string{
 				"notifications.argoproj.io/subscribe.my-trigger.slack": "my-channel",
 			}),
 			defaultTrigger: []string{},
+			result: pkg.Subscriptions{
+				"my-trigger": []services.Destination{{
+					Service:   "slack",
+					Recipient: "my-channel",
+				}},
+			},
+		},
+		{
+			subscriptions: Subscriptions(map[string]string{
+				"notifications.argoproj.io/subscribe.my-trigger.slack": "my-channel",
+			}),
+			defaultTrigger: []string{
+				"trigger-a",
+				"trigger-b",
+				"trigger-c",
+			},
 			result: pkg.Subscriptions{
 				"my-trigger": []services.Destination{{
 					Service:   "slack",
@@ -100,10 +117,36 @@ func TestGetAll(t *testing.T) {
 				}},
 			},
 		},
+		{
+			subscriptions: Subscriptions(map[string]string{
+				"notifications.argoproj.io/subscribe.slack": "my-channel",
+			}),
+			defaultTrigger: []string{
+				"trigger-a",
+				"trigger-b",
+				"trigger-c",
+			},
+			serviceDefaultTrigger: map[string][]string{
+				"slack": {
+					"trigger-d",
+					"trigger-e",
+				},
+			},
+			result: pkg.Subscriptions{
+				"trigger-d": []services.Destination{{
+					Service:   "slack",
+					Recipient: "my-channel",
+				}},
+				"trigger-e": []services.Destination{{
+					Service:   "slack",
+					Recipient: "my-channel",
+				}},
+			},
+		},
 	}
 
 	for _, tt := range tests {
-		subscriptions := tt.subscriptions.GetAll(tt.defaultTrigger...)
+		subscriptions := tt.subscriptions.GetAll(tt.defaultTrigger, tt.serviceDefaultTrigger)
 		assert.Equal(t, tt.result, subscriptions)
 	}
 }

@@ -41,6 +41,25 @@ message: hello world
 	}, cfg.Templates)
 }
 
+func TestParseConfig_DefaultTriggers(t *testing.T) {
+	cfg, err := ParseConfig(&v1.ConfigMap{Data: map[string]string{
+		"defaultTriggers.slack": `
+- trigger-a
+- trigger-b
+`}}, emptySecret)
+
+	if !assert.NoError(t, err) {
+		return
+	}
+
+	assert.Equal(t, map[string][]string{
+		"slack": {
+			"trigger-a",
+			"trigger-b",
+		},
+	}, cfg.ServiceDefaultTriggers)
+}
+
 func TestReplaceStringSecret_KeyPresent(t *testing.T) {
 	val := replaceStringSecret("hello $secret-value", map[string][]byte{
 		"secret-value": []byte("world"),

@@ -13,7 +13,7 @@ const (
 	annotationKey = "recipients.argocd-notifications.argoproj.io"
 )
 
-func GetSubscriptions(annotations map[string]string, defaultTriggers ...string) pkg.Subscriptions {
+func GetSubscriptions(annotations map[string]string, defaultTriggers []string, serviceDefaultTriggers map[string][]string) pkg.Subscriptions {
 	subscriptions := pkg.Subscriptions{}
 	for k, v := range annotations {
 		if !strings.HasSuffix(k, annotationKey) {
@@ -35,7 +35,12 @@ func GetSubscriptions(annotations map[string]string, defaultTriggers ...string) 
 				if len(parts) > 1 {
 					dest.Recipient = parts[1]
 				}
-				for _, name := range triggerNames {
+
+				t := triggerNames
+				if v, ok := serviceDefaultTriggers[dest.Service]; ok {
+					t = v
+				}
+				for _, name := range t {
 					subscriptions[name] = append(subscriptions[name], dest)
 				}
 			}

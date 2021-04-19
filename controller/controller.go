@@ -219,12 +219,12 @@ func (c *notificationController) getAppProj(app *unstructured.Unstructured) *uns
 func (c *notificationController) getSubscriptions(app *unstructured.Unstructured) pkg.Subscriptions {
 	res := c.cfg.GetGlobalSubscriptions(app.GetLabels())
 
-	res.Merge(controller.Subscriptions(app.GetAnnotations()).GetAll(c.cfg.DefaultTriggers...))
-	res.Merge(legacy.GetSubscriptions(app.GetAnnotations(), c.cfg.DefaultTriggers...))
+	res.Merge(controller.Subscriptions(app.GetAnnotations()).GetAll(c.cfg.DefaultTriggers, c.cfg.ServiceDefaultTriggers))
+	res.Merge(legacy.GetSubscriptions(app.GetAnnotations(), c.cfg.DefaultTriggers, c.cfg.ServiceDefaultTriggers))
 
 	if proj := c.getAppProj(app); proj != nil {
-		res.Merge(controller.Subscriptions(proj.GetAnnotations()).GetAll(c.cfg.DefaultTriggers...))
-		res.Merge(legacy.GetSubscriptions(proj.GetAnnotations(), c.cfg.DefaultTriggers...))
+		res.Merge(controller.Subscriptions(proj.GetAnnotations()).GetAll(c.cfg.DefaultTriggers, c.cfg.ServiceDefaultTriggers))
+		res.Merge(legacy.GetSubscriptions(proj.GetAnnotations(), c.cfg.DefaultTriggers, c.cfg.ServiceDefaultTriggers))
 	}
 
 	return res.Dedup()
