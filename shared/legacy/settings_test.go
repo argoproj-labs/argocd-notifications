@@ -5,14 +5,12 @@ import (
 
 	"github.com/argoproj-labs/argocd-notifications/shared/settings"
 
-	"k8s.io/apimachinery/pkg/labels"
-
+	"github.com/argoproj/notifications-engine/pkg"
+	"github.com/argoproj/notifications-engine/pkg/services"
+	"github.com/argoproj/notifications-engine/pkg/triggers"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/core/v1"
-
-	"github.com/argoproj-labs/argocd-notifications/pkg"
-	"github.com/argoproj-labs/argocd-notifications/pkg/services"
-	"github.com/argoproj-labs/argocd-notifications/pkg/triggers"
+	"k8s.io/apimachinery/pkg/labels"
 )
 
 func TestMergeLegacyConfig_DefaultTriggers(t *testing.T) {

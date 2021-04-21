@@ -6,16 +6,13 @@ import (
 
 	"github.com/argoproj-labs/argocd-notifications/shared/settings"
 
-	"github.com/argoproj-labs/argocd-notifications/pkg/triggers"
-
+	"github.com/argoproj/notifications-engine/pkg"
+	"github.com/argoproj/notifications-engine/pkg/services"
+	"github.com/argoproj/notifications-engine/pkg/triggers"
 	jsonpatch "github.com/evanphx/json-patch"
-
 	"github.com/ghodss/yaml"
 	log "github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
-
-	"github.com/argoproj-labs/argocd-notifications/pkg"
-	"github.com/argoproj-labs/argocd-notifications/pkg/services"
 )
 
 type legacyTemplate struct {

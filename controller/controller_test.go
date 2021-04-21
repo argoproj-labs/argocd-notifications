@@ -6,6 +6,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/argoproj-labs/argocd-notifications/shared/legacy"
+	"github.com/argoproj-labs/argocd-notifications/shared/settings"
+	. "github.com/argoproj-labs/argocd-notifications/testing"
 	"github.com/golang/mock/gomock"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -15,14 +18,11 @@ import (
 	"k8s.io/client-go/dynamic"
 	kubetesting "k8s.io/client-go/testing"
 
-	"github.com/argoproj-labs/argocd-notifications/pkg"
-	"github.com/argoproj-labs/argocd-notifications/pkg/controller"
-	"github.com/argoproj-labs/argocd-notifications/pkg/mocks"
-	"github.com/argoproj-labs/argocd-notifications/pkg/services"
-	"github.com/argoproj-labs/argocd-notifications/pkg/triggers"
-	"github.com/argoproj-labs/argocd-notifications/shared/legacy"
-	"github.com/argoproj-labs/argocd-notifications/shared/settings"
-	. "github.com/argoproj-labs/argocd-notifications/testing"
+	"github.com/argoproj/notifications-engine/pkg"
+	"github.com/argoproj/notifications-engine/pkg/controller"
+	"github.com/argoproj/notifications-engine/pkg/mocks"
+	"github.com/argoproj/notifications-engine/pkg/services"
+	"github.com/argoproj/notifications-engine/pkg/triggers"
 )
 
 var (

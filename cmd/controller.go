@@ -8,12 +8,12 @@ import (
 	"strings"
 
 	"github.com/argoproj-labs/argocd-notifications/controller"
-	"github.com/argoproj-labs/argocd-notifications/pkg/services"
 	"github.com/argoproj-labs/argocd-notifications/shared/argocd"
 	"github.com/argoproj-labs/argocd-notifications/shared/k8s"
 	"github.com/argoproj-labs/argocd-notifications/shared/legacy"
 	"github.com/argoproj-labs/argocd-notifications/shared/settings"
 
+	"github.com/argoproj/notifications-engine/pkg/services"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"

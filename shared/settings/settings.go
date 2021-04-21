@@ -7,17 +7,17 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/argoproj-labs/argocd-notifications/shared/argocd"
+	"github.com/argoproj-labs/argocd-notifications/shared/k8s"
+
+	"github.com/argoproj/notifications-engine/pkg"
+	"github.com/argoproj/notifications-engine/pkg/services"
 	"github.com/ghodss/yaml"
 	log "github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
-
-	"github.com/argoproj-labs/argocd-notifications/pkg"
-	"github.com/argoproj-labs/argocd-notifications/pkg/services"
-	"github.com/argoproj-labs/argocd-notifications/shared/argocd"
-	"github.com/argoproj-labs/argocd-notifications/shared/k8s"
 )
 
 type Config struct {

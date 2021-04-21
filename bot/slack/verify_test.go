@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/argoproj-labs/argocd-notifications/pkg"
-	"github.com/argoproj-labs/argocd-notifications/pkg/services"
 	"github.com/argoproj-labs/argocd-notifications/shared/settings"
+	"github.com/argoproj/notifications-engine/pkg"
+	"github.com/argoproj/notifications-engine/pkg/services"
 
 	"github.com/stretchr/testify/assert"
 )
