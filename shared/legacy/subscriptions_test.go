@@ -3,9 +3,8 @@ package legacy
 import (
 	"testing"
 
-	"github.com/argoproj-labs/argocd-notifications/pkg"
-	"github.com/argoproj-labs/argocd-notifications/pkg/services"
-
+	"github.com/argoproj/notifications-engine/pkg"
+	"github.com/argoproj/notifications-engine/pkg/services"
 	"github.com/stretchr/testify/assert"
 )
 

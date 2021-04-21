@@ -11,10 +11,10 @@ import (
 	"strings"
 
 	"github.com/argoproj-labs/argocd-notifications/cmd/tools"
-	"github.com/argoproj-labs/argocd-notifications/pkg/services"
-	"github.com/argoproj-labs/argocd-notifications/pkg/triggers"
-	"github.com/argoproj-labs/argocd-notifications/pkg/util/misc"
 
+	"github.com/argoproj/notifications-engine/pkg/services"
+	"github.com/argoproj/notifications-engine/pkg/triggers"
+	"github.com/argoproj/notifications-engine/pkg/util/misc"
 	"github.com/ghodss/yaml"
 	"github.com/olekukonko/tablewriter"
 	log "github.com/sirupsen/logrus"

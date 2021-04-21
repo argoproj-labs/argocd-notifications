@@ -3,7 +3,7 @@ package bot
 import (
 	"testing"
 
-	"github.com/argoproj-labs/argocd-notifications/pkg/controller"
+	"github.com/argoproj/notifications-engine/pkg/controller"
 
 	. "github.com/argoproj-labs/argocd-notifications/testing"
 

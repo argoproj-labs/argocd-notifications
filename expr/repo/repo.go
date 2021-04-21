@@ -7,11 +7,11 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
-
 	"github.com/argoproj-labs/argocd-notifications/expr/shared"
-	"github.com/argoproj-labs/argocd-notifications/pkg/util/text"
 	"github.com/argoproj-labs/argocd-notifications/shared/argocd"
+
+	"github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
+	"github.com/argoproj/notifications-engine/pkg/util/text"
 	giturls "github.com/whilp/git-urls"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )

@@ -10,14 +10,14 @@ import (
 	"time"
 
 	"github.com/argoproj-labs/argocd-notifications/expr"
-	"github.com/argoproj-labs/argocd-notifications/pkg"
-	"github.com/argoproj-labs/argocd-notifications/pkg/controller"
-	"github.com/argoproj-labs/argocd-notifications/pkg/services"
-	"github.com/argoproj-labs/argocd-notifications/pkg/triggers"
 	"github.com/argoproj-labs/argocd-notifications/shared/k8s"
 	"github.com/argoproj-labs/argocd-notifications/shared/legacy"
 	"github.com/argoproj-labs/argocd-notifications/shared/settings"
 
+	"github.com/argoproj/notifications-engine/pkg"
+	"github.com/argoproj/notifications-engine/pkg/controller"
+	"github.com/argoproj/notifications-engine/pkg/services"
+	"github.com/argoproj/notifications-engine/pkg/triggers"
 	log "github.com/sirupsen/logrus"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"

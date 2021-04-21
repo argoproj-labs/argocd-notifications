@@ -6,11 +6,11 @@ import (
 	"strings"
 	"text/tabwriter"
 
+	"github.com/argoproj/notifications-engine/pkg/services"
+	"github.com/argoproj/notifications-engine/pkg/util/misc"
 	"github.com/spf13/cobra"
 
 	"github.com/argoproj-labs/argocd-notifications/expr"
-	"github.com/argoproj-labs/argocd-notifications/pkg/services"
-	"github.com/argoproj-labs/argocd-notifications/pkg/util/misc"
 	"github.com/argoproj-labs/argocd-notifications/shared/legacy"
 )
 

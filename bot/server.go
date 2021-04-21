@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/argoproj-labs/argocd-notifications/pkg/controller"
+	"github.com/argoproj/notifications-engine/pkg/controller"
 
 	"github.com/argoproj-labs/argocd-notifications/shared/k8s"
 

@@ -7,9 +7,9 @@ import (
 	"text/tabwriter"
 
 	"github.com/argoproj-labs/argocd-notifications/expr"
-	"github.com/argoproj-labs/argocd-notifications/pkg/triggers"
-	"github.com/argoproj-labs/argocd-notifications/pkg/util/misc"
 
+	"github.com/argoproj/notifications-engine/pkg/triggers"
+	"github.com/argoproj/notifications-engine/pkg/util/misc"
 	"github.com/spf13/cobra"
 )
 

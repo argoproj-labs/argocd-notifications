@@ -3,10 +3,9 @@ package legacy
 import (
 	"strings"
 
-	"github.com/argoproj-labs/argocd-notifications/pkg"
-
-	"github.com/argoproj-labs/argocd-notifications/pkg/services"
-	"github.com/argoproj-labs/argocd-notifications/pkg/util/text"
+	"github.com/argoproj/notifications-engine/pkg"
+	"github.com/argoproj/notifications-engine/pkg/services"
+	"github.com/argoproj/notifications-engine/pkg/util/text"
 )
 
 const (
