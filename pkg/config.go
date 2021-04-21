@@ -42,9 +42,10 @@ type ServiceFactory func() (services.NotificationService, error)
 
 // Config holds settings required to create new api
 type Config struct {
-	Services  map[string]ServiceFactory
-	Triggers  map[string][]triggers.Condition
-	Templates map[string]services.Notification
+	Services               map[string]ServiceFactory
+	Triggers               map[string][]triggers.Condition
+	ServiceDefaultTriggers map[string][]string
+	Templates              map[string]services.Notification
 }
 
 var keyPattern = regexp.MustCompile(`[$][\w-_]+`)
@@ -63,7 +64,12 @@ func replaceStringSecret(val string, secretValues map[string][]byte) string {
 
 // ParseConfig retrieves Config from given ConfigMap and Secret
 func ParseConfig(configMap *v1.ConfigMap, secret *v1.Secret) (*Config, error) {
-	cfg := Config{map[string]ServiceFactory{}, map[string][]triggers.Condition{}, map[string]services.Notification{}}
+	cfg := Config{
+		Services:               map[string]ServiceFactory{},
+		Triggers:               map[string][]triggers.Condition{},
+		ServiceDefaultTriggers: map[string][]string{},
+		Templates:              map[string]services.Notification{},
+	}
 	for k, v := range configMap.Data {
 		parts := strings.Split(k, ".")
 		switch {
@@ -101,6 +107,13 @@ func ParseConfig(configMap *v1.ConfigMap, secret *v1.Secret) (*Config, error) {
 				return nil, fmt.Errorf("failed to unmarshal trigger %s: %v", name, err)
 			}
 			cfg.Triggers[name] = trigger
+		case strings.HasPrefix(k, "defaultTriggers."):
+			name := strings.Join(parts[1:], ".")
+			var defaultTriggers []string
+			if err := yaml.Unmarshal([]byte(v), &defaultTriggers); err != nil {
+				return nil, fmt.Errorf("failed to unmarshal default trigger %s: %v", name, err)
+			}
+			cfg.ServiceDefaultTriggers[name] = defaultTriggers
 		}
 	}
 	return &cfg, nil

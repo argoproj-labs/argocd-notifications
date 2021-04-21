@@ -105,14 +105,17 @@ func (a Subscriptions) Has(service string, recipient string) bool {
 	return has
 }
 
-func (a Subscriptions) GetAll(defaultTriggers ...string) pkg.Subscriptions {
+func (a Subscriptions) GetAll(defaultTriggers []string, serviceDefaultTriggers map[string][]string) pkg.Subscriptions {
 	subscriptions := pkg.Subscriptions{}
 	a.iterate(func(trigger string, service string, recipients []string, v string) {
 		for _, recipient := range recipients {
 			triggers := defaultTriggers
 			if trigger != "" {
 				triggers = []string{trigger}
+			} else if t, ok := serviceDefaultTriggers[service]; ok {
+				triggers = t
 			}
+
 			for i := range triggers {
 				subscriptions[triggers[i]] = append(subscriptions[triggers[i]], services.Destination{
 					Service:   service,
