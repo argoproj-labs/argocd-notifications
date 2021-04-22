@@ -12,9 +12,9 @@ The `slack` indicates that service sends slack notification; name is missing and
 
 ## Sensitive Data
 
-Sensitive data like authentication tokens should be stored in `argocd-notifications-secret` Secret and can be referenced in
+Sensitive data like authentication tokens should be stored in `<secret-name>` Secret and can be referenced in
 service configuration using `$<secret-key>` format. For example `$slack-token` referencing value of key `slack-token` in
-`argocd-notifications-secret` Secret.
+`<secret-name>` Secret.
 
 ## Custom Names
 
