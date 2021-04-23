@@ -15,7 +15,7 @@ To be able to create Grafana annotation with argocd-notifications you have to cr
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: argocd-notifications-cm
+  name: <config-map-name>
 data:
   service.grafana: |
     apiUrl: https://grafana.example.com/api
@@ -26,7 +26,7 @@ data:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: argocd-notifications-secret
+  name: <secret-name>
 stringData:
   grafana-api-key: api-key
 ```

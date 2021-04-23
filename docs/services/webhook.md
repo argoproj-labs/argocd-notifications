@@ -11,7 +11,7 @@ Use the following steps to configure webhook:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: argocd-notifications-cm
+  name: <config-map-name>
 data:
   service.webhook.<webhook-name>: |
     url: https://<hostname>/<optional-path>
@@ -29,7 +29,7 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: argocd-notifications-cm
+  name: <config-map-name>
 data:
   template.github-commit-status: |
     webhook:
@@ -57,7 +57,7 @@ metadata:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: argocd-notifications-cm
+  name: <config-map-name>
 data:
   service.webhook.github: |
     url: https://api.github.com
@@ -72,7 +72,7 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: argocd-notifications-cm
+  name: <config-map-name>
 data:
   service.webhook.github: |
     url: https://api.github.com
@@ -103,7 +103,7 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: argocd-notifications-cm
+  name: <config-map-name>
 data:
   service.webhook.jenkins: |
     url: http://<jenkins-host>/job/<job-name>/build?token=<job-secret>
@@ -120,7 +120,7 @@ type: Opaque
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: argocd-notifications-cm
+  name: <config-map-name>
 data:
   service.webhook.form: |
     url: https://form.example.com

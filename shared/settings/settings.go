@@ -3,9 +3,10 @@ package settings
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strings"
 	"sync"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/argoproj-labs/argocd-notifications/shared/argocd"
 	"github.com/argoproj-labs/argocd-notifications/shared/k8s"
@@ -18,6 +19,10 @@ import (
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
+)
+
+const (
+	partOfLabel = "app.kubernetes.io/part-of"
 )
 
 type Config struct {
@@ -108,6 +113,16 @@ func NewConfig(configMap *v1.ConfigMap, secret *v1.Secret, argocdService argocd.
 	}
 }
 
+func isConfig(obj metav1.Object, name string) bool {
+	if obj.GetName() == name {
+		return true
+	}
+	if obj.GetLabels() == nil {
+		return false
+	}
+	return obj.GetLabels()[partOfLabel] == "argocd-notifications"
+}
+
 func WatchConfig(
 	ctx context.Context,
 	argocdService argocd.Service,
@@ -115,61 +130,61 @@ func WatchConfig(
 	namespace string,
 	callback func(Config) error, opts ...CfgOpts,
 ) error {
-	var secret *v1.Secret
-	var configMap *v1.ConfigMap
+	cmInformer := k8s.NewConfigMapInformer(clientset, namespace)
+	secretInformer := k8s.NewSecretInformer(clientset, namespace)
+
 	lock := &sync.Mutex{}
-	onNewConfigMapAndSecret := func(newSecret *v1.Secret, newConfigMap *v1.ConfigMap) {
+	onConfigChanged := func() {
 		lock.Lock()
 		defer lock.Unlock()
-		if newSecret != nil {
-			secret = newSecret
-		}
-		if newConfigMap != nil {
-			configMap = newConfigMap
-		}
+		configMap := v1.ConfigMap{Data: map[string]string{}}
 
-		if secret != nil && configMap != nil {
-			if cfg, err := NewConfig(configMap, secret, argocdService, opts...); err == nil {
-				if err = callback(*cfg); err != nil {
-					log.Warnf("Failed to apply new settings: %v", err)
+		for _, obj := range cmInformer.GetStore().List() {
+			cm, ok := obj.(*v1.ConfigMap)
+			if !ok || !isConfig(cm, "argocd-notifications-cm") {
+				continue
+			}
+			for k, v := range cm.Data {
+				if _, has := configMap.Data[k]; has {
+					log.Warnf("Key '%s' of ConfigMap '%s' ignored because it is a duplicate", k, cm.Name)
+				} else {
+					configMap.Data[k] = v
 				}
-			} else {
-				log.Warnf("Failed to parse new settings: %v", err)
 			}
 		}
-	}
+		secret := v1.Secret{Data: map[string][]byte{}}
+		for _, obj := range secretInformer.GetStore().List() {
+			s, ok := obj.(*v1.Secret)
+			if !ok || !isConfig(s, "argocd-notifications-secret") {
+				continue
+			}
+			for k, v := range s.Data {
+				if _, has := secret.Data[k]; has {
+					log.Warnf("Key '%s' of Secret '%s' ignored because it is a duplicate", k, s.Name)
+				} else {
+					secret.Data[k] = v
+				}
+			}
+		}
 
-	onConfigMapChanged := func(newObj interface{}) {
-		if cm, ok := newObj.(*v1.ConfigMap); ok {
-			onNewConfigMapAndSecret(nil, cm)
+		if cfg, err := NewConfig(&configMap, &secret, argocdService, opts...); err == nil {
+			if err = callback(*cfg); err != nil {
+				log.Warnf("Failed to apply new settings: %v", err)
+			}
+		} else {
+			log.Warnf("Failed to parse new settings: %v", err)
 		}
 	}
 
-	onSecretChanged := func(newObj interface{}) {
-		if s, ok := newObj.(*v1.Secret); ok {
-			onNewConfigMapAndSecret(s, nil)
-		}
-	}
-
-	cmInformer := k8s.NewConfigMapInformer(clientset, namespace)
 	cmInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		UpdateFunc: func(oldObj, newObj interface{}) {
-			onConfigMapChanged(newObj)
-		},
-		AddFunc: func(obj interface{}) {
-			log.Info("config map found")
-			onConfigMapChanged(obj)
+			onConfigChanged()
 		},
 	})
 
-	secretInformer := k8s.NewSecretInformer(clientset, namespace)
 	secretInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		UpdateFunc: func(oldObj, newObj interface{}) {
-			onSecretChanged(newObj)
-		},
-		AddFunc: func(obj interface{}) {
-			log.Info("secret found")
-			onSecretChanged(obj)
+			onConfigChanged()
 		},
 	})
 	go secretInformer.Run(ctx.Done())
@@ -178,15 +193,6 @@ func WatchConfig(
 	if !cache.WaitForCacheSync(ctx.Done(), cmInformer.HasSynced, secretInformer.HasSynced) {
 		return errors.New("timed out waiting for caches to sync")
 	}
-	var missingWarn []string
-	if len(cmInformer.GetStore().List()) == 0 {
-		missingWarn = append(missingWarn, fmt.Sprintf("config map %s", k8s.ConfigMapName))
-	}
-	if len(secretInformer.GetStore().List()) == 0 {
-		missingWarn = append(missingWarn, fmt.Sprintf("secret %s", k8s.SecretName))
-	}
-	if len(missingWarn) > 0 {
-		log.Warnf("Cannot find %s. Waiting when both config map and secret are created.", strings.Join(missingWarn, " and "))
-	}
+	go onConfigChanged()
 	return nil
 }

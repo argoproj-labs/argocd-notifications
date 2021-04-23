@@ -50,3 +50,5 @@ nav:
   - monitoring.md
   - Upgrading:
     - upgrading/0.x-1.0.md
+    - upgrading/1.0-1.1.md
+    - upgrading/1.1-1.2.md

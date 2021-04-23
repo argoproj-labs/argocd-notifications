@@ -68,7 +68,7 @@ func TestNewSettings_DefaultTriggers(t *testing.T) {
 	assert.Equal(t, []string{"trigger1", "trigger2"}, cfg.DefaultTriggers)
 }
 
-func TestWatchConfig(t *testing.T) {
+func TestWatchConfig_Named(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -108,4 +108,68 @@ argocdUrl: https://myargocd.com
 	parsedCfg := <-cfgCn
 
 	assert.Equal(t, "https://myargocd.com", parsedCfg.Context["argocdUrl"])
+}
+
+func TestWatchConfig_Labeled(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	configMap1 := &v1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "random-name1",
+			Namespace: "default",
+			Labels: map[string]string{
+				partOfLabel: "argocd-notifications",
+			},
+		},
+		Data: map[string]string{
+			"context": `
+argocdUrl: https://myargocd.com
+`,
+		},
+	}
+	configMap2 := &v1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "random-name2",
+			Namespace: "default",
+			Labels: map[string]string{
+				partOfLabel: "argocd-notifications",
+			},
+		},
+		Data: map[string]string{
+			"service.slack": `
+token: $slackToken
+`,
+		},
+	}
+
+	secret := &v1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "random-name",
+			Namespace: "default",
+		},
+		Data: map[string][]byte{
+			"slackToken": []byte("abc"),
+		},
+	}
+
+	argocdService := mocks.NewMockService(ctrl)
+	clientset := fake.NewSimpleClientset(configMap1, configMap2, secret)
+	cfgCn := make(chan Config)
+	err := WatchConfig(ctx, argocdService, clientset, "default", func(cfg Config) error {
+		cfgCn <- cfg
+		return nil
+	})
+
+	if !assert.NoError(t, err) {
+		return
+	}
+
+	parsedCfg := <-cfgCn
+
+	assert.Equal(t, "https://myargocd.com", parsedCfg.Context["argocdUrl"])
+	_, ok := parsedCfg.Services["slack"]
+	assert.True(t, ok)
 }
