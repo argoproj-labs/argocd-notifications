@@ -19,7 +19,7 @@ in `argocd-notifications-cm` ConfigMap
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: argocd-notifications-cm
+  name: <config-map-name>
 data:
   service.mattermost: |
     apiURL: <api-url>
@@ -30,7 +30,7 @@ data:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: argocd-notifications-secret
+  name: <secret-name>
 stringData:
   mattermost-token: token
 ```

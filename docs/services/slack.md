@@ -19,7 +19,7 @@
 apiVersion: v1
 kind: Secret
 metadata:
-  name: argocd-notifications-secret
+  name: <secret-name>
 stringData:
   slack-token: <auth-token>
 ```
@@ -30,7 +30,7 @@ stringData:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: argocd-notifications-cm
+  name: <config-map-name>
 data:
   service.slack: |
     apiURL: <url>                 # optional URL, e.g. https://example.com/api

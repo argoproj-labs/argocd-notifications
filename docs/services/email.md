@@ -18,7 +18,7 @@ The following snippet contains sample Gmail service configuration:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: argocd-notifications-cm
+  name: <config-map-name>
 data:
   service.email.gmail: |
     username: $email-username
@@ -34,7 +34,7 @@ Without authentication:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: argocd-notifications-cm
+  name: <config-map-name>
 data:
   service.email.example: |
     host: smtp.example.com
@@ -50,7 +50,7 @@ Notification templates support specifying subject for email notifications:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: argocd-notifications-cm
+  name: <config-map-name>
 data:
   template.app-sync-succeeded: |
     email:

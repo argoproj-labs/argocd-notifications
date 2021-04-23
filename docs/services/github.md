@@ -24,7 +24,7 @@ in `argocd-notifications-cm` ConfigMap
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: argocd-notifications-cm
+  name: <config-map-name>
 data:
   service.github: |
     appID: <app-id>
@@ -36,7 +36,7 @@ data:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: argocd-notifications-secret
+  name: <secret-name>
 stringData:
   github-privateKey: |
     -----BEGIN RSA PRIVATE KEY-----

@@ -11,10 +11,15 @@ test:
 lint:
 	golangci-lint run
 
+.PHONY: docs
+docs:
+	rm -rf vendor && go mod vendor && mkdir -p docs/services
+	cp -r vendor/github.com/argoproj/notifications-engine/docs/services/* docs/services && rm docs/services/*.go && rm -rf vendor
+	go run github.com/argoproj-labs/argocd-notifications/hack/gen docs
+
 .PHONY: catalog
 catalog:
 	go run github.com/argoproj-labs/argocd-notifications/hack/gen catalog
-	go run github.com/argoproj-labs/argocd-notifications/hack/gen docs
 
 .PHONY: manifests
 manifests:
@@ -26,7 +31,7 @@ tools:
 	go install github.com/golang/mock/mockgen@v1.5.0
 
 .PHONY: generate
-generate: manifests catalog tools
+generate: manifests docs catalog tools
 	go generate ./...
 
 .PHONY: build
