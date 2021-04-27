@@ -98,12 +98,15 @@ func (svc *argoCDService) GetAppDetails(ctx context.Context, appSource *v1alpha1
 	if err != nil {
 		return nil, err
 	}
-	has := &shared.HelmAppSpec{
-		Name:           appDetail.Helm.Name,
-		ValueFiles:     appDetail.Helm.ValueFiles,
-		Parameters:     appDetail.Helm.Parameters,
-		Values:         appDetail.Helm.Values,
-		FileParameters: appDetail.Helm.FileParameters,
+	var has *shared.HelmAppSpec
+	if appDetail.Helm != nil {
+		has = &shared.HelmAppSpec{
+			Name:           appDetail.Helm.Name,
+			ValueFiles:     appDetail.Helm.ValueFiles,
+			Parameters:     appDetail.Helm.Parameters,
+			Values:         appDetail.Helm.Values,
+			FileParameters: appDetail.Helm.FileParameters,
+		}
 	}
 	return &shared.AppDetail{
 		Type:      appDetail.Type,
