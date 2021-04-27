@@ -54,7 +54,7 @@ argocd-notifications template get app-sync-succeeded -o=yaml
 Generates notification using the specified template and send it to specified recipients
 
 ```
-argocd-notifications template notify NAME APPLICATION [flags]
+argocd-notifications template notify NAME RESOURCE_NAME [flags]
 ```
 
 ### Examples
@@ -62,7 +62,7 @@ argocd-notifications template notify NAME APPLICATION [flags]
 ```
 
 # Trigger notification using in-cluster config map and secret
-argocd-notifications template notify app-sync-succeeded guestbook --recipient slack:argocd-notifications
+argocd-notifications template notify app-sync-succeeded guestbook --recipient slack:my-slack-channel
 
 # Render notification render generated notification in console
 argocd-notifications template notify app-sync-succeeded guestbook
@@ -157,7 +157,7 @@ argocd-notifications trigger get on-sync-failed -o=yaml
 Evaluates specified trigger condition and prints the result
 
 ```
-argocd-notifications trigger run NAME APPLICATION [flags]
+argocd-notifications trigger run NAME RESOURCE_NAME [flags]
 ```
 
 ### Examples
@@ -167,9 +167,9 @@ argocd-notifications trigger run NAME APPLICATION [flags]
 # Execute trigger configured in 'argocd-notification-cm' ConfigMap
 argocd-notifications trigger run on-sync-status-unknown ./sample-app.yaml
 
-# Execute trigger using argocd-notifications-cm.yaml instead of 'argocd-notification-cm' ConfigMap
+# Execute trigger using my-config-map.yaml instead of 'argocd-notifications-cm' ConfigMap
 argocd-notifications trigger run on-sync-status-unknown ./sample-app.yaml \
-    --config-map ./argocd-notifications-cm.yaml
+    --config-map ./my-config-map.yaml
 ```
 
 ### Options

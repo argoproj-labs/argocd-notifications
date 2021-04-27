@@ -4,8 +4,7 @@ go 1.16
 
 require (
 	github.com/argoproj/argo-cd/v2 v2.0.0-rc3
-	github.com/argoproj/gitops-engine v0.3.1
-	github.com/argoproj/notifications-engine v0.1.1-0.20210422232742-d5670d855356
+	github.com/argoproj/notifications-engine v0.1.1-0.20210427222937-9766113a8ad7
 	github.com/evanphx/json-patch v4.9.0+incompatible
 	github.com/ghodss/yaml v1.0.0
 	github.com/golang/mock v1.4.4
@@ -15,7 +14,7 @@ require (
 	github.com/robfig/cron v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.6.0
 	github.com/slack-go/slack v0.6.6
-	github.com/spf13/cobra v1.1.1
+	github.com/spf13/cobra v1.1.3
 	github.com/stretchr/testify v1.6.1
 	github.com/whilp/git-urls v0.0.0-20191001220047-6db9661140c0
 	k8s.io/api v0.20.4

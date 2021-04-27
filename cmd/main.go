@@ -5,11 +5,11 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/argoproj-labs/argocd-notifications/cmd/tools"
+
 	argocert "github.com/argoproj/argo-cd/v2/util/cert"
 	"github.com/argoproj/notifications-engine/pkg/util/http"
 	"github.com/spf13/cobra"
-
-	"github.com/argoproj-labs/argocd-notifications/cmd/tools"
 )
 
 func init() {

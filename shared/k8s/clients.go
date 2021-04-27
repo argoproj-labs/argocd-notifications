@@ -5,14 +5,17 @@ import (
 	"k8s.io/client-go/dynamic"
 )
 
+var (
+	Applications = schema.GroupVersionResource{Group: "argoproj.io", Version: "v1alpha1", Resource: "applications"}
+	AppProjects  = schema.GroupVersionResource{Group: "argoproj.io", Version: "v1alpha1", Resource: "appprojects"}
+)
+
 func NewAppClient(client dynamic.Interface, namespace string) dynamic.ResourceInterface {
-	appResource := schema.GroupVersionResource{Group: "argoproj.io", Version: "v1alpha1", Resource: "applications"}
-	resClient := client.Resource(appResource).Namespace(namespace)
+	resClient := client.Resource(Applications).Namespace(namespace)
 	return resClient
 }
 
 func NewAppProjClient(client dynamic.Interface, namespace string) dynamic.ResourceInterface {
-	appResource := schema.GroupVersionResource{Group: "argoproj.io", Version: "v1alpha1", Resource: "appprojects"}
-	resClient := client.Resource(appResource).Namespace(namespace)
+	resClient := client.Resource(AppProjects).Namespace(namespace)
 	return resClient
 }
