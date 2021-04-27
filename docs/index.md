@@ -51,6 +51,23 @@ kubectl patch app <my-app> -n argocd -p '{"metadata": {"annotations": {"notifica
 
 Try syncing and application and get the notification once sync is completed.
 
+## Kustomize Getting Started
+
+The argocd-notification manifests can also be installed using [Kustomize](https://kustomize.io/). To install
+argocd-notifications, we recommend using the remote kustomize resource:
+
+```yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: argocd
+resources:
+- https://raw.githubusercontent.com/argoproj-labs/argocd-notifications/stable/manifests/install.yaml
+
+patchesStrategicMerge:
+- https://raw.githubusercontent.com/argoproj-labs/argocd-notifications/stable/catalog/install.yaml
+```
+
 ## Helm v3 Getting Started
 
 argocd-notifications is now on [Helm Hub](https://hub.helm.sh/charts/argo/argocd-notifications) as a Helm v3 chart, making it even easier to get started as
@@ -66,37 +83,3 @@ helm install argo/argocd-notifications --generate-name \
 ```
 
 For more information or to contribute, check out the [argoproj/argo-helm repository](https://github.com/argoproj/argo-helm/tree/master/charts/argocd-notifications).
-
-## Kustomize Getting Started
-
-argocd-notification manifests can also be installed using [Kustomize](https://kustomize.io/). To install
-argocd-notifications, we recommended saving a tagged release of the `install.yaml`:
-
-```shell
-curl -o argocd-notifications-v1.1.0-install.yaml https://raw.githubusercontent.com/argoproj-labs/argocd-notifications/v1.1.0/manifests/install.yaml
-```
-
-The tagged release should then be included in a `kustomization.yaml`:
-```yaml
-namespace: argocd
-resources:
-- argocd-notifications-v1.1.0-install.yaml
-```
-
-If you would like to also install Triggers and Templates from the Catalog, we recommend
-saving a tagged release of the catalog `install.yaml`:
-
-```shell
-curl -o argocd-notifications-catalog-v1.1.0-install.yaml https://raw.githubusercontent.com/argoproj-labs/argocd-notifications/v1.1.0/catalog/install.yaml
-```
-
-The tagged release should then be patched into the base argocd-notifications install
-manifest in your `kustomization.yaml`:
-
-```yaml
-namespace: argocd
-resources:
-- argocd-notifications-v1.1.0-install.yaml
-patchesStrategicMerge:
-- argocd-notifications-catalog-v1.1.0-install.yaml
-```
