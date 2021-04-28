@@ -91,7 +91,7 @@ teams:
       {{if $index}},{{end}}
       {
         "name": "{{$c.type}}",
-        "value": "{{$c.message}}",
+        "value": "{{$c.message}}"
       }
     {{end}}
     ]
@@ -167,7 +167,7 @@ teams:
       {{if $index}},{{end}}
       {
         "name": "{{$c.type}}",
-        "value": "{{$c.message}}",
+        "value": "{{$c.message}}"
       }
     {{end}}
     ]
@@ -247,7 +247,7 @@ teams:
       {{if $index}},{{end}}
       {
         "name": "{{$c.type}}",
-        "value": "{{$c.message}}",
+        "value": "{{$c.message}}"
       }
     {{end}}
     ]
@@ -327,7 +327,7 @@ teams:
       {{if $index}},{{end}}
       {
         "name": "{{$c.type}}",
-        "value": "{{$c.message}}",
+        "value": "{{$c.message}}"
       }
     {{end}}
     ]
@@ -407,7 +407,7 @@ teams:
       {{if $index}},{{end}}
       {
         "name": "{{$c.type}}",
-        "value": "{{$c.message}}",
+        "value": "{{$c.message}}"
       }
     {{end}}
     ]
@@ -486,7 +486,7 @@ teams:
       {{if $index}},{{end}}
       {
         "name": "{{$c.type}}",
-        "value": "{{$c.message}}",
+        "value": "{{$c.message}}"
       }
     {{end}}
     ]
