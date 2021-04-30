@@ -184,6 +184,9 @@ spec:
         - controller
         image: argoprojlabs/argocd-notifications:latest
         imagePullPolicy: Always
+        livenessProbe:
+          tcpSocket:
+            port: 9001
         name: argocd-notifications-controller
         volumeMounts:
         - mountPath: /app/config/tls

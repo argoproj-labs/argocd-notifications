@@ -102,11 +102,11 @@ spec:
       - command:
         - /app/argocd-notifications-backend
         - controller
+        image: argoprojlabs/argocd-notifications:latest
+        imagePullPolicy: Always
         livenessProbe:
           tcpSocket:
             port: 9001
-        image: argoprojlabs/argocd-notifications:latest
-        imagePullPolicy: Always
         name: argocd-notifications-controller
         volumeMounts:
         - mountPath: /app/config/tls
