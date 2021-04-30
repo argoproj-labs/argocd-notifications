@@ -22,6 +22,9 @@ spec:
             - /app/argocd-notifications-backend
             - controller
           workingDir: /app
+          livenessProbe:
+            tcpSocket:
+              port: 9001
           image: argoprojlabs/argocd-notifications:latest
           imagePullPolicy: Always
           name: argocd-notifications-controller
