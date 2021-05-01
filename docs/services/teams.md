@@ -48,7 +48,7 @@ metadata:
 
 ![](https://user-images.githubusercontent.com/18019529/114271500-9d2b8880-9a4c-11eb-85c1-f6935f0431d5.png)
 
-Notification templates can be customized to leverage teams message sections, facts, themeColor, and potentialAction [feature](https://docs.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/connectors-using).
+Notification templates can be customized to leverage teams message sections, facts, themeColor, summary and potentialAction [feature](https://docs.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/connectors-using).
 
 ```yaml
 template.app-sync-succeeded: |
@@ -78,6 +78,7 @@ template.app-sync-succeeded: |
       }]
     title: Application {{.app.metadata.name}} has been successfully synced
     text: Application {{.app.metadata.name}} has been successfully synced at {{.app.status.operationState.finishedAt}}.
+    summary: "{{.app.metadata.name}} sync succeeded"
 ```
 
 ### facts field
@@ -108,4 +109,18 @@ You can set theme color as hex string for the message.
 template.app-sync-succeeded: |
   teams:
     themeColor: "#000080"
+```
+
+### summary field
+
+You can set a summary of the message that will be shown on Notifcation & Activity Feed 
+
+![](https://user-images.githubusercontent.com/6957724/116587921-84c4d480-a94d-11eb-9da4-f365151a12e7.jpg)
+
+![](https://user-images.githubusercontent.com/6957724/116588002-99a16800-a94d-11eb-807f-8626eb53b980.jpg)
+
+```yaml
+template.app-sync-succeeded: |
+  teams:
+    summary: "Sync Succeeded"
 ```
