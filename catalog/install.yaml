@@ -69,7 +69,7 @@ data:
           {{if $index}},{{end}}
           {
             "name": "{{$c.type}}",
-            "value": "{{$c.message}}",
+            "value": "{{$c.message}}"
           }
         {{end}}
         ]
@@ -141,7 +141,7 @@ data:
           {{if $index}},{{end}}
           {
             "name": "{{$c.type}}",
-            "value": "{{$c.message}}",
+            "value": "{{$c.message}}"
           }
         {{end}}
         ]
@@ -217,7 +217,7 @@ data:
           {{if $index}},{{end}}
           {
             "name": "{{$c.type}}",
-            "value": "{{$c.message}}",
+            "value": "{{$c.message}}"
           }
         {{end}}
         ]
@@ -293,7 +293,7 @@ data:
           {{if $index}},{{end}}
           {
             "name": "{{$c.type}}",
-            "value": "{{$c.message}}",
+            "value": "{{$c.message}}"
           }
         {{end}}
         ]
@@ -369,7 +369,7 @@ data:
           {{if $index}},{{end}}
           {
             "name": "{{$c.type}}",
-            "value": "{{$c.message}}",
+            "value": "{{$c.message}}"
           }
         {{end}}
         ]
@@ -444,7 +444,7 @@ data:
           {{if $index}},{{end}}
           {
             "name": "{{$c.type}}",
-            "value": "{{$c.message}}",
+            "value": "{{$c.message}}"
           }
         {{end}}
         ]
