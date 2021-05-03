@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/argoproj-labs/argocd-notifications/shared/settings"
+	"github.com/argoproj/notifications-engine/pkg/api"
 
 	slackclient "github.com/slack-go/slack"
 )
@@ -15,11 +15,15 @@ type HasSigningSecret interface {
 
 type RequestVerifier func(data []byte, header http.Header) (string, error)
 
-func NewVerifier(cfg settings.Config) RequestVerifier {
+func NewVerifier(apiFactory api.Factory) RequestVerifier {
 	return func(data []byte, header http.Header) (string, error) {
 		signingSecret := ""
 		serviceName := ""
-		for name, service := range cfg.API.GetNotificationServices() {
+		api, err := apiFactory.GetAPI()
+		if err != nil {
+			return "", err
+		}
+		for name, service := range api.GetNotificationServices() {
 			if hasSecret, ok := service.(HasSigningSecret); ok {
 				signingSecret = hasSecret.GetSigningSecret()
 				serviceName = name

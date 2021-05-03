@@ -2,33 +2,27 @@ package controller
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"reflect"
-	"runtime/debug"
 	"time"
 
-	"github.com/argoproj-labs/argocd-notifications/expr"
+	"github.com/argoproj-labs/argocd-notifications/shared/argocd"
+	"k8s.io/client-go/kubernetes"
+
 	"github.com/argoproj-labs/argocd-notifications/shared/k8s"
-	"github.com/argoproj-labs/argocd-notifications/shared/legacy"
 	"github.com/argoproj-labs/argocd-notifications/shared/settings"
 
-	"github.com/argoproj/notifications-engine/pkg"
+	"github.com/argoproj/notifications-engine/pkg/api"
 	"github.com/argoproj/notifications-engine/pkg/controller"
 	"github.com/argoproj/notifications-engine/pkg/services"
-	"github.com/argoproj/notifications-engine/pkg/triggers"
+	"github.com/argoproj/notifications-engine/pkg/subscriptions"
 	log "github.com/sirupsen/logrus"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
-	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
-	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/tools/cache"
-	"k8s.io/client-go/util/workqueue"
 )
 
 const (
@@ -41,43 +35,42 @@ type NotificationController interface {
 }
 
 func NewController(
+	k8sClient kubernetes.Interface,
 	client dynamic.Interface,
+	argocdService argocd.Service,
 	namespace string,
-	cfg settings.Config,
 	appLabelSelector string,
-	metricsRegistry *controllerRegistry,
-) (NotificationController, error) {
+	registry *controller.MetricsRegistry,
+) *notificationController {
 	appClient := k8s.NewAppClient(client, namespace)
-	queue := workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter())
-
 	appInformer := newInformer(appClient, appLabelSelector)
-
-	appInformer.AddEventHandler(
-		cache.ResourceEventHandlerFuncs{
-			AddFunc: func(obj interface{}) {
-				key, err := cache.MetaNamespaceKeyFunc(obj)
-				if err == nil {
-					queue.Add(key)
-				}
-			},
-			UpdateFunc: func(old, new interface{}) {
-				key, err := cache.MetaNamespaceKeyFunc(new)
-				if err == nil {
-					queue.Add(key)
-				}
-			},
-		},
-	)
 	appProjInformer := newInformer(k8s.NewAppProjClient(client, namespace), "")
+	secretInformer := k8s.NewSecretInformer(k8sClient, namespace)
+	configMapInformer := k8s.NewConfigMapInformer(k8sClient, namespace)
+	apiFactory := api.NewFactory(settings.GetFactorySettings(argocdService), namespace, secretInformer, configMapInformer)
 
-	return &notificationController{
-		appClient:       appClient,
-		appInformer:     appInformer,
-		appProjInformer: appProjInformer,
-		refreshQueue:    queue,
-		cfg:             cfg,
-		metricsRegistry: metricsRegistry,
-	}, nil
+	res := &notificationController{
+		secretInformer:    secretInformer,
+		configMapInformer: configMapInformer,
+		appInformer:       appInformer,
+		appProjInformer:   appProjInformer,
+		apiFactory:        apiFactory}
+	res.ctrl = controller.NewController(appClient, appInformer, apiFactory,
+		controller.WithSkipProcessing(func(obj *unstructured.Unstructured) (bool, string) {
+			return !isAppSyncStatusRefreshed(obj, log.WithField("app", obj.GetName())), "sync status out of date"
+		}),
+		controller.WithMetricsRegistry(registry),
+		controller.WithAdditionalDestinations(res.getAdditionalDestinations))
+	return res
+}
+
+func (c *notificationController) getAdditionalDestinations(obj *unstructured.Unstructured, cfg api.Config) services.Destinations {
+	res := services.Destinations{}
+	if proj := getAppProj(obj, c.appProjInformer); proj != nil {
+		res.Merge(subscriptions.Annotations(proj.GetAnnotations()).GetDestinations(cfg.DefaultTriggers, cfg.ServiceDefaultTriggers))
+		res.Merge(settings.GetLegacyDestinations(proj.GetAnnotations(), cfg.DefaultTriggers, cfg.ServiceDefaultTriggers))
+	}
+	return res
 }
 
 func newInformer(resClient dynamic.ResourceInterface, selector string) cache.SharedIndexInformer {
@@ -100,109 +93,36 @@ func newInformer(resClient dynamic.ResourceInterface, selector string) cache.Sha
 }
 
 type notificationController struct {
-	appClient       dynamic.ResourceInterface
-	appInformer     cache.SharedIndexInformer
-	appProjInformer cache.SharedIndexInformer
-	refreshQueue    workqueue.RateLimitingInterface
-	cfg             settings.Config
-	metricsRegistry *controllerRegistry
+	apiFactory        api.Factory
+	ctrl              controller.NotificationController
+	appInformer       cache.SharedIndexInformer
+	appProjInformer   cache.SharedIndexInformer
+	secretInformer    cache.SharedIndexInformer
+	configMapInformer cache.SharedIndexInformer
 }
 
 func (c *notificationController) Init(ctx context.Context) error {
 	go c.appInformer.Run(ctx.Done())
 	go c.appProjInformer.Run(ctx.Done())
+	go c.secretInformer.Run(ctx.Done())
+	go c.configMapInformer.Run(ctx.Done())
 
-	if !cache.WaitForCacheSync(ctx.Done(), c.appInformer.HasSynced, c.appProjInformer.HasSynced) {
+	if !cache.WaitForCacheSync(ctx.Done(), c.appInformer.HasSynced, c.appProjInformer.HasSynced, c.secretInformer.HasSynced, c.configMapInformer.HasSynced) {
 		return errors.New("Timed out waiting for caches to sync")
 	}
 	return nil
 }
 
 func (c *notificationController) Run(ctx context.Context, processors int) {
-	defer runtimeutil.HandleCrash()
-	defer c.refreshQueue.ShutDown()
-
-	log.Warn("Controller is running.")
-	for i := 0; i < processors; i++ {
-		go wait.Until(func() {
-			for c.processQueueItem() {
-			}
-		}, time.Second, ctx.Done())
-	}
-	<-ctx.Done()
-	log.Warn("Controller has stopped.")
+	c.ctrl.Run(ctx, processors)
 }
 
-func (c *notificationController) processApp(app *unstructured.Unstructured, logEntry *log.Entry) error {
-	appState := controller.NewStateFromRes(app)
-
-	for trigger, destinations := range c.getSubscriptions(app) {
-
-		res, err := c.cfg.API.RunTrigger(trigger, expr.Spawn(app, c.cfg.ArgoCDService, map[string]interface{}{"app": app.Object}))
-		if err != nil {
-			logEntry.Debugf("Failed to execute condition of trigger %s: %v", trigger, err)
-		}
-		logEntry.Infof("Trigger %s result: %v", trigger, res)
-
-		for _, cr := range res {
-			c.metricsRegistry.IncTriggerEvaluationsCounter(trigger, cr.Triggered)
-
-			if !cr.Triggered {
-				for _, to := range destinations {
-					appState.SetAlreadyNotified(trigger, cr, to, false)
-				}
-				continue
-			}
-
-			for _, to := range destinations {
-				if err := c.sendNotification(app, logEntry, appState, trigger, cr, to); err != nil {
-					return err
-				}
-			}
-		}
-	}
-
-	return appState.Persist(app)
-}
-
-func (c *notificationController) sendNotification(
-	app *unstructured.Unstructured,
-	logEntry *log.Entry,
-	appState controller.NotificationsState,
-	trigger string,
-	cr triggers.ConditionResult,
-	to services.Destination,
-) error {
-	if changed := appState.SetAlreadyNotified(trigger, cr, to, true); !changed {
-		logEntry.Infof("Notification about condition '%s.%s' already sent to '%v'", trigger, cr.Key, to)
-		return nil
-	} else {
-		logEntry.Infof("Sending notification about condition '%s.%s' to '%v'", trigger, cr.Key, to)
-		vars := expr.Spawn(app, c.cfg.ArgoCDService, map[string]interface{}{
-			"app":     app.Object,
-			"context": legacy.InjectLegacyVar(c.cfg.Context, to.Service),
-		})
-
-		if err := c.cfg.API.Send(vars, cr.Templates, to); err != nil {
-			logEntry.Errorf("Failed to notify recipient %s defined in app %s/%s: %v",
-				to, app.GetNamespace(), app.GetName(), err)
-			appState.SetAlreadyNotified(trigger, cr, to, false)
-			c.metricsRegistry.IncDeliveriesCounter(trigger, to.Service, false)
-		} else {
-			logEntry.Debugf("Notification %s was sent", to.Recipient)
-			c.metricsRegistry.IncDeliveriesCounter(trigger, to.Service, true)
-		}
-
-		return nil
-	}
-}
-
-func (c *notificationController) getAppProj(app *unstructured.Unstructured) *unstructured.Unstructured {
+func getAppProj(app *unstructured.Unstructured, appProjInformer cache.SharedIndexInformer) *unstructured.Unstructured {
 	projName, ok, err := unstructured.NestedString(app.Object, "spec", "project")
 	if !ok || err != nil {
 		return nil
 	}
-	projObj, ok, err := c.appProjInformer.GetIndexer().GetByKey(fmt.Sprintf("%s/%s", app.GetNamespace(), projName))
+	projObj, ok, err := appProjInformer.GetIndexer().GetByKey(fmt.Sprintf("%s/%s", app.GetNamespace(), projName))
 	if !ok || err != nil {
 		return nil
 	}
@@ -216,22 +136,8 @@ func (c *notificationController) getAppProj(app *unstructured.Unstructured) *uns
 	return proj
 }
 
-func (c *notificationController) getSubscriptions(app *unstructured.Unstructured) pkg.Subscriptions {
-	res := c.cfg.GetGlobalSubscriptions(app.GetLabels())
-
-	res.Merge(controller.Subscriptions(app.GetAnnotations()).GetAll(c.cfg.DefaultTriggers, c.cfg.ServiceDefaultTriggers))
-	res.Merge(legacy.GetSubscriptions(app.GetAnnotations(), c.cfg.DefaultTriggers, c.cfg.ServiceDefaultTriggers))
-
-	if proj := c.getAppProj(app); proj != nil {
-		res.Merge(controller.Subscriptions(proj.GetAnnotations()).GetAll(c.cfg.DefaultTriggers, c.cfg.ServiceDefaultTriggers))
-		res.Merge(legacy.GetSubscriptions(proj.GetAnnotations(), c.cfg.DefaultTriggers, c.cfg.ServiceDefaultTriggers))
-	}
-
-	return res.Dedup()
-}
-
 // Checks if the application SyncStatus has been refreshed by Argo CD after an operation has completed
-func (c *notificationController) isAppSyncStatusRefreshed(app *unstructured.Unstructured, logEntry *log.Entry) bool {
+func isAppSyncStatusRefreshed(app *unstructured.Unstructured, logEntry *log.Entry) bool {
 	_, ok, err := unstructured.NestedMap(app.Object, "status", "operationState")
 	if !ok || err != nil {
 		logEntry.Debug("No OperationState found, SyncStatus is assumed to be up-to-date")
@@ -274,89 +180,4 @@ func (c *notificationController) isAppSyncStatusRefreshed(app *unstructured.Unst
 	}
 
 	return true
-}
-
-func (c *notificationController) processQueueItem() (processNext bool) {
-	key, shutdown := c.refreshQueue.Get()
-	if shutdown {
-		processNext = false
-		return
-	}
-	processNext = true
-	defer func() {
-		if r := recover(); r != nil {
-			log.Errorf("Recovered from panic: %+v\n%s", r, debug.Stack())
-		}
-		c.refreshQueue.Done(key)
-	}()
-
-	obj, exists, err := c.appInformer.GetIndexer().GetByKey(key.(string))
-	if err != nil {
-		log.Errorf("Failed to get app '%s' from appInformer index: %+v", key, err)
-		return
-	}
-	if !exists {
-		// This happens after app was deleted, but the work queue still had an entry for it.
-		return
-	}
-	app, ok := obj.(*unstructured.Unstructured)
-	if !ok {
-		log.Errorf("Failed to get app '%s' from appInformer index: %+v", key, err)
-		return
-	}
-	appCopy := app.DeepCopy()
-	logEntry := log.WithField("app", key)
-	logEntry.Info("Start processing")
-	if refreshed := c.isAppSyncStatusRefreshed(appCopy, logEntry); !refreshed {
-		logEntry.Info("Processing skipped, sync status out of date")
-		return
-	}
-	err = c.processApp(appCopy, logEntry)
-	if err != nil {
-		logEntry.Errorf("Failed to process: %v", err)
-		return
-	}
-
-	if !mapsEqual(app.GetAnnotations(), appCopy.GetAnnotations()) {
-		annotationsPatch := make(map[string]interface{})
-		for k, v := range appCopy.GetAnnotations() {
-			annotationsPatch[k] = v
-		}
-		for k := range app.GetAnnotations() {
-			if _, ok = appCopy.GetAnnotations()[k]; !ok {
-				annotationsPatch[k] = nil
-			}
-		}
-
-		patchData, err := json.Marshal(map[string]map[string]interface{}{
-			"metadata": {"annotations": annotationsPatch},
-		})
-		if err != nil {
-			logEntry.Errorf("Failed to marshal app patch: %v", err)
-			return
-		}
-		app, err = c.appClient.Patch(context.Background(), app.GetName(), types.MergePatchType, patchData, v1.PatchOptions{})
-		if err != nil {
-			logEntry.Errorf("Failed to patch app: %v", err)
-			return
-		}
-		if err := c.appInformer.GetStore().Update(app); err != nil {
-			logEntry.Warnf("Failed to store update app in informer: %v", err)
-		}
-	}
-	logEntry.Info("Processing completed")
-
-	return
-}
-
-func mapsEqual(first, second map[string]string) bool {
-	if first == nil {
-		first = map[string]string{}
-	}
-
-	if second == nil {
-		second = map[string]string{}
-	}
-
-	return reflect.DeepEqual(first, second)
 }

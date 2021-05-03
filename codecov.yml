@@ -1,5 +1,6 @@
 ignore:
 - ./**/mocks/*
+- ./hack/**/*
 coverage:
   status:
     patch: off

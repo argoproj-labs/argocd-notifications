@@ -1,16 +1,16 @@
 package tools
 
 import (
-	"github.com/argoproj-labs/argocd-notifications/expr"
+	"log"
+
 	"github.com/argoproj-labs/argocd-notifications/shared/argocd"
 	"github.com/argoproj-labs/argocd-notifications/shared/k8s"
-	"github.com/argoproj-labs/argocd-notifications/shared/legacy"
+	"github.com/argoproj-labs/argocd-notifications/shared/settings"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/argoproj/notifications-engine/pkg/cmd"
-	"github.com/argoproj/notifications-engine/pkg/services"
-	"github.com/ghodss/yaml"
 	"github.com/spf13/cobra"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
 func NewToolsCommand() *cobra.Command {
@@ -18,38 +18,25 @@ func NewToolsCommand() *cobra.Command {
 		argocdRepoServer string
 	)
 
-	toolsCommand := cmd.NewToolsCommand("argocd-notifications", cmd.Config{
-		Resource:      k8s.Applications,
-		SecretName:    k8s.SecretName,
-		ConfigMapName: k8s.ConfigMapName,
-		CLIName:       "argocd-notifications",
-		CreateVars: func(obj map[string]interface{}, dest services.Destination, cmdContext cmd.CommandContext) (map[string]interface{}, error) {
-			k8sClient, _, ns, err := cmdContext.GetK8SClients()
+	var argocdService argocd.Service
+	toolsCommand := cmd.NewToolsCommand(
+		"argocd-notifications",
+		"argocd-notifications",
+		k8s.Applications,
+		settings.GetFactorySettings(argocdService), func(clientConfig clientcmd.ClientConfig) {
+			k8sCfg, err := clientConfig.ClientConfig()
 			if err != nil {
-				return nil, err
+				log.Fatalf("Failed to parse k8s config: %v", err)
 			}
-			argocdService, err := argocd.NewArgoCDService(k8sClient, ns, argocdRepoServer)
+			ns, _, err := clientConfig.Namespace()
 			if err != nil {
-				return nil, err
+				log.Fatalf("Failed to parse k8s config: %v", err)
 			}
-			configMap, err := cmdContext.GetConfigMap()
+			argocdService, err = argocd.NewArgoCDService(kubernetes.NewForConfigOrDie(k8sCfg), ns, argocdRepoServer)
 			if err != nil {
-				return nil, err
+				log.Fatalf("Failed to initalize Argo CD service: %v", err)
 			}
-			context := map[string]string{}
-			if contextYaml, ok := configMap.Data["context"]; ok {
-				if err := yaml.Unmarshal([]byte(contextYaml), &context); err != nil {
-					return nil, err
-				}
-			}
-
-			return expr.Spawn(&unstructured.Unstructured{Object: obj}, argocdService, map[string]interface{}{
-				"app":     obj,
-				"context": legacy.InjectLegacyVar(context, dest.Service),
-			}), nil
-		},
-	})
+		})
 	toolsCommand.PersistentFlags().StringVar(&argocdRepoServer, "argocd-repo-server", "argocd-repo-server:8081", "Argo CD repo server address")
 	return toolsCommand
-
 }

@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/argoproj-labs/argocd-notifications/shared/settings"
-	"github.com/argoproj/notifications-engine/pkg"
-	"github.com/argoproj/notifications-engine/pkg/services"
+	"github.com/argoproj/notifications-engine/pkg/mocks"
 
+	"github.com/argoproj/notifications-engine/pkg/api"
+	"github.com/argoproj/notifications-engine/pkg/services"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -32,14 +32,14 @@ func TestNewVerifier_IncorrectConfig(t *testing.T) {
 
 		t.Run(k, func(t *testing.T) {
 
-			api, err := pkg.NewAPI(pkg.Config{})
+			api, err := api.NewAPI(api.Config{}, nil)
 			if !assert.NoError(t, err) {
 				return
 			}
 			for k, v := range testCase.Services {
 				api.AddNotificationService(k, v)
 			}
-			verifier := NewVerifier(settings.Config{API: api})
+			verifier := NewVerifier(&mocks.FakeFactory{Api: api})
 
 			_, err = verifier(nil, nil)
 
@@ -50,12 +50,12 @@ func TestNewVerifier_IncorrectConfig(t *testing.T) {
 }
 
 func TestNewVerifier_IncorrectSignature(t *testing.T) {
-	api, err := pkg.NewAPI(pkg.Config{})
+	api, err := api.NewAPI(api.Config{}, nil)
 	if !assert.NoError(t, err) {
 		return
 	}
 	api.AddNotificationService("slack", services.NewSlackService(services.SlackOptions{SigningSecret: "hello world"}))
-	verifier := NewVerifier(settings.Config{API: api})
+	verifier := NewVerifier(&mocks.FakeFactory{Api: api})
 
 	now := time.Now()
 	data := "hello world"

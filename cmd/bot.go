@@ -1,10 +1,7 @@
 package main
 
 import (
-	"context"
-	"log"
-	"net/http"
-	"sync"
+	"github.com/argoproj/notifications-engine/pkg/api"
 
 	"github.com/spf13/cobra"
 	"k8s.io/client-go/dynamic"
@@ -14,7 +11,6 @@ import (
 	"github.com/argoproj-labs/argocd-notifications/bot"
 	"github.com/argoproj-labs/argocd-notifications/bot/slack"
 	"github.com/argoproj-labs/argocd-notifications/shared/k8s"
-	"github.com/argoproj-labs/argocd-notifications/shared/legacy"
 	"github.com/argoproj-labs/argocd-notifications/shared/settings"
 )
 
@@ -46,15 +42,13 @@ func newBotCommand() *cobra.Command {
 					return err
 				}
 			}
-			cfgSrc := make(chan settings.Config)
-			if err = settings.WatchConfig(context.Background(), nil, clientset, namespace, func(config settings.Config) error {
-				cfgSrc <- config
-				return nil
-			}, legacy.ApplyLegacyConfig); err != nil {
-				log.Fatal(err)
-			}
+
+			apiFactory := api.NewFactory(settings.GetFactorySettings(nil),
+				namespace,
+				k8s.NewSecretInformer(clientset, namespace), k8s.NewConfigMapInformer(clientset, namespace))
+
 			server := bot.NewServer(dynamicClient, namespace)
-			server.AddAdapter("/slack", slack.NewSlackAdapter(getVerifier(cfgSrc)))
+			server.AddAdapter("/slack", slack.NewSlackAdapter(slack.NewVerifier(apiFactory)))
 			return server.Serve(port)
 		},
 	}
@@ -62,27 +56,4 @@ func newBotCommand() *cobra.Command {
 	command.Flags().IntVar(&port, "port", 8080, "Port number.")
 	command.Flags().StringVar(&namespace, "namespace", "", "Namespace which bot handles. Current namespace if empty.")
 	return &command
-}
-
-func getVerifier(cfgSrc chan settings.Config) slack.RequestVerifier {
-	cfg := <-cfgSrc
-	verifier := slack.NewVerifier(cfg)
-
-	var lock sync.Mutex
-
-	go func() {
-		for next := range cfgSrc {
-			lock.Lock()
-			verifier = slack.NewVerifier(next)
-			lock.Unlock()
-		}
-	}()
-
-	return func(data []byte, header http.Header) (string, error) {
-		var currentVerifier slack.RequestVerifier
-		lock.Lock()
-		currentVerifier = verifier
-		lock.Unlock()
-		return currentVerifier(data, header)
-	}
 }
