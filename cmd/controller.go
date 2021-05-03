@@ -10,10 +10,8 @@ import (
 	"github.com/argoproj-labs/argocd-notifications/controller"
 	"github.com/argoproj-labs/argocd-notifications/shared/argocd"
 	"github.com/argoproj-labs/argocd-notifications/shared/k8s"
-	"github.com/argoproj-labs/argocd-notifications/shared/legacy"
-	"github.com/argoproj-labs/argocd-notifications/shared/settings"
 
-	"github.com/argoproj/notifications-engine/pkg/services"
+	notificationscontroller "github.com/argoproj/notifications-engine/pkg/controller"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
@@ -84,7 +82,7 @@ func newControllerCommand() *cobra.Command {
 			}
 			defer argocdService.Close()
 
-			registry := controller.NewMetricsRegistry()
+			registry := notificationscontroller.NewMetricsRegistry("argocd")
 			http.Handle("/metrics", promhttp.HandlerFor(prometheus.Gatherers{registry, prometheus.DefaultGatherer}, promhttp.HandlerOpts{}))
 
 			go func() {
@@ -93,35 +91,13 @@ func newControllerCommand() *cobra.Command {
 			log.Infof("serving metrics on port %d", metricsPort)
 			log.Infof("loading configuration %d", metricsPort)
 
-			var cancelPrev context.CancelFunc
-			err = settings.WatchConfig(context.Background(), argocdService, k8sClient, namespace, func(cfg settings.Config) error {
-				if cancelPrev != nil {
-					log.Info("Settings had been updated. Restarting controller...")
-					cancelPrev()
-					cancelPrev = nil
-				}
-
-				// add console service that is useful for debugging
-				cfg.API.AddNotificationService("console", services.NewConsoleService(os.Stdout))
-
-				ctrl, err := controller.NewController(dynamicClient, namespace, cfg, appLabelSelector, registry)
-				if err != nil {
-					return err
-				}
-				ctx, cancel := context.WithCancel(context.Background())
-				cancelPrev = cancel
-
-				err = ctrl.Init(ctx)
-				if err != nil {
-					return err
-				}
-
-				go ctrl.Run(ctx, processorsCount)
-				return nil
-			}, legacy.ApplyLegacyConfig)
+			ctrl := controller.NewController(k8sClient, dynamicClient, argocdService, namespace, appLabelSelector, registry)
+			err = ctrl.Init(context.Background())
 			if err != nil {
-				log.Fatal(err)
+				return err
 			}
+
+			go ctrl.Run(context.Background(), processorsCount)
 			<-context.Background().Done()
 			return nil
 		},

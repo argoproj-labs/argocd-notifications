@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/argoproj/notifications-engine/pkg/controller"
+	"github.com/argoproj/notifications-engine/pkg/subscriptions"
 
 	"github.com/argoproj-labs/argocd-notifications/shared/k8s"
 
@@ -106,7 +106,7 @@ func (s *server) updateSubscription(service string, recipient string, subscribe 
 		return "", err
 	}
 	oldAnnotations := copyStringMap(obj.GetAnnotations())
-	annotations := controller.Subscriptions(obj.GetAnnotations())
+	annotations := subscriptions.Annotations(obj.GetAnnotations())
 	if subscribe {
 		annotations.Subscribe(opts.Trigger, service, recipient)
 	} else {
@@ -139,7 +139,7 @@ func (s *server) listSubscriptions(service string, recipient string) (string, er
 	}
 	var apps []string
 	for _, app := range appList.Items {
-		if controller.Subscriptions(app.GetAnnotations()).Has(service, recipient) {
+		if subscriptions.Annotations(app.GetAnnotations()).Has(service, recipient) {
 			apps = append(apps, fmt.Sprintf("%s/%s", app.GetNamespace(), app.GetName()))
 		}
 	}
@@ -149,7 +149,7 @@ func (s *server) listSubscriptions(service string, recipient string) (string, er
 	}
 	var appProjs []string
 	for _, appProj := range appProjList.Items {
-		if controller.Subscriptions(appProj.GetAnnotations()).Has(service, recipient) {
+		if subscriptions.Annotations(appProj.GetAnnotations()).Has(service, recipient) {
 			appProjs = append(appProjs, fmt.Sprintf("%s/%s", appProj.GetNamespace(), appProj.GetName()))
 		}
 	}

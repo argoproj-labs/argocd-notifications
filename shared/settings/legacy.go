@@ -1,14 +1,15 @@
-package legacy
+package settings
 
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
-	"github.com/argoproj-labs/argocd-notifications/shared/settings"
-
-	"github.com/argoproj/notifications-engine/pkg"
+	"github.com/argoproj/notifications-engine/pkg/api"
 	"github.com/argoproj/notifications-engine/pkg/services"
+	"github.com/argoproj/notifications-engine/pkg/subscriptions"
 	"github.com/argoproj/notifications-engine/pkg/triggers"
+	"github.com/argoproj/notifications-engine/pkg/util/text"
 	jsonpatch "github.com/evanphx/json-patch"
 	"github.com/ghodss/yaml"
 	log "github.com/sirupsen/logrus"
@@ -31,10 +32,10 @@ type legacyTrigger struct {
 }
 
 type legacyConfig struct {
-	Triggers      []legacyTrigger               `json:"triggers,omitempty"`
-	Templates     []legacyTemplate              `json:"templates,omitempty"`
-	Context       map[string]string             `json:"context,omitempty"`
-	Subscriptions settings.DefaultSubscriptions `json:"subscriptions,omitempty"`
+	Triggers      []legacyTrigger                    `json:"triggers,omitempty"`
+	Templates     []legacyTemplate                   `json:"templates,omitempty"`
+	Context       map[string]string                  `json:"context,omitempty"`
+	Subscriptions subscriptions.DefaultSubscriptions `json:"subscriptions,omitempty"`
 }
 
 type legacyWebhookOptions struct {
@@ -71,8 +72,8 @@ func mergePatch(orig interface{}, other interface{}) error {
 	return json.Unmarshal(mergedData, orig)
 }
 
-func (legacy legacyConfig) merge(cfg *settings.Config) error {
-	if err := mergePatch(&cfg.Context, &legacy.Context); err != nil {
+func (legacy legacyConfig) merge(cfg *api.Config, context map[string]string) error {
+	if err := mergePatch(&context, &legacy.Context); err != nil {
 		return err
 	}
 	if err := mergePatch(&cfg.Subscriptions, &legacy.Subscriptions); err != nil {
@@ -126,7 +127,7 @@ func (legacy legacyConfig) merge(cfg *settings.Config) error {
 	return nil
 }
 
-func (c *legacyServicesConfig) merge(cfg *pkg.Config) {
+func (c *legacyServicesConfig) merge(cfg *api.Config) {
 	if c.Email != nil {
 		cfg.Services["email"] = func() (services.NotificationService, error) {
 			return services.NewEmailService(*c.Email), nil
@@ -156,7 +157,7 @@ func (c *legacyServicesConfig) merge(cfg *pkg.Config) {
 }
 
 // ApplyLegacyConfig settings specified using deprecated config map and secret keys
-func ApplyLegacyConfig(cfg *settings.Config, cm *v1.ConfigMap, secret *v1.Secret) error {
+func ApplyLegacyConfig(cfg *api.Config, context map[string]string, cm *v1.ConfigMap, secret *v1.Secret) error {
 	if notifiersData, ok := secret.Data["notifiers.yaml"]; ok && len(notifiersData) > 0 {
 		log.Warn("Key 'notifiers.yaml' in Secret is deprecated, please migrate to new settings")
 		legacyServices := &legacyServicesConfig{}
@@ -164,7 +165,7 @@ func ApplyLegacyConfig(cfg *settings.Config, cm *v1.ConfigMap, secret *v1.Secret
 		if err != nil {
 			return err
 		}
-		legacyServices.merge(&cfg.Config)
+		legacyServices.merge(cfg)
 	}
 
 	if configData, ok := cm.Data["config.yaml"]; ok && configData != "" {
@@ -174,10 +175,61 @@ func ApplyLegacyConfig(cfg *settings.Config, cm *v1.ConfigMap, secret *v1.Secret
 		if err != nil {
 			return err
 		}
-		err = legacyCfg.merge(cfg)
+		err = legacyCfg.merge(cfg, context)
 		if err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+const (
+	annotationKey = "recipients.argocd-notifications.argoproj.io"
+)
+
+func GetLegacyDestinations(annotations map[string]string, defaultTriggers []string, serviceDefaultTriggers map[string][]string) services.Destinations {
+	dests := services.Destinations{}
+	for k, v := range annotations {
+		if !strings.HasSuffix(k, annotationKey) {
+			continue
+		}
+
+		var triggerNames []string
+		triggerName := strings.TrimRight(k[0:len(k)-len(annotationKey)], ".")
+		if triggerName == "" {
+			triggerNames = defaultTriggers
+		} else {
+			triggerNames = []string{triggerName}
+		}
+
+		for _, recipient := range text.SplitRemoveEmpty(v, ",") {
+			if recipient = strings.TrimSpace(recipient); recipient != "" {
+				parts := strings.Split(recipient, ":")
+				dest := services.Destination{Service: parts[0]}
+				if len(parts) > 1 {
+					dest.Recipient = parts[1]
+				}
+
+				t := triggerNames
+				if v, ok := serviceDefaultTriggers[dest.Service]; ok {
+					t = v
+				}
+				for _, name := range t {
+					dests[name] = append(dests[name], dest)
+				}
+			}
+		}
+	}
+	return dests
+}
+
+// injectLegacyVar injects legacy variable into context
+func injectLegacyVar(ctx map[string]string, serviceType string) map[string]string {
+	res := map[string]string{
+		"notificationType": serviceType,
+	}
+	for k, v := range ctx {
+		res[k] = v
+	}
+	return res
 }
