@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"github.com/argoproj-labs/argocd-notifications/shared/argocd"
-	"k8s.io/client-go/kubernetes"
-
 	"github.com/argoproj-labs/argocd-notifications/shared/k8s"
 	"github.com/argoproj-labs/argocd-notifications/shared/settings"
 
@@ -22,6 +20,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 )
 
@@ -42,7 +41,7 @@ func NewController(
 	appLabelSelector string,
 	registry *controller.MetricsRegistry,
 ) *notificationController {
-	appClient := k8s.NewAppClient(client, namespace)
+	appClient := client.Resource(k8s.Applications)
 	appInformer := newInformer(appClient, appLabelSelector)
 	appProjInformer := newInformer(k8s.NewAppProjClient(client, namespace), "")
 	secretInformer := k8s.NewSecretInformer(k8sClient, namespace)
@@ -56,17 +55,27 @@ func NewController(
 		appProjInformer:   appProjInformer,
 		apiFactory:        apiFactory}
 	res.ctrl = controller.NewController(appClient, appInformer, apiFactory,
-		controller.WithSkipProcessing(func(obj *unstructured.Unstructured) (bool, string) {
-			return !isAppSyncStatusRefreshed(obj, log.WithField("app", obj.GetName())), "sync status out of date"
+		controller.WithSkipProcessing(func(obj v1.Object) (bool, string) {
+			app, ok := (obj).(*unstructured.Unstructured)
+			if !ok {
+				return false, ""
+			}
+			return !isAppSyncStatusRefreshed(app, log.WithField("app", obj.GetName())), "sync status out of date"
 		}),
 		controller.WithMetricsRegistry(registry),
 		controller.WithAdditionalDestinations(res.getAdditionalDestinations))
 	return res
 }
 
-func (c *notificationController) getAdditionalDestinations(obj *unstructured.Unstructured, cfg api.Config) services.Destinations {
+func (c *notificationController) getAdditionalDestinations(obj v1.Object, cfg api.Config) services.Destinations {
 	res := services.Destinations{}
-	if proj := getAppProj(obj, c.appProjInformer); proj != nil {
+
+	app, ok := (obj).(*unstructured.Unstructured)
+	if !ok {
+		return res
+	}
+
+	if proj := getAppProj(app, c.appProjInformer); proj != nil {
 		res.Merge(subscriptions.Annotations(proj.GetAnnotations()).GetDestinations(cfg.DefaultTriggers, cfg.ServiceDefaultTriggers))
 		res.Merge(settings.GetLegacyDestinations(proj.GetAnnotations(), cfg.DefaultTriggers, cfg.ServiceDefaultTriggers))
 	}
@@ -114,7 +123,7 @@ func (c *notificationController) Init(ctx context.Context) error {
 }
 
 func (c *notificationController) Run(ctx context.Context, processors int) {
-	c.ctrl.Run(ctx, processors)
+	c.ctrl.Run(processors, ctx.Done())
 }
 
 func getAppProj(app *unstructured.Unstructured, appProjInformer cache.SharedIndexInformer) *unstructured.Unstructured {
