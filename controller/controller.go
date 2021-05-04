@@ -63,23 +63,21 @@ func NewController(
 			return !isAppSyncStatusRefreshed(app, log.WithField("app", obj.GetName())), "sync status out of date"
 		}),
 		controller.WithMetricsRegistry(registry),
-		controller.WithAdditionalDestinations(res.getAdditionalDestinations))
+		controller.WithAlterDestinations(res.alterDestinations))
 	return res
 }
 
-func (c *notificationController) getAdditionalDestinations(obj v1.Object, cfg api.Config) services.Destinations {
-	res := services.Destinations{}
-
+func (c *notificationController) alterDestinations(obj v1.Object, destinations services.Destinations, cfg api.Config) services.Destinations {
 	app, ok := (obj).(*unstructured.Unstructured)
 	if !ok {
-		return res
+		return destinations
 	}
 
 	if proj := getAppProj(app, c.appProjInformer); proj != nil {
-		res.Merge(subscriptions.Annotations(proj.GetAnnotations()).GetDestinations(cfg.DefaultTriggers, cfg.ServiceDefaultTriggers))
-		res.Merge(settings.GetLegacyDestinations(proj.GetAnnotations(), cfg.DefaultTriggers, cfg.ServiceDefaultTriggers))
+		destinations.Merge(subscriptions.Annotations(proj.GetAnnotations()).GetDestinations(cfg.DefaultTriggers, cfg.ServiceDefaultTriggers))
+		destinations.Merge(settings.GetLegacyDestinations(proj.GetAnnotations(), cfg.DefaultTriggers, cfg.ServiceDefaultTriggers))
 	}
-	return res
+	return destinations
 }
 
 func newInformer(resClient dynamic.ResourceInterface, selector string) cache.SharedIndexInformer {

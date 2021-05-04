@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/argoproj/notifications-engine/pkg/services"
+
 	. "github.com/argoproj-labs/argocd-notifications/testing"
 
 	"github.com/argoproj/notifications-engine/pkg/api"
@@ -51,7 +53,7 @@ func TestSendsNotificationIfProjectTriggered(t *testing.T) {
 	ctrl, _, err := newController(t, ctx, NewFakeClient(app, appProj))
 	assert.NoError(t, err)
 
-	dests := ctrl.getAdditionalDestinations(app, api.Config{})
+	dests := ctrl.alterDestinations(app, services.Destinations{}, api.Config{})
 
 	assert.NoError(t, err)
 	assert.NotEmpty(t, dests)
