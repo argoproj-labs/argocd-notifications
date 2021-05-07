@@ -38,7 +38,11 @@ data:
         path: <optional-path-template>
         body: |
           <optional-body-template>
+  trigger.<trigger-name>: |
+    - when: app.status.operationState.phase in ['Succeeded']
+      send: [github-commit-status]
 ```
+
 3 Create subscription for webhook integration:
 
 ```yaml
