@@ -10,10 +10,12 @@ import (
 	"k8s.io/client-go/tools/cache"
 )
 
-const (
+var (
 	ConfigMapName = "argocd-notifications-cm"
 	SecretName    = "argocd-notifications-secret"
+)
 
+const (
 	settingsResyncDuration = 3 * time.Minute
 )
 

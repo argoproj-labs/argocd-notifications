@@ -36,6 +36,8 @@ func newControllerCommand() *cobra.Command {
 		logFormat        string
 		metricsPort      int
 		argocdRepoServer string
+		configMapName    string
+		secretName       string
 	)
 	var command = cobra.Command{
 		Use:   "controller",
@@ -82,6 +84,9 @@ func newControllerCommand() *cobra.Command {
 			}
 			defer argocdService.Close()
 
+			k8s.ConfigMapName = configMapName
+			k8s.SecretName = secretName
+
 			registry := notificationscontroller.NewMetricsRegistry("argocd")
 			http.Handle("/metrics", promhttp.HandlerFor(prometheus.Gatherers{registry, prometheus.DefaultGatherer}, promhttp.HandlerOpts{}))
 
@@ -110,5 +115,7 @@ func newControllerCommand() *cobra.Command {
 	command.Flags().StringVar(&logFormat, "logformat", "text", "Set the logging format. One of: text|json")
 	command.Flags().IntVar(&metricsPort, "metrics-port", defaultMetricsPort, "Metrics port")
 	command.Flags().StringVar(&argocdRepoServer, "argocd-repo-server", "argocd-repo-server:8081", "Argo CD repo server address")
+	command.Flags().StringVar(&configMapName, "config-map-name", "argocd-notifications-cm", "Set notifications ConfigMap name")
+	command.Flags().StringVar(&secretName, "secret-name", "argocd-notifications-secret", "Set notifications Secret name")
 	return &command
 }
