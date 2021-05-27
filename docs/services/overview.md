@@ -47,3 +47,4 @@ metadata:
 * [Webhook](./webhook.md)
 * [Telegram](./telegram.md)
 * [Teams](./teams.md)
+* [Rocket.Chat](./rocketchat.md)
