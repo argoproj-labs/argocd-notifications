@@ -9,6 +9,7 @@ The Email notification service sends email notifications using SMTP protocol and
 * `username` - username
 * `password` - password
 * `from` - from email address
+* `html` - optional bool, true or false
 
 ## Example
 
