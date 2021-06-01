@@ -15,7 +15,9 @@ import (
 
 func NewToolsCommand() *cobra.Command {
 	var (
-		argocdRepoServer string
+		argocdRepoServer          string
+		argocdRepoServerPlaintext bool
+		argocdRepoServerStrictTLS bool
 	)
 
 	var argocdService argocd.Service
@@ -32,11 +34,13 @@ func NewToolsCommand() *cobra.Command {
 			if err != nil {
 				log.Fatalf("Failed to parse k8s config: %v", err)
 			}
-			argocdService, err = argocd.NewArgoCDService(kubernetes.NewForConfigOrDie(k8sCfg), ns, argocdRepoServer)
+			argocdService, err = argocd.NewArgoCDService(kubernetes.NewForConfigOrDie(k8sCfg), ns, argocdRepoServer, argocdRepoServerPlaintext, argocdRepoServerStrictTLS)
 			if err != nil {
 				log.Fatalf("Failed to initalize Argo CD service: %v", err)
 			}
 		})
 	toolsCommand.PersistentFlags().StringVar(&argocdRepoServer, "argocd-repo-server", "argocd-repo-server:8081", "Argo CD repo server address")
+	toolsCommand.PersistentFlags().BoolVar(&argocdRepoServerPlaintext, "argocd-repo-server-plaintext", false, "Use a plaintext client (non-TLS) to connect to repository server")
+	toolsCommand.PersistentFlags().BoolVar(&argocdRepoServerStrictTLS, "argocd-repo-server-strict-tls", false, "Perform strict validation of TLS certificates when connecting to repo server")
 	return toolsCommand
 }
