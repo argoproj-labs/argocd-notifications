@@ -111,6 +111,8 @@ spec:
         volumeMounts:
         - mountPath: /app/config/tls
           name: tls-certs
+        - mountPath: /app/config/reposerver/tls
+          name: argocd-repo-server-tls
         workingDir: /app
       securityContext:
         runAsNonRoot: true
@@ -119,3 +121,14 @@ spec:
       - configMap:
           name: argocd-tls-certs-cm
         name: tls-certs
+      - name: argocd-repo-server-tls
+        secret:
+          items:
+          - key: tls.crt
+            path: tls.crt
+          - key: tls.key
+            path: tls.key
+          - key: ca.crt
+            path: ca.crt
+          optional: true
+          secretName: argocd-repo-server-tls

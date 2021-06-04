@@ -28,16 +28,18 @@ const (
 
 func newControllerCommand() *cobra.Command {
 	var (
-		clientConfig     clientcmd.ClientConfig
-		processorsCount  int
-		namespace        string
-		appLabelSelector string
-		logLevel         string
-		logFormat        string
-		metricsPort      int
-		argocdRepoServer string
-		configMapName    string
-		secretName       string
+		clientConfig              clientcmd.ClientConfig
+		processorsCount           int
+		namespace                 string
+		appLabelSelector          string
+		logLevel                  string
+		logFormat                 string
+		metricsPort               int
+		argocdRepoServer          string
+		argocdRepoServerPlaintext bool
+		argocdRepoServerStrictTLS bool
+		configMapName             string
+		secretName                string
 	)
 	var command = cobra.Command{
 		Use:   "controller",
@@ -78,7 +80,7 @@ func newControllerCommand() *cobra.Command {
 				return fmt.Errorf("Unknown log format '%s'", logFormat)
 			}
 
-			argocdService, err := argocd.NewArgoCDService(k8sClient, namespace, argocdRepoServer)
+			argocdService, err := argocd.NewArgoCDService(k8sClient, namespace, argocdRepoServer, argocdRepoServerPlaintext, argocdRepoServerStrictTLS)
 			if err != nil {
 				return err
 			}
@@ -115,6 +117,8 @@ func newControllerCommand() *cobra.Command {
 	command.Flags().StringVar(&logFormat, "logformat", "text", "Set the logging format. One of: text|json")
 	command.Flags().IntVar(&metricsPort, "metrics-port", defaultMetricsPort, "Metrics port")
 	command.Flags().StringVar(&argocdRepoServer, "argocd-repo-server", "argocd-repo-server:8081", "Argo CD repo server address")
+	command.Flags().BoolVar(&argocdRepoServerPlaintext, "argocd-repo-server-plaintext", false, "Use a plaintext client (non-TLS) to connect to repository server")
+	command.Flags().BoolVar(&argocdRepoServerStrictTLS, "argocd-repo-server-strict-tls", false, "Perform strict validation of TLS certificates when connecting to repo server")
 	command.Flags().StringVar(&configMapName, "config-map-name", "argocd-notifications-cm", "Set notifications ConfigMap name")
 	command.Flags().StringVar(&secretName, "secret-name", "argocd-notifications-secret", "Set notifications Secret name")
 	return &command

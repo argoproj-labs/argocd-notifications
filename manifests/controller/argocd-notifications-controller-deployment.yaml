@@ -17,6 +17,17 @@ spec:
         - name: tls-certs
           configMap:
             name: argocd-tls-certs-cm
+        - name: argocd-repo-server-tls
+          secret:
+            secretName: argocd-repo-server-tls
+            optional: true
+            items:
+            - key: tls.crt
+              path: tls.crt
+            - key: tls.key
+              path: tls.key
+            - key: ca.crt
+              path: ca.crt
       containers:
         - command:
             - /app/argocd-notifications-backend
@@ -31,6 +42,8 @@ spec:
           volumeMounts:
             - name: tls-certs
               mountPath: /app/config/tls
+            - name: argocd-repo-server-tls
+              mountPath: /app/config/reposerver/tls
       serviceAccountName: argocd-notifications-controller
       securityContext:
           runAsNonRoot: true
