@@ -40,6 +40,7 @@ nav:
     - services/teams.md
     - services/telegram.md
     - services/webhook.md
+    - services/rocketchat.md
   - catalog.md
   - troubleshooting.md
   - Bots:
