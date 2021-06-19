@@ -6,20 +6,27 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/argoproj-labs/argocd-notifications/controller"
 	"github.com/argoproj-labs/argocd-notifications/shared/argocd"
 	"github.com/argoproj-labs/argocd-notifications/shared/k8s"
+	"github.com/google/uuid"
 
 	notificationscontroller "github.com/argoproj/notifications-engine/pkg/controller"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/tools/clientcmd"
+	componentbaseconfig "k8s.io/component-base/config"
+	"k8s.io/component-base/config/options"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
@@ -40,7 +47,16 @@ func newControllerCommand() *cobra.Command {
 		argocdRepoServerStrictTLS bool
 		configMapName             string
 		secretName                string
+		leaderElectionId          string
+		leaderElectionLockName    string
 	)
+
+	leaderElectionConfiguration := &componentbaseconfig.LeaderElectionConfiguration{
+		LeaderElect:   false,
+		LeaseDuration: metav1.Duration{Duration: 15 * time.Second},
+		RenewDeadline: metav1.Duration{Duration: 10 * time.Second},
+		RetryPeriod:   metav1.Duration{Duration: 2 * time.Second},
+	}
 	var command = cobra.Command{
 		Use:   "controller",
 		Short: "Starts Argo CD Notifications controller",
@@ -77,7 +93,7 @@ func newControllerCommand() *cobra.Command {
 					log.SetFormatter(&log.TextFormatter{ForceColors: true})
 				}
 			default:
-				return fmt.Errorf("Unknown log format '%s'", logFormat)
+				return fmt.Errorf("unknown log format '%s'", logFormat)
 			}
 
 			argocdService, err := argocd.NewArgoCDService(k8sClient, namespace, argocdRepoServer, argocdRepoServerPlaintext, argocdRepoServerStrictTLS)
@@ -101,15 +117,37 @@ func newControllerCommand() *cobra.Command {
 			ctrl := controller.NewController(k8sClient, dynamicClient, argocdService, namespace, appLabelSelector, registry)
 			err = ctrl.Init(context.Background())
 			if err != nil {
-				return err
+				panic(err)
 			}
 
-			go ctrl.Run(context.Background(), processorsCount)
-			<-context.Background().Done()
+			if leaderElectionConfiguration.LeaderElect {
+				leaderElector, err := k8s.CreateLeaderElector(
+					leaderElectionLockName,
+					namespace,
+					leaderElectionId,
+					k8sClient,
+					leaderElectionConfiguration,
+					func(ctx context.Context) {
+						ctrl.Run(ctx, processorsCount)
+					})
+				if err != nil {
+					return err
+				}
+
+				go leaderElector.Run(context.Background())
+				<-context.Background().Done()
+			} else {
+				go ctrl.Run(context.Background(), processorsCount)
+				<-context.Background().Done()
+			}
+
 			return nil
 		},
 	}
 	clientConfig = k8s.AddK8SFlagsToCmd(&command)
+	options.BindLeaderElectionFlags(leaderElectionConfiguration, command.Flags())
+	command.Flags().StringVar(&leaderElectionId, "leader-election-id", uuid.New().String(), "Instance id for leader election.")
+	command.Flags().StringVar(&leaderElectionLockName, "leader-election-lock-name", "argocd-notification-controller", "Lease lock name for leader election.")
 	command.Flags().IntVar(&processorsCount, "processors-count", 1, "Processors count.")
 	command.Flags().StringVar(&appLabelSelector, "app-label-selector", "", "App label selector.")
 	command.Flags().StringVar(&namespace, "namespace", "", "Namespace which controller handles. Current namespace if empty.")

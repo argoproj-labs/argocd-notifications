@@ -8,6 +8,7 @@ require (
 	github.com/evanphx/json-patch v4.9.0+incompatible
 	github.com/ghodss/yaml v1.0.0
 	github.com/golang/mock v1.4.4
+	github.com/google/uuid v1.1.2
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.4
 	github.com/prometheus/client_golang v1.7.1
@@ -20,6 +21,7 @@ require (
 	k8s.io/api v0.20.4
 	k8s.io/apimachinery v0.20.4
 	k8s.io/client-go v11.0.1-0.20190816222228-6d55c1b1f1ca+incompatible
+	k8s.io/component-base v0.20.4
 	k8s.io/utils v0.0.0-20201110183641-67b214c5f920
 )
 
