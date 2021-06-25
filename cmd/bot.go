@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/argoproj/notifications-engine/pkg/api"
 
 	"github.com/spf13/cobra"
@@ -19,6 +21,7 @@ func newBotCommand() *cobra.Command {
 		clientConfig clientcmd.ClientConfig
 		namespace    string
 		port         int
+		slackPath    string
 	)
 	var command = cobra.Command{
 		Use:   "bot",
@@ -48,12 +51,13 @@ func newBotCommand() *cobra.Command {
 				k8s.NewSecretInformer(clientset, namespace), k8s.NewConfigMapInformer(clientset, namespace))
 
 			server := bot.NewServer(dynamicClient, namespace)
-			server.AddAdapter("/slack", slack.NewSlackAdapter(slack.NewVerifier(apiFactory)))
+			server.AddAdapter(fmt.Sprintf("/%s", slackPath), slack.NewSlackAdapter(slack.NewVerifier(apiFactory)))
 			return server.Serve(port)
 		},
 	}
 	clientConfig = k8s.AddK8SFlagsToCmd(&command)
 	command.Flags().IntVar(&port, "port", 8080, "Port number.")
 	command.Flags().StringVar(&namespace, "namespace", "", "Namespace which bot handles. Current namespace if empty.")
+	command.Flags().StringVar(&slackPath, "slack-path", "slack", "Path to the slack bot handler")
 	return &command
 }
