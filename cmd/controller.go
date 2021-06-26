@@ -117,7 +117,7 @@ func newControllerCommand() *cobra.Command {
 			ctrl := controller.NewController(k8sClient, dynamicClient, argocdService, namespace, appLabelSelector, registry)
 			err = ctrl.Init(context.Background())
 			if err != nil {
-				panic(err)
+				return err
 			}
 
 			if leaderElectionConfiguration.LeaderElect {
