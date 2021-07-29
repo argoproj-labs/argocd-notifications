@@ -1,3 +1,17 @@
+# Slack
+
+If you want to send message using incoming webhook, you can use [webhook](./webhook.md#send-slack).
+
+## Parameters
+
+The Slack notification service configuration includes following settings:
+
+* `token` - the app token
+* `apiURL` - optional, the server url, e.g. https://example.com/api
+* `username` - optional, the app username
+* `icon` - optional, the app icon, e.g. :robot_face: or https://example.com/image.png
+* `insecureSkipVerify` - optional bool, true or false
+
 ## Configuration
 
 1. Create Slack Application using https://api.slack.com/apps?new_app=1
@@ -33,10 +47,7 @@ metadata:
   name: <config-map-name>
 data:
   service.slack: |
-    apiURL: <url>                 # optional URL, e.g. https://example.com/api
     token: $slack-token
-    username: <override-username> # optional username
-    icon: <override-icon> # optional icon for the message (supports both emoij and url notation)
 ```
 
 10. Add annotation in application yaml file to enable notifications for specific argocd app

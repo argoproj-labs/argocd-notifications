@@ -138,3 +138,40 @@ data:
         method: POST
         body: key1=value1&key2=value2
 ```
+
+### Send Slack
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: <config-map-name>
+data:
+  service.webhook.slack_webhook: |
+    url: https://hooks.slack.com/services/xxxxx
+    headers:
+    - name: Content-Type
+      value: application/json
+
+  template.send-slack: |
+    webhook:
+      slack_webhook:
+        method: POST
+        body: |
+          {
+            "attachments": [{
+              "title": "{{.app.metadata.name}}",
+              "title_link": "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+              "color": "#18be52",
+              "fields": [{
+                "title": "Sync Status",
+                "value": "{{.app.status.sync.status}}",
+                "short": true
+              }, {
+                "title": "Repository",
+                "value": "{{.app.spec.source.repoURL}}",
+                "short": true
+              }]
+            }]
+          }
+```
