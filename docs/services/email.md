@@ -10,6 +10,7 @@ The Email notification service sends email notifications using SMTP protocol and
 * `password` - password
 * `from` - from email address
 * `html` - optional bool, true or false
+* `insecure_skip_verify` - optional bool, true or false
 
 ## Example
 
