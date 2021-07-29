@@ -75,11 +75,38 @@ installing and configuring happen together:
 
 ```shell
 helm repo add argo https://argoproj.github.io/argo-helm
-helm install argo/argocd-notifications --generate-name \
-    --set triggers[0].name=on-sync-succeeded \
-    --set triggers[0].enabled=true \
-    --set secret.notifiers.slack.enabled=true \
-    --set secret.notifiers.slack.token=<my-token>
+helm install argo/argocd-notifications --generate-name -n argocd -f values.yaml
+```
+
+```yaml
+argocdUrl: https://argocd.example.com
+
+notifiers:
+  service.email.gmail: |
+    username: $email-username
+    password: $email-password
+    host: smtp.gmail.com
+    port: 465
+    from: $email-username
+
+secret:
+  items:
+    email-username: <your-username>
+    email-password: <your-password>
+
+templates:
+  template.app-deployed: |
+    email:
+      subject: New version of an application {{.app.metadata.name}} is up and running.
+    message: |
+      {{if eq .serviceType "slack"}}:white_check_mark:{{end}} Application {{.app.metadata.name}} is now running new version of deployments manifests.
+triggers:
+  trigger.on-deployed: |
+    - description: Application is synced and healthy. Triggered once per commit.
+      oncePer: app.status.operationState.syncResult.revision
+      send:
+      - app-deployed
+      when: app.status.operationState.phase in ['Succeeded'] and app.status.health.status == 'Healthy'
 ```
 
 For more information or to contribute, check out the [argoproj/argo-helm repository](https://github.com/argoproj/argo-helm/tree/master/charts/argocd-notifications).
