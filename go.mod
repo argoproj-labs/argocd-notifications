@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/argoproj/argo-cd/v2 v2.0.0-rc3
-	github.com/argoproj/notifications-engine v0.2.1-0.20210729153923-a15e78044105
+	github.com/argoproj/notifications-engine v0.2.1-0.20210801151500-3203039170af
 	github.com/evanphx/json-patch v4.9.0+incompatible
 	github.com/ghodss/yaml v1.0.0
 	github.com/golang/mock v1.4.4

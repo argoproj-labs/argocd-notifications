@@ -22,43 +22,43 @@ The Slack notification service configuration includes following settings:
 ![3](https://user-images.githubusercontent.com/426437/73604310-4d495b80-4543-11ea-8576-09cd91aea0e5.png)
 1. Scroll back to the top, click 'Install App to Workspace' button and confirm the installation.
 ![4](https://user-images.githubusercontent.com/426437/73604311-4d495b80-4543-11ea-9155-9d216b20ec86.png)
-1. Once installation is completed copy the OAuth token. 
+1. Once installation is completed copy the OAuth token.
 ![5](https://user-images.githubusercontent.com/426437/73604312-4d495b80-4543-11ea-832b-a9d9d5e4bc29.png)
 
 1. Create a public or private channel, for this example `my_channel`
 1. Invite your slack bot to this channel **otherwise slack bot won't be able to deliver notifications to this channel**
-8. Store Oauth access token in `argocd-notifications-secret` secret
- 
-```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: <secret-name>
-stringData:
-  slack-token: <Oauth-access-token>
-```
+1. Store Oauth access token in `argocd-notifications-secret` secret
 
-9. Define service type slack in data section of `argocd-notifications-cm` configmap: 
+    ```yaml
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: <secret-name>
+    stringData:
+      slack-token: <Oauth-access-token>
+    ```
+
+1. Define service type slack in data section of `argocd-notifications-cm` configmap:
 service
-```yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: <config-map-name>
-data:
-  service.slack: |
-    token: $slack-token
-```
+    ```yaml
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: <config-map-name>
+    data:
+      service.slack: |
+        token: $slack-token
+    ```
 
-10. Add annotation in application yaml file to enable notifications for specific argocd app
+1. Add annotation in application yaml file to enable notifications for specific argocd app
 
-```yaml
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  annotations:
-    notifications.argoproj.io/subscribe.on-sync-succeeded.slack: my_channel
-```
+    ```yaml
+    apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+      annotations:
+        notifications.argoproj.io/subscribe.on-sync-succeeded.slack: my_channel
+    ```
 
 ## Templates
 

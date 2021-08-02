@@ -74,7 +74,7 @@ func (c *notificationController) alterDestinations(obj v1.Object, destinations s
 	}
 
 	if proj := getAppProj(app, c.appProjInformer); proj != nil {
-		destinations.Merge(subscriptions.Annotations(proj.GetAnnotations()).GetDestinations(cfg.DefaultTriggers, cfg.ServiceDefaultTriggers))
+		destinations.Merge(subscriptions.NewAnnotations(proj.GetAnnotations()).GetDestinations(cfg.DefaultTriggers, cfg.ServiceDefaultTriggers))
 		destinations.Merge(settings.GetLegacyDestinations(proj.GetAnnotations(), cfg.DefaultTriggers, cfg.ServiceDefaultTriggers))
 	}
 	return destinations
