@@ -91,3 +91,57 @@ template.app-sync-status: |
         }]
       }]
 ```
+
+The messages can be aggregated to the slack threads by grouping key which can be specified in a `groupingKey` string field under `slack` field.
+`groupingKey` is used across each template and works independently on each slack channel.
+When multiple applications will be updated at the same time or frequently, the messages in slack channel can be easily read by aggregating with git commit hash, application name, etc.
+Furthermore, the messages can be broadcast to the channel at the specific template by `notifyBroadcast` field.
+
+```yaml
+template.app-sync-status: |
+  message: |
+    Application {{.app.metadata.name}} sync is {{.app.status.sync.status}}.
+    Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
+  slack:
+    attachments: |
+      [{
+        "title": "{{.app.metadata.name}}",
+        "title_link": "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+        "color": "#18be52",
+        "fields": [{
+          "title": "Sync Status",
+          "value": "{{.app.status.sync.status}}",
+          "short": true
+        }, {
+          "title": "Repository",
+          "value": "{{.app.spec.source.repoURL}}",
+          "short": true
+        }]
+      }]
+    # Aggregate the messages to the thread by git commit hash
+    groupingKey: "{{.app.status.sync.revision}}"
+    notifyBroadcast: false
+template.app-sync-failed: |
+  message: |
+    Application {{.app.metadata.name}} sync is {{.app.status.sync.status}}.
+    Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
+  slack:
+    attachments: |
+      [{
+        "title": "{{.app.metadata.name}}",
+        "title_link": "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+        "color": "#ff0000",
+        "fields": [{
+          "title": "Sync Status",
+          "value": "{{.app.status.sync.status}}",
+          "short": true
+        }, {
+          "title": "Repository",
+          "value": "{{.app.spec.source.repoURL}}",
+          "short": true
+        }]
+      }]
+    # Aggregate the messages to the thread by git commit hash
+    groupingKey: "{{.app.status.sync.revision}}"
+    notifyBroadcast: true
+```
