@@ -48,7 +48,7 @@ data:
 
 In some cases, the trigger condition might be "flapping". The example below illustrates the problem.
 The trigger is supposed to generate a notification once when Argo CD application is successfully synchronized and healthy.
-However the application health status might intermittently switch to `Progressing` and then back to `Healthy` so the trigger might unnecessary generate
+However, the application health status might intermittently switch to `Progressing` and then back to `Healthy` so the trigger might unnecessarily generate
 multiple notifications. The `oncePer` field configures triggers to generate the notification only when the corresponding application field changes.
 The `on-deployed` trigger from the example below sends the notification only once per observed Git revision of the deployment repository.
 
