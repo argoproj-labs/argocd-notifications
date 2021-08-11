@@ -50,6 +50,8 @@ data:
           {{end}}
           ]
         }]
+      groupingKey: ""
+      notifyBroadcast: false
     teams:
       facts: |
         [{
@@ -126,6 +128,8 @@ data:
           {{end}}
           ]
         }]
+      groupingKey: ""
+      notifyBroadcast: false
     teams:
       facts: |
         [{
@@ -198,6 +202,8 @@ data:
           {{end}}
           ]
         }]
+      groupingKey: ""
+      notifyBroadcast: false
     teams:
       facts: |
         [{
@@ -274,6 +280,8 @@ data:
           {{end}}
           ]
         }]
+      groupingKey: ""
+      notifyBroadcast: false
     teams:
       facts: |
         [{
@@ -354,6 +362,8 @@ data:
           {{end}}
           ]
         }]
+      groupingKey: ""
+      notifyBroadcast: false
     teams:
       facts: |
         [{
@@ -425,6 +435,8 @@ data:
           {{end}}
           ]
         }]
+      groupingKey: ""
+      notifyBroadcast: false
     teams:
       facts: |
         [{

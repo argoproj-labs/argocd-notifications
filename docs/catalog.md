@@ -72,6 +72,8 @@ slack:
       {{end}}
       ]
     }]
+  groupingKey: ""
+  notifyBroadcast: false
 teams:
   facts: |
     [{
@@ -152,6 +154,8 @@ slack:
       {{end}}
       ]
     }]
+  groupingKey: ""
+  notifyBroadcast: false
 teams:
   facts: |
     [{
@@ -228,6 +232,8 @@ slack:
       {{end}}
       ]
     }]
+  groupingKey: ""
+  notifyBroadcast: false
 teams:
   facts: |
     [{
@@ -308,6 +314,8 @@ slack:
       {{end}}
       ]
     }]
+  groupingKey: ""
+  notifyBroadcast: false
 teams:
   facts: |
     [{
@@ -392,6 +400,8 @@ slack:
       {{end}}
       ]
     }]
+  groupingKey: ""
+  notifyBroadcast: false
 teams:
   facts: |
     [{
@@ -467,6 +477,8 @@ slack:
       {{end}}
       ]
     }]
+  groupingKey: ""
+  notifyBroadcast: false
 teams:
   facts: |
     [{
