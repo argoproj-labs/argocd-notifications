@@ -42,7 +42,7 @@ func NewController(
 	registry *controller.MetricsRegistry,
 ) *notificationController {
 	appClient := client.Resource(k8s.Applications)
-	appInformer := newInformer(appClient, appLabelSelector)
+	appInformer := newInformer(appClient.Namespace(namespace), appLabelSelector)
 	appProjInformer := newInformer(k8s.NewAppProjClient(client, namespace), "")
 	secretInformer := k8s.NewSecretInformer(k8sClient, namespace)
 	configMapInformer := k8s.NewConfigMapInformer(k8sClient, namespace)
