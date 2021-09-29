@@ -10,6 +10,7 @@ func TestExpr(t *testing.T) {
 	namespaces := []string{
 		"time",
 		"repo",
+		"strings",
 	}
 
 	for _, ns := range namespaces {

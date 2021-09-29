@@ -12,6 +12,14 @@ Returns an instance of Golang [Time](https://golang.org/pkg/time/#Time).
 
 Parses specified string using RFC3339 layout. Returns an instance of Golang [Time](https://golang.org/pkg/time/#Time).
 
+### **strings**
+String related functions.
+
+<hr>
+**`strings.ReplaceAll() string`**
+
+Executes function built-in Golang [strings.ReplaceAll](https://pkg.go.dev/strings#ReplaceAll) function.
+
 ### **repo**
 Functions that provide additional information about Application source repository.
 <hr>
