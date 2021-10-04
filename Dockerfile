@@ -9,17 +9,17 @@ ARG TARGETARCH
 ARG TARGETPLATFORM
 ARG BUILDPLATFORM
 
-COPY go.mod /src/go.mod
-COPY go.sum /src/go.sum
+#COPY go.mod /src/go.mod
+#COPY go.sum /src/go.sum
 
-RUN go mod download
+#RUN go mod download
 
 # Perform the build
 COPY . .
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -ldflags="-w -s" -o /app/argocd-notifications ./cmd
 RUN ln -s /app/argocd-notifications /app/argocd-notifications-backend
 
-FROM scratch
+FROM alpine
 
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=builder /app/argocd-notifications /app/argocd-notifications
