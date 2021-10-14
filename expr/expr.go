@@ -2,6 +2,7 @@ package expr
 
 import (
 	"github.com/argoproj-labs/argocd-notifications/expr/repo"
+	"github.com/argoproj-labs/argocd-notifications/expr/strings"
 	"github.com/argoproj-labs/argocd-notifications/expr/time"
 	"github.com/argoproj-labs/argocd-notifications/shared/argocd"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -12,6 +13,7 @@ var helpers = map[string]interface{}{}
 func init() {
 	helpers = make(map[string]interface{})
 	register("time", time.NewExprs())
+	register("strings", strings.NewExprs())
 }
 
 func register(namespace string, entry map[string]interface{}) {
