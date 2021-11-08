@@ -52,3 +52,20 @@ data:
       triggers:
       - on-sync-status-unknown
 ```
+
+If you want to use webhook in subscriptions, you need to store the custom name to recipients.
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-notifications-cm
+data:
+  service.webhook.<webhook-name>: |
+    (snip)
+  subscriptions: |
+    - recipients:
+      - <webhook-name>
+      triggers:
+      - on-sync-status-unknown
+```
