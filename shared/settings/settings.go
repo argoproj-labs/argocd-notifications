@@ -1,6 +1,8 @@
 package settings
 
 import (
+	"strings"
+
 	"github.com/argoproj-labs/argocd-notifications/expr"
 	"github.com/argoproj-labs/argocd-notifications/shared/argocd"
 	"github.com/argoproj-labs/argocd-notifications/shared/k8s"
@@ -28,6 +30,16 @@ func initGetVars(argocdService argocd.Service, cfg *api.Config, configMap *v1.Co
 			return nil, err
 		}
 	}
+
+	// prefixing a value with $ will get it replaced with the secret value instead
+	for k, v := range context {
+		if strings.HasPrefix(v, "$") {
+			if secretVal, ok := secret.Data[strings.TrimPrefix(string(v), "$")]; ok {
+				context[k] = string(secretVal)
+			}
+		}
+	}
+
 	if err := ApplyLegacyConfig(cfg, context, configMap, secret); err != nil {
 		return nil, err
 	}
