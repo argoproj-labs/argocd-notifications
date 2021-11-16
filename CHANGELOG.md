@@ -1,6 +1,34 @@
 # Changelog
 
-## v1.1.0 (Unreleased)
+## v1.2.0 (Unreleased)
+
+### Features
+
+* feat: Subscribe to all triggers at once (#202)
+* feat: Add .strings.ReplaceAll expression (#332)
+* feat: Plaintext connection to repo-server with ability disable TLS (#281)
+* feat: Dynamic ConfigMap name and Secret name (#77)
+* feat: Configurable path for slack bot (#94)
+* feat: Support rocketchat 
+* feat: Support google chat
+* feat: Support alertmanager
+* feat: Support pushover
+* feat: Support email SendHtml
+* feat: add message aggregation feature by slack threads API
+* feat: add summary field into teams message
+
+### Bug Fixes
+
+* fix: syntax error in Teams notifications (#271)
+* fix: service account rbac issue , add namespace support for informer (#322)
+* fix: add annotations nil check
+* fix: add expr error log
+
+### Other
+
+* Move notification providers to notifications-engine library
+
+## v1.1.0 (2021-04-17)
 
 ### Features
 
