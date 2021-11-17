@@ -17,6 +17,7 @@
 * feat: Add message aggregation feature by slack threads API
 * feat: Add summary field into teams message
 * feat: Support Markdown parse mode in telegram
+* feat: Add .sync.GetInfoItem that simplifies retrieving operation info items by name
 
 ### Bug Fixes
 
