@@ -14,8 +14,9 @@
 * feat: Support alertmanager
 * feat: Support pushover
 * feat: Support email SendHtml
-* feat: add message aggregation feature by slack threads API
-* feat: add summary field into teams message
+* feat: Add message aggregation feature by slack threads API
+* feat: Add summary field into teams message
+* feat: Support Markdown parse mode in telegram
 
 ### Bug Fixes
 
