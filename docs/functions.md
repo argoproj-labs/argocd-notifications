@@ -20,6 +20,13 @@ String related functions.
 
 Executes function built-in Golang [strings.ReplaceAll](https://pkg.go.dev/strings#ReplaceAll) function.
 
+### **sync**
+
+<hr>
+**`sync.GetInfoItem(app map, name string) string`**
+
+Returns the `info` item value by given name stored in the Argo CD App sync operation.
+
 ### **repo**
 Functions that provide additional information about Application source repository.
 <hr>
