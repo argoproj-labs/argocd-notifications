@@ -6,6 +6,7 @@
 
 * feat: Subscribe to all triggers at once (#202)
 * feat: Add .strings.ReplaceAll expression (#332)
+* feat: Add .sync.GetInfoItem expression that simplifies retrieving operation info items by name
 * feat: Plaintext connection to repo-server with ability disable TLS (#281)
 * feat: Dynamic ConfigMap name and Secret name (#77)
 * feat: Configurable path for slack bot (#94)
@@ -17,7 +18,6 @@
 * feat: Add message aggregation feature by slack threads API
 * feat: Add summary field into teams message
 * feat: Support Markdown parse mode in telegram
-* feat: Add .sync.GetInfoItem that simplifies retrieving operation info items by name
 
 ### Bug Fixes
 
