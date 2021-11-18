@@ -9,3 +9,7 @@ resources:
 - argocd-notifications-secret.yaml
 - argocd-notifications-controller-role.yaml
 - argocd-notifications-controller-metrics-service.yaml
+
+images:
+- name: argoprojlabs/argocd-notifications
+  newTag: v1.2.0
