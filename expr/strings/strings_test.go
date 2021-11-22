@@ -35,8 +35,8 @@ func TestReplaceAll(t *testing.T) {
 
 func TestUpperAndLower(t *testing.T) {
 	testCases := []struct {
-		fn    string
-		input string
+		fn       string
+		input    string
 		expected string
 	}{
 		{

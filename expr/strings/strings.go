@@ -1,12 +1,14 @@
 package strings
 
-import "strings"
+import (
+	"strings"
+)
 
 func NewExprs() map[string]interface{} {
 	return map[string]interface{}{
 		"ReplaceAll": replaceAll,
-		"ToUpper": toUpper,
-		"ToLower": toLower,
+		"ToUpper":    toUpper,
+		"ToLower":    toLower,
 	}
 }
 
