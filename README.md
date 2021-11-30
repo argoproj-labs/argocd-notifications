@@ -2,7 +2,7 @@
 
 # Argo CD Notifications is now part of Argo CD
 
-**This project have moved to the main Argo CD repository**
+**This project has moved to the main Argo CD repository**
 
 This repository is no longer active. The Argo CD notifications project is now merged with [Argo CD](https://github.com/argoproj/argo-cd) and released along with it.
 Further development will happen there.
