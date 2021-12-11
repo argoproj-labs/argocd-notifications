@@ -3,6 +3,7 @@ package expr
 import (
 	"github.com/argoproj-labs/argocd-notifications/expr/repo"
 	"github.com/argoproj-labs/argocd-notifications/expr/strings"
+	"github.com/argoproj-labs/argocd-notifications/expr/sync"
 	"github.com/argoproj-labs/argocd-notifications/expr/time"
 	"github.com/argoproj-labs/argocd-notifications/shared/argocd"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -14,6 +15,7 @@ func init() {
 	helpers = make(map[string]interface{})
 	register("time", time.NewExprs())
 	register("strings", strings.NewExprs())
+	register("sync", sync.NewExprs())
 }
 
 func register(namespace string, entry map[string]interface{}) {
