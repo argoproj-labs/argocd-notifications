@@ -5,10 +5,9 @@ go 1.16
 require (
 	github.com/argoproj/argo-cd/v2 v2.1.7
 	github.com/argoproj/notifications-engine v0.3.1-0.20211117165611-0e1f1eda5f52
-    github.com/evanphx/json-patch v4.11.0+incompatible
+	github.com/evanphx/json-patch v4.11.0+incompatible
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-redis/cache/v8 v8.11.3 // indirect
-	github.com/golang/mock v1.5.0
 	github.com/golang/mock v1.5.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.4
