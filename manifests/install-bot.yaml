@@ -157,7 +157,7 @@ spec:
       - command:
         - /app/argocd-notifications-backend
         - bot
-        image: argoprojlabs/argocd-notifications:v1.2.0
+        image: argoprojlabs/argocd-notifications:v1.2.1
         imagePullPolicy: Always
         name: argocd-notifications-bot
         workingDir: /app
@@ -182,7 +182,7 @@ spec:
       - command:
         - /app/argocd-notifications-backend
         - controller
-        image: argoprojlabs/argocd-notifications:v1.2.0
+        image: argoprojlabs/argocd-notifications:v1.2.1
         imagePullPolicy: Always
         livenessProbe:
           tcpSocket:
