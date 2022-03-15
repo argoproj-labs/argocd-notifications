@@ -117,8 +117,21 @@ func (svc *argoCDService) GetAppDetails(ctx context.Context, appSource *v1alpha1
 	if err != nil {
 		return nil, err
 	}
+
 	var has *shared.HelmAppSpec
 	if appDetail.Helm != nil {
+
+		if appSource.Helm.Parameters != nil {
+			for _, overrideParam := range appSource.Helm.Parameters {
+				for _, defaultParam := range appDetail.Helm.Parameters {
+					if overrideParam.Name == defaultParam.Name {
+						defaultParam.Value = overrideParam.Value
+						defaultParam.ForceString = overrideParam.ForceString
+					}
+				}
+			}
+		}
+
 		has = &shared.HelmAppSpec{
 			Name:           appDetail.Helm.Name,
 			ValueFiles:     appDetail.Helm.ValueFiles,
