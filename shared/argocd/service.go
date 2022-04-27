@@ -123,6 +123,9 @@ func (svc *argoCDService) GetAppDetails(ctx context.Context, appSource *v1alpha1
 	var has *shared.HelmAppSpec
 	if appDetail.Helm != nil {
 		paramsMap := map[string]*v1alpha1.HelmParameter{}
+		for _, param := range appDetail.Helm.Parameters {
+			paramsMap[param.Name] = param
+		}
 		if appSource.Helm.Parameters != nil {
 			for _, overrideParam := range appSource.Helm.Parameters {
 				paramsMap[overrideParam.Name] = &v1alpha1.HelmParameter{
@@ -133,9 +136,6 @@ func (svc *argoCDService) GetAppDetails(ctx context.Context, appSource *v1alpha1
 			}
 		}
 		if appSource.Helm.Values != "" {
-			for _, param := range appDetail.Helm.Parameters {
-				paramsMap[param.Name] = param
-			}
 			valuesParams, err := GetHelmParametersByValues(appSource.Helm.Values)
 			if err != nil {
 				return nil, err
