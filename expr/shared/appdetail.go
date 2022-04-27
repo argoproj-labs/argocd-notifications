@@ -1,6 +1,8 @@
 package shared
 
-import "github.com/argoproj/argo-cd/v2/reposerver/apiclient"
+import (
+	"github.com/argoproj/argo-cd/v2/reposerver/apiclient"
+)
 
 type AppDetail struct {
 	// AppDetail Type

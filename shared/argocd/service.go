@@ -3,6 +3,8 @@ package argocd
 import (
 	"context"
 	"fmt"
+	"github.com/ghodss/yaml"
+	"strings"
 
 	"github.com/argoproj-labs/argocd-notifications/expr/shared"
 	"github.com/argoproj/argo-cd/v2/common"
@@ -120,18 +122,39 @@ func (svc *argoCDService) GetAppDetails(ctx context.Context, appSource *v1alpha1
 
 	var has *shared.HelmAppSpec
 	if appDetail.Helm != nil {
-
+		paramsMap := map[string]*v1alpha1.HelmParameter{}
 		if appSource.Helm.Parameters != nil {
 			for _, overrideParam := range appSource.Helm.Parameters {
-				for _, defaultParam := range appDetail.Helm.Parameters {
-					if overrideParam.Name == defaultParam.Name {
-						defaultParam.Value = overrideParam.Value
-						defaultParam.ForceString = overrideParam.ForceString
-					}
+				paramsMap[overrideParam.Name] = &v1alpha1.HelmParameter{
+					Name:        overrideParam.Name,
+					Value:       overrideParam.Value,
+					ForceString: overrideParam.ForceString,
 				}
 			}
 		}
-
+		if appSource.Helm.Values != "" {
+			for _, param := range appDetail.Helm.Parameters {
+				paramsMap[param.Name] = param
+			}
+			valuesParams, err := GetHelmParametersByValues(appSource.Helm.Values)
+			if err != nil {
+				return nil, err
+			}
+			for k, v := range valuesParams {
+				paramsMap[k] = &v1alpha1.HelmParameter{
+					Name:  k,
+					Value: v,
+				}
+			}
+			appDetail.Helm.Parameters = nil
+			for k, v := range paramsMap {
+				appDetail.Helm.Parameters = append(appDetail.Helm.Parameters, &v1alpha1.HelmParameter{
+					Name:        k,
+					Value:       v.Value,
+					ForceString: v.ForceString,
+				})
+			}
+		}
 		has = &shared.HelmAppSpec{
 			Name:           appDetail.Helm.Name,
 			ValueFiles:     appDetail.Helm.ValueFiles,
@@ -151,4 +174,31 @@ func (svc *argoCDService) GetAppDetails(ctx context.Context, appSource *v1alpha1
 
 func (svc *argoCDService) Close() {
 	svc.dispose()
+}
+
+func GetHelmParametersByValues(values string) (map[string]string, error) {
+	output := map[string]string{}
+	valuesMap := map[string]interface{}{}
+	if err := yaml.Unmarshal([]byte(values), &valuesMap); err != nil {
+		return nil, fmt.Errorf("failed to parse values: %s", err)
+	}
+	flatVals(valuesMap, output)
+
+	return output, nil
+}
+
+func flatVals(input interface{}, output map[string]string, prefixes ...string) {
+	switch i := input.(type) {
+	case map[string]interface{}:
+		for k, v := range i {
+			flatVals(v, output, append(prefixes, k)...)
+		}
+	case []interface{}:
+		p := append([]string(nil), prefixes...)
+		for j, v := range i {
+			flatVals(v, output, append(p[0:len(p)-1], fmt.Sprintf("%s[%v]", prefixes[len(p)-1], j))...)
+		}
+	default:
+		output[strings.Join(prefixes, ".")] = fmt.Sprintf("%v", i)
+	}
 }
