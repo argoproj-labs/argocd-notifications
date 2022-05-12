@@ -1,4 +1,11 @@
-# Overview
+
+# Argo CD Notifications is now part of Argo CD
+
+This documentation has moved to the [main Argo CD documentation](https://argo-cd.readthedocs.io/en/stable/operator-manual/notifications/).
+
+The Argo CD notifications project is now merged with Argo CD and released along with it.
+
+## Overview
 
 Argo CD Notifications continuously monitors Argo CD applications and provides a flexible way to notify
 users about important changes in the application state. Using a flexible mechanism of
