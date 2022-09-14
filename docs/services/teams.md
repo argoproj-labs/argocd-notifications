@@ -22,7 +22,8 @@ metadata:
 data:
   service.teams: |
     recipientUrls:
-      channelName: $channel-teams-url
+      channelA: $channel-a-teams-url
+      # channelB: $channel-b-teams-url
 ```
 
 ```yaml
@@ -31,7 +32,8 @@ kind: Secret
 metadata:
   name: <secret-name>
 stringData:
-  channel-teams-url: https://example.com
+  channel-a-teams-url: https://example.com
+  # channel-b-teams-url: https://example.com
 ```
 
 6. Create subscription for your Teams integration:
@@ -41,7 +43,8 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   annotations:
-    notifications.argoproj.io/subscribe.on-sync-succeeded.teams: channelName
+    notifications.argoproj.io/subscribe.on-sync-succeeded.teams: channelA
+    # notifications.argoproj.io/subscribe.on-sync-failed.teams: channelB
 ```
 
 ## Templates

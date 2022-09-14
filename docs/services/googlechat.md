@@ -23,7 +23,8 @@ metadata:
 data:
   service.googlechat: |
     webhooks:
-      spaceName: $space-webhook-url
+      spaceA: $space-webhook-url
+      # spaceB: $space-webhook-url
 ```
 
 ```yaml
@@ -32,7 +33,8 @@ kind: Secret
 metadata:
   name: <secret-name>
 stringData:
-  space-webhook-url: https://chat.googleapis.com/v1/spaces/<space_id>/messages?key=<key>&token=<token>  
+  space-a-webhook-url: https://chat.googleapis.com/v1/spaces/<space_id>/messages?key=<key>&token=<token>
+  # space-b-webhook-url: https://chat.googleapis.com/v1/spaces/<space_id>/messages?key=<key>&token=<token>
 ```
 
 6. Create a subscription for your space
@@ -42,7 +44,8 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   annotations:
-    notifications.argoproj.io/subscribe.on-sync-succeeded.googlechat: spaceName
+    notifications.argoproj.io/subscribe.on-sync-succeeded.googlechat: spaceA
+    notifications.argoproj.io/subscribe.on-sync-failed.googlechat: spaceB
 ```
 
 ## Templates
