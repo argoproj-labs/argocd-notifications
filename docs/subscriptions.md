@@ -1,3 +1,8 @@
+<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/subscriptions/'" />
+
+!!! important "This page has moved"
+    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/subscriptions//](https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/subscriptions//). Redirecting to the new page.
+
 The subscription to Argo CD application events can be defined using `notifications.argoproj.io/subscribe.<trigger>.<service>: <recipient>` annotation.
 For example, the following annotation subscribes two Slack channels to notifications about every successful synchronization of the Argo CD application:
 

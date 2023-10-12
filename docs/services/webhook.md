@@ -1,3 +1,8 @@
+<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/services/webhook/'" />
+
+!!! important "This page has moved"
+    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/services/webhook//](https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/services/webhook//). Redirecting to the new page.
+
 ## Configuration
 
 The webhook notification service allows sending a generic HTTP request using the templatized request body and URL.

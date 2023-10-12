@@ -1,3 +1,8 @@
+<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/troubleshooting-errors/'" />
+
+!!! important "This page has moved"
+    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/troubleshooting-errors//](https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/troubleshooting-errors//). Redirecting to the new page.
+
 ## Failed to parse new settings
 
 ### error converting YAML to JSON

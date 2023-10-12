@@ -1,3 +1,8 @@
+<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/triggers/'" />
+
+!!! important "This page has moved"
+    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/triggers//](https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/triggers//). Redirecting to the new page.
+
 The trigger defines the condition when the notification should be sent. The definition includes name, condition
 and notification templates reference. The condition is a predicate expression that returns true if the notification
 should be sent. The trigger condition evaluation is powered by [antonmedv/expr](https://github.com/antonmedv/expr).
