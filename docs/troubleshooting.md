@@ -1,3 +1,8 @@
+<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/troubleshooting/'" />
+
+!!! important "This page has moved"
+    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/troubleshooting//](https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/troubleshooting//). Redirecting to the new page.
+
 ## Troubleshooting
 
 The `argocd-notifications` binary includes a set of CLI commands that helps to configure the controller

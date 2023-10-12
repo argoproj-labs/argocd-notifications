@@ -1,3 +1,8 @@
+<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/'" />
+
+!!! important "This page has moved"
+    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/](https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/). Redirecting to the new page.
+
 The optional bot component simplifies managing subscriptions. The end users can use bot commands to manage subscriptions
 even if they don't have access to the Kubernetes API and cannot modify annotations. 
 
