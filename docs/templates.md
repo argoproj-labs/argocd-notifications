@@ -1,3 +1,8 @@
+<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/templates/'" />
+
+!!! important "This page has moved"
+    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/templates//](https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/templates//). Redirecting to the new page.
+
 The notification template is used to generate the notification content and configured in `argocd-notifications-cm` ConfigMap. The template is leveraging
 [html/template](https://golang.org/pkg/html/template/) golang package and allow to customize notification message.
 Templates are meant to be reusable and can be referenced by multiple triggers.

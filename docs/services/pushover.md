@@ -1,3 +1,8 @@
+<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/services/pushover/'" />
+
+!!! important "This page has moved"
+    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/services/pushover//](https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/services/pushover//). Redirecting to the new page.
+
 # Pushover
 
 1. Create an app at [pushover.net](https://pushover.net/apps/build).

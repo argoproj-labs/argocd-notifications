@@ -1,3 +1,8 @@
+<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/'" />
+
+!!! important "This page has moved"
+    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/](https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/). Redirecting to the new page.
+
 # Slack bot
 
 The Slack bot leverages [slash commands](https://api.slack.com/interactivity/slash-commands). The bot allows slack users
