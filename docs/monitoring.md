@@ -1,3 +1,8 @@
+<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/monitoring/'" />
+
+!!! important "This page has moved"
+    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/monitoring//](https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/monitoring//). Redirecting to the new page.
+
 # Monitoring
 
 The Argo CD Notification controller serves Prometheus metrics on port 9001.
