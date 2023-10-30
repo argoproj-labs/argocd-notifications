@@ -81,6 +81,7 @@ func repoURLToHTTPS(rawURL string) string {
 	}
 	parsed.Scheme = "https"
 	parsed.User = nil
+	parsed.Path = gitSuffix.ReplaceAllString(parsed.Path, "")
 	return parsed.String()
 }
 
