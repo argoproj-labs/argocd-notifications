@@ -1,8 +1,3 @@
-<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/services/telegram/'" />
-
-!!! important "This page has moved"
-    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/services/telegram//](https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/services/telegram//). Redirecting to the new page.
-
 # Telegram
 
 1. Get an API token using [@Botfather](https://t.me/Botfather).

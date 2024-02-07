@@ -1,8 +1,3 @@
-<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/services/email/'" />
-
-!!! important "This page has moved"
-    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/services/email//](https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/services/email//). Redirecting to the new page.
-
 # Email
 
 ## Parameters

@@ -1,8 +1,3 @@
-<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/services/teams/'" />
-
-!!! important "This page has moved"
-    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/services/teams//](https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/services/teams//). Redirecting to the new page.
-
 # Teams
 
 ## Parameters

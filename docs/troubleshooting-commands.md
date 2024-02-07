@@ -1,8 +1,3 @@
-<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/troubleshooting-commands/'" />
-
-!!! important "This page has moved"
-    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/troubleshooting-commands//](https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/troubleshooting-commands//). Redirecting to the new page.
-
 ## argocd-notifications template get
 
 Prints information about configured templates
