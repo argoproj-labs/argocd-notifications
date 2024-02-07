@@ -1,8 +1,3 @@
-<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/services/opsgenie/'" />
-
-!!! important "This page has moved"
-    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/services/opsgenie//](https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/services/opsgenie//). Redirecting to the new page.
-
 # Opsgenie
 
 To be able to send notifications with argocd-notifications you have to create an [API Integration](https://docs.opsgenie.com/docs/integrations-overview) inside your [Opsgenie Team](https://docs.opsgenie.com/docs/teams).

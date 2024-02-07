@@ -1,7 +1,8 @@
 <meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/'" />
 
 !!! important "This page has moved"
-    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/](https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/). Redirecting to the new page.
+    Warning. Argo notifications has been merged with the Argo CD project. You do not need to install it separately anymore. It is now part of the main Argo CD installation See https://argo-cd.readthedocs.io/en/stable/operator-manual/notifications/ for latest docs. 
+
 
 # Overview
 

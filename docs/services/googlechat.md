@@ -1,8 +1,3 @@
-<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/services/googlechat/'" />
-
-!!! important "This page has moved"
-    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/services/googlechat//](https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/services/googlechat//). Redirecting to the new page.
-
 # Google Chat
 
 ## Parameters

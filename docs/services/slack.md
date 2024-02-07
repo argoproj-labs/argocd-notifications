@@ -1,8 +1,3 @@
-<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/services/slack/'" />
-
-!!! important "This page has moved"
-    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/services/slack//](https://argo-cd.readthedocs.io/en/latest/operator-manual/notifications/services/slack//). Redirecting to the new page.
-
 # Slack
 
 If you want to send message using incoming webhook, you can use [webhook](./webhook.md#send-slack).
